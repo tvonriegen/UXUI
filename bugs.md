@@ -65,4 +65,23 @@ Bugs are discovered during task work and annotated here. Each entry includes sev
 
 ## Resolved Bugs
 
-*No resolved bugs yet.*
+### [high] Likes double-count race condition — `src/app/muro/page.tsx`
+- **Discovered:** Teacher feedback round
+- **File/line:** `src/app/muro/page.tsx` — `toggleLike()`
+- **Description:** Rapid double-clicks on the like button triggered two simultaneous RPC calls before the first resolved. The optimistic update ran twice, incrementing likes by 2.
+- **Fix:** Added `likingPostIds` Set guard — if a like is already in-flight for a post, subsequent clicks are ignored until the RPC returns.
+- **Status:** ✅ Fixed in commit `09ac8ceb`
+
+### [medium] Profile completion percentage never updated for avatar — `src/app/profile/page.tsx:706`
+- **Discovered:** Teacher feedback round
+- **File/line:** `src/app/profile/page.tsx:706`
+- **Description:** "Foto de perfil" completion item had `weight: 0`, meaning uploading a profile picture never increased the percentage. Also "Asistencia" was always `done: true` (hardcoded), always granting 10 free points regardless of actual attendance. "Certificaciones" duplicated "Portafolio" with the same condition.
+- **Fix:** Corrected weights (avatar=10, skills=20, removed Certificaciones, attendance now checks DB value). Weights rebalanced to sum to 100.
+- **Status:** ✅ Fixed in commit `09ac8ceb`
+
+### [medium] Inline profile edit didn't persist to DB — `src/app/profile/page.tsx:824`
+- **Discovered:** Teacher feedback round
+- **File/line:** `src/app/profile/page.tsx:824` — `saveInlineEdit()`
+- **Description:** The inline edit mode for student bio, location, and soft skills updated React local state only. After page refresh, all inline edits were lost.
+- **Fix:** `saveInlineEdit` now awaits a Supabase `profiles.update()` call persisting bio, location, and soft_skills.
+- **Status:** ✅ Fixed in commit `09ac8ceb`

@@ -52,10 +52,18 @@ Creative feature ideas and UX improvements surfaced during development. Each ent
 - **Rationale:** After an import, the error report is only displayed in the UI and disappears when the modal is closed. A "Descargar reporte" button that generates a .xlsx with the failed rows + error messages would let admins fix the source file without re-reading the screen.
 - **Effort:** S — use the already-installed `xlsx` library to generate the download client-side.
 
+### [S] Profanity word list expansion with user reporting — `src/lib/utils/profanity.ts`
+- **Rationale:** The current profanity filter uses a static list. A user-report mechanism ("Report this post") could flag posts for manual review and feed new terms into the filter, creating a community-moderated system.
+- **Effort:** S — report button + `post_reports` table + admin review queue in `/administracion`.
+
+### [M] Push notifications (browser) for real-time alerts — `src/lib/role-context.tsx`
+- **Rationale:** The Supabase Realtime subscription already fires on new notifications. Wrapping it with the Web Push API would allow notifications to appear even when the tab is not active, making important events (interview proposal, application status change) much harder to miss.
+- **Effort:** M — service worker + VAPID keys + Supabase edge function for push dispatch.
+
 ---
 
 ## Implemented Ideas
 
-### [S] AI agent button visible for all roles with mock interactivity — `src/components/chat/ChatWidget.tsx`
-- **Rationale:** The floating chat button was gated to Empresa and Colegio only, making it invisible to Estudiante and Egresado users. Removing the role guard and adding role-specific colors + a mock response path lets all users experience the widget while the real AI backend is being built.
-- **Effort:** S — role config map + mock reply path (no API change needed).
+### [S] AI agent button visible for all roles with mock interactivity — ~~`src/components/chat/ChatWidget.tsx`~~
+- **Rationale:** Was implemented but subsequently removed per teacher feedback (chatbot removed entirely from app). ChatWidget.tsx and /api/chat/route.ts deleted in commit `09ac8ceb`.
+- **Status:** Removed.
