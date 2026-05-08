@@ -65,12 +65,12 @@ Bugs are discovered during task work and annotated here. Each entry includes sev
 
 ## Resolved Bugs
 
-### [high] Likes double-count race condition — `src/app/muro/page.tsx`
-- **Discovered:** Teacher feedback round
-- **File/line:** `src/app/muro/page.tsx` — `toggleLike()`
-- **Description:** Rapid double-clicks on the like button triggered two simultaneous RPC calls before the first resolved. The optimistic update ran twice, incrementing likes by 2.
-- **Fix:** Added `likingPostIds` Set guard — if a like is already in-flight for a post, subsequent clicks are ignored until the RPC returns.
-- **Status:** ✅ Fixed in commit `09ac8ceb`
+### [high] Likes count +2 per click — DB trigger + RPC both incrementing — `supabase/migrations/20260415000003_rpcs_and_fixes.sql:36`
+- **Discovered:** Teacher feedback round (confirmed still broken after client-side guard)
+- **File/line:** `supabase/migrations/20260415000003_rpcs_and_fixes.sql:32-36`, `supabase/schema.sql:457-460`
+- **Description:** The `toggle_post_like` RPC manually ran `UPDATE posts SET likes_count = likes_count + 1`. Simultaneously the `trg_sync_likes` AFTER INSERT trigger on `post_likes` also ran `UPDATE posts SET likes_count = likes_count + 1`. Both fired on every like action → +2 instead of +1. The client-side in-flight guard (commit `09ac8ceb`) addressed race conditions but did not prevent the DB-level double-increment.
+- **Fix:** Removed the redundant explicit UPDATE from the RPC. The trigger is now the single source of truth. Migration `20260507000001_fix_likes_double_count.sql` applied to Supabase.
+- **Status:** ✅ Fixed in commit `317390fd`
 
 ### [medium] Profile completion percentage never updated for avatar — `src/app/profile/page.tsx:706`
 - **Discovered:** Teacher feedback round
