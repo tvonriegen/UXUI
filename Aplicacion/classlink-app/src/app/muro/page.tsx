@@ -7,9 +7,10 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import Modal      from "@/components/ui/Modal";
 import { supabase } from "@/lib/supabase";
-import { useAuth }  from "@/lib/auth-context";
-import { useRole }  from "@/lib/role-context";
-import { useSound } from "@/lib/hooks/useSound";
+import { useAuth }    from "@/lib/auth-context";
+import { useRole }    from "@/lib/role-context";
+import { useSound }   from "@/lib/hooks/useSound";
+import { useConfirm } from "@/components/ui/ConfirmDialog";
 import { computeMatchScore, getMatchLabel, getMatchColor } from "@/lib/utils/matching";
 import type { FeedPost, PostComment } from "@/lib/types";
 import {
@@ -20,6 +21,7 @@ import {
 import { postSchema } from "@/lib/schemas";
 import DOMPurify from "isomorphic-dompurify";
 import { TP_SPECIALTIES, TAG_FILTERS, SOFT_SKILLS } from "@/lib/specialties";
+import { hasProfanity, getProfanityError } from "@/lib/utils/profanity";
 
 // ── Constants ─────────────────────────────────────────────
 
@@ -42,11 +44,13 @@ export default function MuroPage() {
   const { user } = useAuth();
   const { role } = useRole();
   const { muted, toggleMute, playLike, playComment, playPost } = useSound();
+  const confirmFn = useConfirm();
 
   // ── Save / apply / match state ────────────────────────
   const [savedPostIds,    setSavedPostIds]    = useState<Set<string>>(new Set());
   const [appliedJobIds,   setAppliedJobIds]   = useState<Set<string>>(new Set());
   const [applyingJobId,   setApplyingJobId]   = useState<string | null>(null);
+  const [likingPostIds,   setLikingPostIds]   = useState<Set<string>>(new Set());
   const [mySkills,        setMySkills]        = useState<string[]>([]);
   const [mySpecialty,     setMySpecialty]     = useState("");
 
@@ -272,8 +276,15 @@ export default function MuroPage() {
   };
 
   // ── Apply to a job posting from the wall ──────────────
-  const applyToJobFromMuro = async (jobPostingId: string) => {
+  const applyToJobFromMuro = async (jobPostingId: string, jobTitle?: string) => {
     if (!user || applyingJobId || appliedJobIds.has(jobPostingId)) return;
+    const confirmed = await confirmFn({
+      title: "Confirmar postulación",
+      body: `¿Estás seguro de que deseas postularte a "${jobTitle ?? "esta oferta"}"? Esta acción no se puede deshacer.`,
+      confirmLabel: "Sí, postularme",
+      cancelLabel: "Cancelar",
+    });
+    if (!confirmed) return;
     setApplyingJobId(jobPostingId);
     setAppliedJobIds((prev) => new Set(prev).add(jobPostingId));
     const { error } = await supabase
@@ -329,11 +340,13 @@ export default function MuroPage() {
   // ── Like / unlike ──────────────────────────────────────
 
   const toggleLike = async (postId: string) => {
-    if (!user) return;
+    if (!user || likingPostIds.has(postId)) return;
     const post = posts.find((p) => p.id === postId);
     if (!post) return;
 
-    // Optimistic update
+    // Guard against double-click race conditions
+    setLikingPostIds((prev) => new Set(prev).add(postId));
+
     const wasLiked = post.liked;
     setPosts((prev) =>
       prev.map((p) =>
@@ -344,22 +357,22 @@ export default function MuroPage() {
     );
     if (!wasLiked) playLike();
 
-    // Atomic RPC keeps likes_count and post_likes in sync with no race condition
     const { data: newCount, error } = await supabase.rpc("toggle_post_like", {
       p_post_id: postId,
       p_user_id: user.id,
     });
+
     if (error) {
-      // Rollback on failure
       setPosts((prev) =>
         prev.map((p) => p.id === postId ? { ...p, liked: wasLiked, likes: wasLiked ? p.likes + 1 : p.likes - 1 } : p)
       );
     } else {
-      // Reconcile count from the authoritative DB value
       setPosts((prev) =>
         prev.map((p) => p.id === postId ? { ...p, likes: newCount as number } : p)
       );
     }
+
+    setLikingPostIds((prev) => { const s = new Set(prev); s.delete(postId); return s; });
   };
 
   // ── Create post ────────────────────────────────────────
@@ -374,6 +387,12 @@ export default function MuroPage() {
     });
     if (!parsed.success) {
       setPostError(parsed.error.issues[0]?.message ?? "Error de validación");
+      setIsPosting(false);
+      return;
+    }
+
+    if (hasProfanity(newTitle) || hasProfanity(newDesc)) {
+      setPostError(getProfanityError());
       setIsPosting(false);
       return;
     }
@@ -826,7 +845,7 @@ export default function MuroPage() {
                           const applying = applyingJobId === jobId;
                           return (
                             <button
-                              onClick={() => applyToJobFromMuro(jobId)}
+                              onClick={() => applyToJobFromMuro(jobId, post.title)}
                               disabled={applied || applying || !user}
                               className={`flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-xl transition-all active:scale-95 disabled:cursor-not-allowed ${
                                 applied

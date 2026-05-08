@@ -551,85 +551,180 @@ export default function ProfilePage() {
   // ── CV Download (student / graduate) ─────────────────────────
   const handleDownloadCV = () => {
     if (!profile) return;
-    const skills = localSkills.join(", ") || "—";
-    const softSk = localSoftSkills.join(", ") || "—";
+    const techSkillsList = localSkills.filter(Boolean);
+    const softSkillsList = localSoftSkills.filter(Boolean);
+    const today = new Date().toLocaleDateString("es-CL", { year: "numeric", month: "long", day: "numeric" });
+
+    const renderSkillChips = (items: string[], colorClass: string) =>
+      items.map((s) => `<span class="chip ${colorClass}">${s.trim()}</span>`).join("");
+
     const html = `<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8"/>
-<title>CV – ${profile.name}</title>
+<title>Currículum Vitae – ${profile.name}</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; color:#1e293b; background:#f8fafc; padding:40px; }
-  .card { background:#fff; border-radius:16px; padding:40px; max-width:720px; margin:0 auto; box-shadow:0 4px 24px rgba(0,0,0,.08); }
-  .header { display:flex; align-items:center; gap:24px; border-bottom:2px solid #e2e8f0; padding-bottom:24px; margin-bottom:24px; }
-  .avatar { width:80px; height:80px; border-radius:12px; background:linear-gradient(135deg,#06b6d4,#0891b2); display:flex; align-items:center; justify-content:center; color:#fff; font-size:32px; font-weight:800; overflow:hidden; flex-shrink:0; }
+  body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color:#1e293b; background:#fff; }
+  .page { max-width:794px; margin:0 auto; }
+
+  /* Sidebar + main two-column layout */
+  .layout { display:flex; min-height:100vh; }
+  .sidebar { width:240px; background:#0e7490; color:#fff; flex-shrink:0; padding:32px 20px; }
+  .main { flex:1; padding:40px 36px; }
+
+  /* Sidebar avatar */
+  .avatar-wrap { display:flex; flex-direction:column; align-items:center; margin-bottom:28px; }
+  .avatar { width:96px; height:96px; border-radius:50%; border:3px solid rgba(255,255,255,.4); background:rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; font-size:38px; font-weight:800; color:#fff; overflow:hidden; margin-bottom:12px; }
   .avatar img { width:100%; height:100%; object-fit:cover; }
-  h1 { font-size:26px; font-weight:800; }
-  .subtitle { color:#64748b; font-size:14px; margin-top:4px; }
-  .badge { display:inline-block; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:700; background:#e0f2fe; color:#0369a1; margin-top:8px; }
-  .section { margin-bottom:20px; }
-  h2 { font-size:13px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.05em; margin-bottom:10px; border-bottom:1px solid #f1f5f9; padding-bottom:6px; }
-  .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  .info-item { font-size:14px; }
-  .info-label { font-size:11px; color:#94a3b8; font-weight:700; margin-bottom:2px; }
-  .chip { display:inline-block; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; background:#f1f5f9; color:#475569; margin:3px 3px 0 0; }
-  .chip.teal { background:#ccfbf1; color:#0f766e; }
-  .footer { margin-top:32px; text-align:center; font-size:11px; color:#cbd5e1; }
-  @media print { body { background:#fff; padding:20px; } .card { box-shadow:none; } }
+  .avatar-name { font-size:15px; font-weight:700; text-align:center; line-height:1.3; }
+  .avatar-title { font-size:11px; opacity:.75; text-align:center; margin-top:4px; }
+
+  /* Sidebar sections */
+  .sb-section { margin-bottom:24px; }
+  .sb-label { font-size:9px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; opacity:.6; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,.2); padding-bottom:4px; }
+  .sb-item { font-size:12px; opacity:.9; margin-bottom:5px; display:flex; align-items:flex-start; gap:6px; }
+  .sb-item::before { content:"▸"; opacity:.5; flex-shrink:0; margin-top:1px; }
+
+  /* Skill pills sidebar */
+  .pill { display:inline-block; background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.25); border-radius:20px; font-size:10px; font-weight:600; padding:3px 9px; margin:2px 2px 0 0; color:#fff; }
+
+  /* Main column */
+  .name-block { border-bottom:3px solid #0e7490; padding-bottom:16px; margin-bottom:24px; }
+  .name-block h1 { font-size:30px; font-weight:800; color:#0e7490; letter-spacing:-.02em; line-height:1.1; }
+  .name-block .role-badge { display:inline-block; background:#e0f2fe; color:#0369a1; font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; margin-top:8px; }
+
+  .section { margin-bottom:26px; }
+  .section-title { font-size:11px; font-weight:800; color:#0e7490; text-transform:uppercase; letter-spacing:.1em; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+  .section-title::after { content:""; flex:1; height:1px; background:#e2e8f0; }
+
+  /* Info grid */
+  .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px 20px; }
+  .info-item .label { font-size:9px; font-weight:800; color:#94a3b8; text-transform:uppercase; letter-spacing:.06em; margin-bottom:2px; }
+  .info-item .value { font-size:13px; color:#334155; }
+
+  /* Bio text */
+  .bio { font-size:13px; color:#475569; line-height:1.7; }
+
+  /* Academic row */
+  .acad-row { display:flex; gap:20px; flex-wrap:wrap; }
+  .acad-stat { background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 16px; text-align:center; }
+  .acad-stat .num { font-size:20px; font-weight:800; color:#0e7490; }
+  .acad-stat .desc { font-size:10px; color:#94a3b8; margin-top:2px; }
+
+  /* Skill chips main */
+  .chip { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:600; margin:2px 2px 0 0; }
+  .chip.tech { background:#e0f2fe; color:#0369a1; }
+  .chip.soft { background:#d1fae5; color:#065f46; }
+
+  /* Portfolio */
+  .proj { border-left:3px solid #0e7490; padding:8px 0 8px 14px; margin-bottom:10px; }
+  .proj-title { font-size:13px; font-weight:700; color:#1e293b; }
+  .proj-desc { font-size:12px; color:#64748b; margin-top:3px; line-height:1.5; }
+  .proj-link { font-size:11px; color:#0891b2; margin-top:4px; display:block; word-break:break-all; }
+
+  .footer { text-align:center; font-size:10px; color:#cbd5e1; margin-top:32px; padding-top:12px; border-top:1px solid #f1f5f9; }
+
+  @media print {
+    body { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .layout { min-height:auto; }
+  }
 </style>
 </head>
 <body>
-<div class="card">
-  <div class="header">
-    <div class="avatar">
-      ${profile.avatar ? `<img src="${profile.avatar}" alt="${profile.name}"/>` : profile.name.charAt(0).toUpperCase()}
+<div class="page">
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="avatar-wrap">
+        <div class="avatar">
+          ${profile.avatar ? `<img src="${profile.avatar}" alt="${profile.name}" crossorigin="anonymous"/>` : profile.name.charAt(0).toUpperCase()}
+        </div>
+        <div class="avatar-name">${profile.name}</div>
+        ${profile.title ? `<div class="avatar-title">${profile.title}</div>` : ""}
+      </div>
+
+      <div class="sb-section">
+        <div class="sb-label">Contacto</div>
+        ${profile.email ? `<div class="sb-item">${profile.email}</div>` : ""}
+        ${profile.location ? `<div class="sb-item">${profile.location}</div>` : ""}
+        ${profile.website ? `<div class="sb-item">${profile.website}</div>` : ""}
+      </div>
+
+      ${profile.availability ? `
+      <div class="sb-section">
+        <div class="sb-label">Disponibilidad</div>
+        <div style="font-size:12px;opacity:.9;">${profile.availability}</div>
+      </div>` : ""}
+
+      ${profile.specialty ? `
+      <div class="sb-section">
+        <div class="sb-label">Especialidad</div>
+        <div style="font-size:12px;opacity:.9;">${profile.specialty}</div>
+      </div>` : ""}
+
+      ${softSkillsList.length > 0 ? `
+      <div class="sb-section">
+        <div class="sb-label">Habilidades Blandas</div>
+        <div>${softSkillsList.map((s) => `<span class="pill">${s}</span>`).join("")}</div>
+      </div>` : ""}
     </div>
-    <div>
-      <h1>${profile.name}</h1>
-      ${profile.title ? `<div class="subtitle">${profile.title}</div>` : ""}
-      ${profile.specialty ? `<span class="badge">${profile.specialty}</span>` : ""}
+
+    <!-- MAIN -->
+    <div class="main">
+      <div class="name-block">
+        <h1>${profile.name}</h1>
+        ${profile.specialty ? `<span class="role-badge">${profile.specialty}</span>` : ""}
+      </div>
+
+      ${profile.bio ? `
+      <div class="section">
+        <div class="section-title">Perfil Profesional</div>
+        <p class="bio">${profile.bio}</p>
+      </div>` : ""}
+
+      <div class="section">
+        <div class="section-title">Datos de Contacto</div>
+        <div class="info-grid">
+          ${profile.email ? `<div class="info-item"><div class="label">Correo electrónico</div><div class="value">${profile.email}</div></div>` : ""}
+          ${profile.location ? `<div class="info-item"><div class="label">Ubicación</div><div class="value">${profile.location}</div></div>` : ""}
+          ${profile.availability ? `<div class="info-item"><div class="label">Disponibilidad</div><div class="value">${profile.availability}</div></div>` : ""}
+          ${profile.years_experience > 0 ? `<div class="info-item"><div class="label">Años de experiencia</div><div class="value">${profile.years_experience} año${profile.years_experience !== 1 ? "s" : ""}</div></div>` : ""}
+        </div>
+      </div>
+
+      ${(profile.gpa != null || profile.attendance != null) ? `
+      <div class="section">
+        <div class="section-title">Formación Académica</div>
+        <div class="acad-row">
+          ${profile.gpa != null ? `<div class="acad-stat"><div class="num">${profile.gpa.toFixed(1)}</div><div class="desc">Promedio GPA</div></div>` : ""}
+          ${profile.attendance != null ? `<div class="acad-stat"><div class="num">${profile.attendance}%</div><div class="desc">Asistencia</div></div>` : ""}
+        </div>
+      </div>` : ""}
+
+      ${techSkillsList.length > 0 ? `
+      <div class="section">
+        <div class="section-title">Habilidades Técnicas</div>
+        <div>${renderSkillChips(techSkillsList, "tech")}</div>
+      </div>` : ""}
+
+      ${portfolio.length > 0 ? `
+      <div class="section">
+        <div class="section-title">Proyectos y Portafolio</div>
+        ${portfolio.map((p) => `
+          <div class="proj">
+            <div class="proj-title">${p.title}</div>
+            ${p.description ? `<div class="proj-desc">${p.description}</div>` : ""}
+            ${p.link ? `<a class="proj-link" href="${p.link}">${p.link}</a>` : ""}
+          </div>
+        `).join("")}
+      </div>` : ""}
+
+      <div class="footer">Currículum generado con ClassLink · ${today}</div>
     </div>
+
   </div>
-
-  <div class="section">
-    <h2>Información de Contacto</h2>
-    <div class="grid">
-      <div class="info-item"><div class="info-label">Correo</div>${profile.email || "—"}</div>
-      <div class="info-item"><div class="info-label">Ubicación</div>${profile.location || "—"}</div>
-      <div class="info-item"><div class="info-label">Disponibilidad</div>${profile.availability || "—"}</div>
-      <div class="info-item"><div class="info-label">Nivel / XP</div>Niv. ${profile.level ?? 1} · ${profile.xp ?? 0} XP</div>
-    </div>
-  </div>
-
-  ${profile.bio ? `<div class="section"><h2>Sobre mí</h2><p style="font-size:14px;line-height:1.6;color:#475569;">${profile.bio}</p></div>` : ""}
-
-  <div class="section">
-    <h2>Datos Académicos</h2>
-    <div class="grid">
-      ${profile.gpa != null ? `<div class="info-item"><div class="info-label">Promedio GPA</div>${profile.gpa.toFixed(2)}</div>` : ""}
-      ${profile.attendance != null ? `<div class="info-item"><div class="info-label">Asistencia</div>${profile.attendance}%</div>` : ""}
-      ${profile.years_experience > 0 ? `<div class="info-item"><div class="info-label">Experiencia</div>${profile.years_experience} año${profile.years_experience !== 1 ? "s" : ""}</div>` : ""}
-    </div>
-  </div>
-
-  <div class="section">
-    <h2>Habilidades Técnicas</h2>
-    <div>${skills.split(",").map((s) => `<span class="chip">${s.trim()}</span>`).join("")}</div>
-  </div>
-
-  <div class="section">
-    <h2>Habilidades Blandas</h2>
-    <div>${softSk.split(",").map((s) => `<span class="chip teal">${s.trim()}</span>`).join("")}</div>
-  </div>
-
-  ${portfolio.length > 0 ? `
-  <div class="section">
-    <h2>Portafolio (${portfolio.length} proyecto${portfolio.length !== 1 ? "s" : ""})</h2>
-    ${portfolio.map((p) => `<div style="margin-bottom:10px;"><strong style="font-size:14px;">${p.title}</strong>${p.description ? `<p style="font-size:13px;color:#64748b;margin-top:2px;">${p.description}</p>` : ""}${p.link ? `<a href="${p.link}" style="font-size:12px;color:#0891b2;">${p.link}</a>` : ""}</div>`).join("")}
-  </div>` : ""}
-
-  <div class="footer">Generado por ClassLink · ${new Date().toLocaleDateString("es-CR")}</div>
 </div>
 </body>
 </html>`;
@@ -638,7 +733,7 @@ export default function ProfilePage() {
       win.document.write(html);
       win.document.close();
       win.focus();
-      setTimeout(() => win.print(), 500);
+      setTimeout(() => win.print(), 600);
     }
   };
 
@@ -704,14 +799,13 @@ export default function ProfilePage() {
   const displaySkills   = localSkills;
 
   const completionItems = isStudent ? [
-    { label: "Foto de perfil",     done: !!profile.avatar,         weight: 0 },
-    { label: "Biografía",          done: !!displayBio,             weight: 15 },
-    { label: "Habilidades",        done: displaySkills.length > 0, weight: 15 },
-    { label: "Habilidades blandas",done: localSoftSkills.length > 0, weight: 15 },
-    { label: "Certificaciones",    done: (portfolio.length > 0),   weight: 10 },
-    { label: "Portafolio",         done: portfolio.length > 0,     weight: 20 },
-    { label: "Asistencia",         done: true,                     weight: 10 },
-    { label: "Promedio GPA",       done: profile.gpa != null,      weight: 15 },
+    { label: "Foto de perfil",      done: !!profile.avatar,                                    weight: 10 },
+    { label: "Biografía",           done: !!(displayBio && displayBio.trim().length > 10),      weight: 15 },
+    { label: "Habilidades técnicas",done: displaySkills.length > 0,                            weight: 20 },
+    { label: "Habilidades blandas", done: localSoftSkills.length > 0,                         weight: 15 },
+    { label: "Portafolio",          done: portfolio.length > 0,                                weight: 20 },
+    { label: "Asistencia",          done: profile.attendance != null && profile.attendance > 0, weight: 10 },
+    { label: "Promedio GPA",        done: profile.gpa != null,                                 weight: 10 },
   ] : [];
   const completionPct = isStudent
     ? completionItems.reduce((acc, item) => acc + (item.done ? item.weight : 0), 0)
@@ -727,14 +821,31 @@ export default function ProfilePage() {
     setEditSoftSkillsStr(localSoftSkills.join(", "));
     setIsEditing(true);
   };
-  const saveInlineEdit = () => {
-    if (editBioInline !== displayBio)             setLocalBio(editBioInline);
-    if (editLocationInline !== displayLocation)   setLocalLocation(editLocationInline);
+  const saveInlineEdit = async () => {
+    if (editBioInline !== displayBio)           setLocalBio(editBioInline);
+    if (editLocationInline !== displayLocation) setLocalLocation(editLocationInline);
     const parsedSkills = editSkills.split(",").map((s) => s.trim()).filter(Boolean);
     const parsedSoft   = editSoftSkillsStr.split(",").map((s) => s.trim()).filter(Boolean);
     setLocalSkills(parsedSkills);
     setLocalSoftSkills(parsedSoft);
     setIsEditing(false);
+
+    if (!user?.id) return;
+
+    // Persist bio, location, and soft_skills to DB
+    await supabase.from("profiles").update({
+      bio:         editBioInline.trim(),
+      location:    editLocationInline.trim(),
+      soft_skills: parsedSoft,
+    }).eq("id", user.id);
+
+    // Update profile state so completion recalculates
+    setProfile((prev) => prev ? {
+      ...prev,
+      bio:         editBioInline.trim(),
+      location:    editLocationInline.trim(),
+      soft_skills: parsedSoft,
+    } : prev);
   };
 
   // Add vacancy helper
