@@ -409,19 +409,25 @@ export default function EmpleosPage() {
 
   const handleApply = async (jobId: string) => {
     if (!user?.id) return;
+    const job = jobs.find((j) => j.id === jobId);
+    const confirmed = await confirmFn({
+      title: "Confirmar postulación",
+      body: `¿Estás seguro de que deseas postularte a "${job?.title ?? "esta vacante"}"? Esta acción enviará tu perfil a la empresa y no se puede deshacer.`,
+      confirmLabel: "Sí, postularme",
+      cancelLabel: "Cancelar",
+    });
+    if (!confirmed) return;
     setApplying(jobId);
     const { error: err } = await supabase
       .from("job_applications")
       .insert({ job_id: jobId, applicant_id: user.id, student_id: user.id, status: "pending" });
     if (!err) {
       setAppliedIds((prev) => new Set(prev).add(jobId));
-      // XP reward for applying
       fetch("/api/xp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: "job_apply", xp_amount: 50, metadata: { job_id: jobId } }),
       }).catch(() => {});
-      // Quest progress: apply_job
       trackQuest("apply_job");
       toast({ type: "success", title: "¡Postulación enviada!", description: "+50 XP" });
     } else {
