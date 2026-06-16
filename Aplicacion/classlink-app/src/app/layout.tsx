@@ -20,6 +20,7 @@ import { RoleProvider }    from "@/lib/role-context";
 import { ToastProvider }   from "@/components/ui/Toast";
 import { ConfirmProvider } from "@/components/ui/ConfirmDialog";
 import CursorGlow          from "@/components/layout/CursorGlow";
+import ChatWidget           from "@/components/chat/ChatWidget";
 
 export const metadata: Metadata = {
   title:       "ClassLink – Vocational Excellence",
@@ -42,6 +43,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <ToastProvider>
               <ConfirmProvider>
                 {children}
+                {/* AI chatbot — renders only for Empresa and Colegio roles */}
+                <ChatWidget />
               </ConfirmProvider>
             </ToastProvider>
           </RoleProvider>
