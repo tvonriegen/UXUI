@@ -8,8 +8,8 @@
 - ~~Review the working tree diff for accidental secrets, generated outputs, or unrelated changes.~~ Done.
 - ~~Commit PR 0 with message `chore: add persistent workflow state tracking`.~~ Done (local commit `e01cecf`).
 - ~~Record the commit SHA in `SESSION_LOG.md` and update `PR_TRACKER.md` to `validation: passed`.~~ Done.
-- Push to `origin` is still blocked by the SSH credential issue. Restore credentials, push `chore/workflow-state`, and open PR 0 against `caro-maturana`.
-- If continuing to work locally while SSH is blocked, integrate the local PR 0 commit `e01cecf` into `caro-maturana` first, then start PR 1 from that branch.
+- Push to `origin` is still blocked by the SSH credential issue. Restore credentials, push the full local branch head of `chore/workflow-state` to `origin` (must include both `e01cecf` and the follow-up `f15550b`; do **not** push/cherry-pick only `e01cecf`), and open PR 0 against `caro-maturana`.
+- If continuing to work locally while SSH is blocked, integrate the full local `chore/workflow-state` branch head into `caro-maturana` first (both `e01cecf` and `f15550b`, not just `e01cecf`), then start PR 1 from that branch.
 
 ## After Current PR
 

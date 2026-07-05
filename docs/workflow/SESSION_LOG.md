@@ -44,7 +44,8 @@
 ### Commits
 
 - Local commit `e01cecf chore: add persistent workflow state tracking` created on `chore/workflow-state` after QA validation passed.
-- Push: blocked on SSH credential issue (see `OPEN_QUESTIONS.md`); local commit is not yet on `origin`.
+- Local commit `f15550b docs: finalize workflow state after PR 0 setup` added on the same branch (`chore/workflow-state`) after PR 0 setup; documentation-only follow-up.
+- Push: blocked on SSH credential issue (see `OPEN_QUESTIONS.md`); the local `chore/workflow-state` branch head (carrying both `e01cecf` and `f15550b`) is not yet on `origin`.
 
 ### Risks
 
@@ -54,8 +55,8 @@
 
 ### Next Session
 
-- Restore SSH credentials and push `chore/workflow-state` to `origin`; open PR 0 against `caro-maturana` and update the remote tracking line in this entry.
-- If SSH remains blocked, integrate the local PR 0 commit `e01cecf` into `caro-maturana` to unblock PR 1.
+- Restore SSH credentials and push the full local branch head of `chore/workflow-state` to `origin` (carries both `e01cecf` and `f15550b`; do **not** push/cherry-pick only `e01cecf`); open PR 0 against `caro-maturana` and update the remote tracking line in this entry.
+- If SSH remains blocked, integrate the full local `chore/workflow-state` branch head into `caro-maturana` (both `e01cecf` and `f15550b`, not just `e01cecf`) to unblock PR 1.
 - Once PR 0 is integrated into `caro-maturana`, start PR 1: `fix/privacy-contact-routing` from `caro-maturana` (see `NEXT_ACTIONS.md`).
 
 ## 2026-07-05 — QA Session
