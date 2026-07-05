@@ -4,6 +4,7 @@ import PageLayout from "@/components/layout/PageLayout";
 import { useRole } from "@/lib/role-context";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
+import { requestContactWithTalent } from "@/app/actions/contact-requests";
 import { TP_SPECIALTIES } from "@/lib/specialties";
 import SkillAssessmentActivity from "@/components/talent/SkillAssessmentActivity";
 import TechQuizActivity       from "@/components/talent/TechQuizActivity";
@@ -359,7 +360,7 @@ interface TalentProfile {
   id: string; name: string; role: string; avatar: string;
   bio: string; location: string; specialty: string; title: string;
   xp: number; level: number; gpa: number | null; availability: string;
-  years_experience: number; email: string;
+  years_experience: number;
 }
 
 const PAGE_SIZE = 20;
@@ -376,7 +377,7 @@ export default function TalentPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [contacting, setContacting] = useState<string | null>(null);
-  const [contacted, setContacted] = useState<Set<string>>(new Set());
+  const [contacted, setContacted] = useState<Record<string, "direct" | "school">>({});
 
   const [search, setSearch] = useState("");
   const [specialty, setSpecialty] = useState("Todas");
@@ -393,7 +394,7 @@ export default function TalentPage() {
 
     let query = supabase
       .from("profiles")
-      .select("id,name,role,avatar,bio,location,specialty,title,xp,level,gpa,availability,years_experience,email", { count: "exact" })
+      .select("id,name,role,avatar,bio,location,specialty,title,xp,level,gpa,availability,years_experience", { count: "exact" })
       .in("role", ["Estudiante", "Egresado"])
       .range(pageNum * PAGE_SIZE, (pageNum + 1) * PAGE_SIZE - 1);
 
@@ -430,21 +431,17 @@ export default function TalentPage() {
   const handleContact = async (talent: TalentProfile) => {
     if (!user?.id || !talent.id) return;
     setContacting(talent.id);
-    // Check if conversation already exists
-    const { data: existing } = await supabase
-      .from("conversations")
-      .select("id")
-      .or(`and(user1_id.eq.${user.id},user2_id.eq.${talent.id}),and(user1_id.eq.${talent.id},user2_id.eq.${user.id})`)
-      .maybeSingle();
+    const result = await requestContactWithTalent(talent.id, `Solicitud de contacto desde el directorio de talento.`);
 
-    if (!existing) {
-      await supabase.from("conversations").insert({
-        user1_id: user.id,
-        user2_id: talent.id,
-        last_message_at: new Date().toISOString(),
-      });
+    if (result.error) {
+      setError(result.error);
+    } else {
+      setError(null);
+      setContacted((prev) => ({
+        ...prev,
+        [talent.id]: result.requiresSchoolApproval ? "school" : "direct",
+      }));
     }
-    setContacted((prev) => new Set(prev).add(talent.id));
     setContacting(null);
   };
 
@@ -572,7 +569,8 @@ export default function TalentPage() {
             const avail = AVAIL_CONFIG[t.availability] ?? AVAIL_CONFIG["Disponible"];
             const AvailIcon = avail.icon;
             const isExpanded = expandedId === t.id;
-            const hasContacted = contacted.has(t.id);
+            const contactedState = contacted[t.id];
+            const hasContacted = Boolean(contactedState);
 
             return (
               <article key={t.id}
@@ -630,8 +628,10 @@ export default function TalentPage() {
                     >
                       {contacting === t.id ? (
                         <Loader2 size={12} className="animate-spin" />
-                      ) : hasContacted ? (
-                        <><CheckCircle size={12} /> Contactado</>
+                      ) : contactedState === "school" ? (
+                        <><CheckCircle size={12} /> Pendiente colegio</>
+                      ) : contactedState === "direct" ? (
+                        <><CheckCircle size={12} /> Contacto creado</>
                       ) : (
                         <><MessageCircle size={12} /> {ctaLabel}</>
                       )}

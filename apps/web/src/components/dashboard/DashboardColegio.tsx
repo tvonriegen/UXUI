@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { useRole } from "@/lib/role-context";
 import { supabase } from "@/lib/supabase";
+import { approveContactRequest, rejectContactRequest } from "@/app/actions/contact-requests";
 import {
   GraduationCap, Users, Handshake, TrendingUp, FileText, ArrowRight,
   Bell, Clock, ChevronRight, Briefcase, Search, MessageSquare, Building2,
@@ -29,14 +30,25 @@ interface SpecialtyStat {
   specialty: string | null; count: number;
 }
 
+interface ContactRequestItem {
+  id: string;
+  company: string;
+  student: string;
+  message: string;
+  date: string;
+}
+
 export default function DashboardColegio() {
   const { user } = useAuth();
   const { notifications } = useRole();
 
   const [profile,       setProfile]      = useState<DashProfile | null>(null);
   const [queue,         setQueue]        = useState<QueueItem[]>([]);
+  const [contactQueue,  setContactQueue] = useState<ContactRequestItem[]>([]);
   const [specialties,   setSpecialties]  = useState<SpecialtyStat[]>([]);
   const [loading,       setLoading]      = useState(true);
+  const [reviewingId,   setReviewingId]  = useState<string | null>(null);
+  const [reviewError,   setReviewError]  = useState<string | null>(null);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -86,8 +98,42 @@ export default function DashboardColegio() {
         );
       });
 
-    Promise.allSettled([profilePromise, queuePromise, specialtyPromise]).then(() => setLoading(false));
+    const contactPromise = supabase
+      .from("contact_requests")
+      .select("id, message, created_at, company:profiles!contact_requests_company_id_fkey(name, company_name), student:profiles!contact_requests_student_id_fkey(name)")
+      .eq("school_id", user.id)
+      .eq("status", "pending")
+      .order("created_at", { ascending: true })
+      .limit(10)
+      .then(({ data }) => {
+        setContactQueue(
+          (data ?? []).map((r: any) => ({
+            id:      r.id,
+            company: r.company?.company_name || r.company?.name || "Empresa",
+            student: r.student?.name || "Estudiante",
+            message: r.message || "Solicitud de contacto.",
+            date:    new Date(r.created_at).toLocaleDateString("es-CR"),
+          }))
+        );
+      });
+
+    Promise.allSettled([profilePromise, queuePromise, specialtyPromise, contactPromise]).then(() => setLoading(false));
   }, [user?.id]);
+
+  const reviewContactRequest = async (id: string, decision: "approved" | "rejected") => {
+    setReviewingId(id);
+    setReviewError(null);
+    const result = decision === "approved"
+      ? await approveContactRequest(id)
+      : await rejectContactRequest(id, "Rechazado desde el panel del colegio.");
+
+    if (result.error) {
+      setReviewError(result.error);
+    } else {
+      setContactQueue((prev) => prev.filter((request) => request.id !== id));
+    }
+    setReviewingId(null);
+  };
 
   if (loading) {
     return (
@@ -245,6 +291,62 @@ export default function DashboardColegio() {
                     {req.urgent && (
                       <span className="text-[10px] bg-red-50 text-red-600 px-2 py-1 rounded-full font-bold shrink-0">Urgente</span>
                     )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Contact request mediation */}
+          <div className="bg-white rounded-2xl p-6 border border-amber-200/70 animate-fade-in-up stagger-3">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-bold text-base">Solicitudes de Contacto</h3>
+              <span className="text-xs text-amber-600 font-semibold bg-amber-50 px-2.5 py-1 rounded-full">
+                {contactQueue.length} pendientes
+              </span>
+            </div>
+
+            {reviewError && (
+              <div className="mb-3 text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2">
+                {reviewError}
+              </div>
+            )}
+
+            {contactQueue.length === 0 ? (
+              <div className="text-center py-8">
+                <MessageSquare size={34} className="mx-auto mb-3 text-slate-200" />
+                <p className="text-slate-400 text-sm">No hay solicitudes de contacto pendientes.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {contactQueue.map((request) => (
+                  <div key={request.id} className="rounded-xl border border-amber-100 p-4 bg-amber-50/30">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                        <MessageSquare size={17} className="text-amber-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold">{request.company}</p>
+                        <p className="text-xs text-slate-500">Solicita contactar a {request.student} — {request.date}</p>
+                        <p className="text-xs text-slate-600 mt-2">{request.message}</p>
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-2 mt-3">
+                      <button
+                        onClick={() => reviewContactRequest(request.id, "rejected")}
+                        disabled={reviewingId === request.id}
+                        className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-50"
+                      >
+                        Rechazar
+                      </button>
+                      <button
+                        onClick={() => reviewContactRequest(request.id, "approved")}
+                        disabled={reviewingId === request.id}
+                        className="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-50"
+                      >
+                        {reviewingId === request.id ? <Loader2 size={12} className="animate-spin" /> : "Aprobar"}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
