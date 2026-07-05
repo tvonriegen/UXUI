@@ -1,0 +1,19 @@
+{
+  "name": "talenthub",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TalentHub repository workspace.",
+  "scripts": {
+    "dev": "npm --prefix apps/web run dev",
+    "build": "npm --prefix apps/web run build",
+    "start": "npm --prefix apps/web run start",
+    "lint": "npm --prefix apps/web run lint",
+    "typecheck": "npm --prefix apps/web run typecheck",
+    "install:web": "npm --prefix apps/web install",
+    "clean": "rm -rf apps/web/.next apps/web/out apps/web/coverage"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}
