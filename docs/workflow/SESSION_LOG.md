@@ -43,21 +43,20 @@
 
 ### Commits
 
-- Pending. PR 0 will be committed with message `chore: add persistent workflow state tracking` after QA validation.
-- Commit SHA: not yet assigned.
-- Push: blocked on SSH credential issue (see `OPEN_QUESTIONS.md`).
+- Local commit `e01cecf chore: add persistent workflow state tracking` created on `chore/workflow-state` after QA validation passed.
+- Push: blocked on SSH credential issue (see `OPEN_QUESTIONS.md`); local commit is not yet on `origin`.
 
 ### Risks
 
 - New workflow files could drift out of sync with the actual branch and PR state if the discipline to update them on every session is not followed. Mitigation: `docs/git/GIT_WORKFLOW.md` mandates the read/update ritual.
-- Validation skipped in this session; if any of the created docs is malformed, the build (which only checks the Next.js app) will not catch it. Mitigation: visual review of the diff by the committer and QA.
+- Validations did run in the QA session and all passed: `npm run lint`, `npm run typecheck`, and `npm run build` were clean. The build only covers the Next.js app, so any malformed workflow doc would only be caught by review, not by the build.
 - The SSH `Permission denied (publickey)` issue is environmental and out of scope for this PR; it could delay sharing the PR with reviewers.
 
 ### Next Session
 
-- Commit PR 0 with message `chore: add persistent workflow state tracking` and record the SHA.
-- Once PR 0 is merged (or merged locally if push remains blocked), start PR 1: `fix/privacy-contact-routing` from `caro-maturana` (see `NEXT_ACTIONS.md`).
-- If SSH access is restored, push the PR 0 branch and update the remote tracking line in this entry.
+- Restore SSH credentials and push `chore/workflow-state` to `origin`; open PR 0 against `caro-maturana` and update the remote tracking line in this entry.
+- If SSH remains blocked, integrate the local PR 0 commit `e01cecf` into `caro-maturana` to unblock PR 1.
+- Once PR 0 is integrated into `caro-maturana`, start PR 1: `fix/privacy-contact-routing` from `caro-maturana` (see `NEXT_ACTIONS.md`).
 
 ## 2026-07-05 — QA Session
 

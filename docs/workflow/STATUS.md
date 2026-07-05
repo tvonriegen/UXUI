@@ -20,7 +20,8 @@
 
 ## Current Working State
 
-- Working tree on `chore/workflow-state` (off `caro-maturana`): `docs/git/GIT_WORKFLOW.md` modified, `docs/workflow/` untracked.
+- Working tree on `chore/workflow-state` (off `caro-maturana`) is clean.
+- PR 0 is **validated and locally committed**: commit `e01cecf chore: add persistent workflow state tracking` (2026-07-05). The change adds `docs/workflow/` and the session-read/update rule in `docs/git/GIT_WORKFLOW.md`.
 - PR 0 validation (2026-07-05, QA session): `npm run lint` **passed**, `npm run typecheck` **passed**, `npm run build` **passed** (no dummy env values needed; build succeeded without additional env).
 - Last known validation on the baseline branch (2026-07-05, dummy public env values): `npm run lint` passed, `npm run typecheck` passed, `npm run build` passed. `npm run install:web` reported 21 dependency vulnerabilities (not auto-fixed). See `docs/technical/KNOWN_ISSUES.md`.
 
@@ -32,9 +33,10 @@
 
 ## Next Recommended Action
 
-- Review the diff of this PR for completeness against the PR 0 scope.
-- Commit PR 0 with message `chore: add persistent workflow state tracking`.
-- Then move on to PR 1: `fix/privacy-contact-routing` (see `NEXT_ACTIONS.md`).
+- ~~Review the diff of this PR for completeness against the PR 0 scope.~~ Done.
+- ~~Commit PR 0 with message `chore: add persistent workflow state tracking`.~~ Done (local commit `e01cecf`).
+- Restore SSH credentials and push `chore/workflow-state` to `origin`, then open PR 0 against `caro-maturana`.
+- If continuing to work locally while SSH remains blocked, integrate the local PR 0 commit `e01cecf` into `caro-maturana` first, then start PR 1: `fix/privacy-contact-routing` (see `NEXT_ACTIONS.md`).
 
 ## Owner / Agent Notes
 

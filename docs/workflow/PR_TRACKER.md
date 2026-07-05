@@ -2,8 +2,8 @@
 
 | ID | Title | Branch | Base | Status | Validation | Owner | Notes |
 |----|-------|--------|------|--------|------------|-------|-------|
-| PR 0 | chore: add persistent workflow state tracking | `chore/workflow-state` | `caro-maturana` | In progress | **Passed** (lint ✓, typecheck ✓, build ✓ — 2026-07-05 QA session) | not assigned | Introduces `docs/workflow/` and updates `docs/git/GIT_WORKFLOW.md`. Push blocked on SSH credential issue. |
-| PR 1 | fix: privacy contact routing | `fix/privacy-contact-routing` | `caro-maturana` | Planned | Not run | not assigned | Prevent leaking private contact data (phone, email, address) through the public job application routing path. See `OPEN_QUESTIONS.md` Q3 for scoping. |
+| PR 0 | chore: add persistent workflow state tracking | `chore/workflow-state` | `caro-maturana` | Local committed / ready for PR | **Passed** (lint ✓, typecheck ✓, build ✓ — 2026-07-05 QA session) | not assigned | Introduces `docs/workflow/` and updates `docs/git/GIT_WORKFLOW.md`. Local commit `e01cecf`. Push blocked on SSH credential issue. |
+| PR 1 | fix: privacy contact routing (minor students via school) | `fix/privacy-contact-routing` | `caro-maturana` | Planned | Not run | not assigned | Route company contact with minor students through the school (school-mediated path) instead of exposing the student's direct contact data. |
 
 ## PR 0 — Detail
 
@@ -14,15 +14,17 @@
   - Update `docs/git/GIT_WORKFLOW.md` to require reading `STATUS.md`, `NEXT_ACTIONS.md`, `PR_TRACKER.md` at session start and updating `STATUS.md`, `NEXT_ACTIONS.md`, `SESSION_LOG.md`, `PR_TRACKER.md`, and `KNOWN_ISSUES.md` at session close.
 - Files touched in this PR: only documentation under `docs/`.
 - Commit message (planned): `chore: add persistent workflow state tracking`.
+- Commit: `e01cecf` created locally on `chore/workflow-state` (2026-07-05). Not yet on `origin`; push blocked by SSH credential issue.
 - Validation: **passed** (2026-07-05 QA session). `npm run lint` ✓, `npm run typecheck` ✓, `npm run build` ✓. No dummy env values required.
 - Last known good validation (baseline `caro-maturana`, 2026-07-05, dummy public env values): lint passed, typecheck passed, build passed. `npm run install:web` reported 21 dependency vulnerabilities (not auto-fixed, see `KNOWN_ISSUES.md`).
 
 ## PR 1 — Detail
 
-- Branch: `fix/privacy-contact-routing` (to be created from `caro-maturana`).
+- Branch: `fix/privacy-contact-routing` (to be created from `caro-maturana` after PR 0 is integrated).
+- Purpose: route company contact with minor students through the school (school-mediated path) instead of exposing the student's direct contact data.
 - Scope (preliminary):
-  - Identify the public routing surface in `apps/web` that returns contact fields.
-  - Update Supabase RLS policies and/or API response shaping to keep phone, email, and address behind an authenticated and authorized boundary.
-  - Add or extend a test that asserts contact fields are not present in the unauthenticated response.
+  - Identify the company-to-candidate contact flow used for minor students (profile, application, message routes in `apps/web`) and the Supabase RLS policies that gate contact fields.
+  - Update the routing and/or RLS policies so that when a company contacts a minor candidate, the contact is delivered to / mediated by the school rather than reaching the student directly.
+  - Add or extend a test that asserts a company's contact intent toward a minor student is routed through the school-mediated path and the student's direct contact data is not exposed in the company-facing response.
 - Documentation: update `SESSION_LOG.md`, `PR_TRACKER.md`, and `docs/architecture/SECURITY_MODEL.md`.
-- Validation: lint / typecheck / build plus the new contact-leak test.
+- Validation: lint / typecheck / build plus the new minor-student routing test.
