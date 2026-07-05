@@ -26,6 +26,8 @@ The discipline is enforced through `docs/git/GIT_WORKFLOW.md`, which requires ev
 
 ### Consequences
 
+Implementation note (2026-07-05): PR 1 implemented ADR-002 locally on `fix/privacy-contact-routing` with `supabase/migrations/20260705000001_contact_requests.sql`, RLS-gated `can_converse`, trigger-owned `contact_request` notifications, approval-time conversation reuse/create, RLS-constrained `proposeInterview`, and `scripts/verify-is-minor.mjs`. `respondInterview` / `cancelInterview` remain out of PR 1 scope.
+
 Positive:
 - Context survives across sessions, restarts, and onboarding.
 - A single diff in the PR shows what changed in the workflow state, not only in code.

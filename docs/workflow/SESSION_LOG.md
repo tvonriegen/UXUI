@@ -165,3 +165,79 @@
 - Commit the decision-documentation state on `fix/privacy-contact-routing` (docs only) per the pre-implementation gate in `NEXT_ACTIONS.md`.
 - Draft the PR 1 implementation plan with the ADR-002 guardrails inlined; resolve Q12–Q14 in the plan.
 - Begin implementation per the plan and run `npm run lint` / `npm run typecheck` / `npm run build` plus the chosen verification mechanism. Update `SESSION_LOG.md`, `PR_TRACKER.md`, and `DECISION_LOG.md` as the work lands.
+
+## 2026-07-05 — PR 1 Implementation Pass
+
+### Context
+
+- Branch: `fix/privacy-contact-routing`.
+- Start state: clean working tree at `7a2b42f docs: document privacy contact routing decisions`.
+- User explicitly approved implementation and requested no commit/push.
+
+### Actions Run
+
+- Added `supabase/migrations/20260705000001_contact_requests.sql` with `contact_requests`, RLS, `is_minor_profile`, `can_converse`, notification metadata/check update, contact request notifications, approval conversation trigger, and conversation/message insert gates.
+- Added `apps/web/src/lib/utils/is-minor.ts` and `scripts/verify-is-minor.mjs`; added root `verify:is-minor` script.
+- Added `apps/web/src/app/actions/contact-requests.ts` and wired the talent directory plus school dashboard queue to the server actions.
+- Refactored `apps/web/src/app/actions/interviews.ts::proposeInterview` to remove admin-client usage from the proposal path. Minor applicants without approved contact create/reuse a pending `contact_requests` row and do not create interview/conversation/message/status updates.
+- Updated `supabase/schema.sql` for PR 1 touched sections and documented residual broader snapshot drift.
+- Resolved `OPEN_QUESTIONS.md` Q12–Q14 in implementation notes.
+
+### Validation
+
+- `npm run verify:is-minor` passed.
+- `npm run typecheck` passed.
+- `npm run lint` passed.
+- `npm run build` not run in this pass.
+
+### Risks / Follow-up
+
+- Apply the new migration to a Supabase instance and QA RLS paths: company minor request insert, school approve/reject, conversation reuse/create on approval, message soft-lock before approval, and direct non-minor contact.
+- `respondInterview` / `cancelInterview` still use the admin client and remain out of PR 1 scope; schedule a follow-up admin-client review.
+- Broader schema snapshot drift remains outside PR 1 touched sections.
+
+## 2026-07-05 — PR 1 QA + Security Pass
+
+### Context
+
+- Branch: `fix/privacy-contact-routing`.
+- Working tree at the start: uncommitted PR 1 implementation from the previous session.
+- Goal: complete the local QA matrix (build), run a security review of the uncommitted diff, fix any findings, document the verdict, and surface the recommended commit grouping. No commit / push.
+
+### Commands Run (local)
+
+- `npm run verify:is-minor` — 7/7 canonical cases pass (`Estudiante` unknown age, under 18, 18+, adult, `Egresado`, `Empresa`, `Colegio`).
+- `npm run lint` — pass, no warnings / errors.
+- `npm run typecheck` — pass, `tsc --noEmit` clean.
+- `npm run build` — pass, Next.js 14.2.35 production build compiled successfully, all static pages generated, no dummy env values required.
+
+### Security Review
+
+- Initial review surfaced two findings:
+  - **B1 — BLOCKER.** The pre-existing `profiles_update` policy allowed an authenticated client to `UPDATE` `profiles.role` and `profiles.age` directly, which would silently bypass the PR 1 minor-routing logic. A TS check on the server action is not a security boundary; the column write has to be locked at the database.
+  - **M1 — HIGH.** The talent directory page selected the `email` column for every public row, which leaked the student's direct contact data on the public route. Out of scope for a strict interpretation of the PR 1 server-action / RLS work, but the same threat surface, so fixed in the same pass.
+- B1 fix: added `trg_fn_profiles_guard_role_age()` BEFORE UPDATE trigger on `profiles` that raises if `NEW.role` / `NEW.age` change while `COALESCE(auth.role(), '') <> 'service_role'`. Replaced the permissive `profiles_update` policy with one that uses both `USING (auth.uid() = id)` and `WITH CHECK (auth.uid() = id)`. Both pieces ship in the same migration as the rest of the PR 1 changes.
+- M1 fix: removed `email` from the talent directory `profiles.select(...)` (`apps/web/src/app/talent/page.tsx`).
+- Follow-up review after the fixes: **APROBAR, sin BLOCKER / HIGH**. No new findings. `proposeInterview` and the new `contact-requests` server actions use the RLS-constrained `auth.uid()`-bound client only; `can_converse` and the approval-time trigger gate the message / conversation flow; `SECURITY DEFINER` helpers declare `SET search_path = public`, `REVOKE ALL ... FROM PUBLIC`, and (where read-only) `STABLE`.
+
+### Files Changed (categories, this pass)
+
+- **DB migration** (new): `supabase/migrations/20260705000001_contact_requests.sql` (now also includes the B1 trigger and the tightened `profiles_update` policy).
+- **DB schema snapshot** (modified): `supabase/schema.sql` (PR 1 touched sections; B1 trigger / policy included).
+- **Server actions** (new): `apps/web/src/app/actions/contact-requests.ts` (`requestContactWithTalent`, `approveContactRequest`, `rejectContactRequest`, `cancelContactRequest`).
+- **Server actions** (modified): `apps/web/src/app/actions/interviews.ts` (`proposeInterview` refactor, admin client removed from the proposal path).
+- **Shared helper** (new): `apps/web/src/lib/utils/is-minor.ts`.
+- **Verify script** (new): `scripts/verify-is-minor.mjs`; root script `verify:is-minor` in `package.json`.
+- **UI** (modified): `apps/web/src/app/talent/page.tsx` (server-action call, `email` removed from the client select as the M1 fix), `apps/web/src/components/dashboard/DashboardColegio.tsx` (school approve / reject queue).
+- **Docs** (modified): `docs/workflow/STATUS.md`, `NEXT_ACTIONS.md`, `SESSION_LOG.md` (this entry), `PR_TRACKER.md`, `OPEN_QUESTIONS.md`, `DECISION_LOG.md` (ADR-002 implementation note), `docs/architecture/SECURITY_MODEL.md`, `docs/requirements/TRACEABILITY_MATRIX.md`, `docs/technical/KNOWN_ISSUES.md`.
+
+### Risks / Follow-up (after the QA + Security pass)
+
+- Runtime Supabase migration / RLS / trigger verification on a live instance is **not** a blocker for merge / commit, but is a recommended follow-up: apply `20260705000001_contact_requests.sql` to a Supabase instance and exercise company minor insert, school approve / reject, conversation reuse / create on approval, message soft-lock before approval, direct non-minor contact, and the B1 trigger rejecting a non-service `profiles.role` / `profiles.age` update.
+- `respondInterview` / `cancelInterview` still use the admin client and remain out of PR 1 scope; schedule a follow-up admin-client review (already tracked in `OPEN_QUESTIONS.md` Q14 and `KNOWN_ISSUES.md`).
+- Broader schema snapshot drift (`supabase/schema.sql` vs. `supabase/full_reset.sql` vs. older migrations) remains outside PR 1 touched sections; tracked in `KNOWN_ISSUES.md`.
+
+### Next Session
+
+- User reviews the uncommitted diff; optionally splits into the six atomic commit groups listed in `NEXT_ACTIONS.md` (Immediate) and `STATUS.md` (Next Recommended Action). Push to `origin` is the user's call; SSH credentials are still blocked.
+- Schedule the runtime Supabase smoke test as a follow-up before merge / deploy (not a blocker).
