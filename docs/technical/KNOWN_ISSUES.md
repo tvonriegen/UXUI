@@ -5,6 +5,7 @@
 - 2026-07-05: `npm run lint` passed.
 - 2026-07-05: `npm run typecheck` passed.
 - 2026-07-05: `npm run build` passed with dummy non-secret public env values.
+- 2026-07-05 (QA session): `npm run lint` passed, `npm run typecheck` passed, `npm run build` passed on `chore/workflow-state` branch. No dummy env values required.
 - `npm run install:web` reported 21 dependency vulnerabilities from the current dependency tree. They were not auto-fixed to avoid unplanned breaking upgrades.
 - Some historical migrations still include old project naming in comments only.
 
