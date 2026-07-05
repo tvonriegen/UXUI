@@ -1,8 +1,11 @@
 # Known Issues
 
-## Verification Pending
+## Verification
 
-- Full lint/typecheck/build results must be updated after dependency installation is confirmed in the local environment.
+- 2026-07-05: `npm run lint` passed.
+- 2026-07-05: `npm run typecheck` passed.
+- 2026-07-05: `npm run build` passed with dummy non-secret public env values.
+- `npm run install:web` reported 21 dependency vulnerabilities from the current dependency tree. They were not auto-fixed to avoid unplanned breaking upgrades.
 - Some historical migrations still include old project naming in comments only.
 
 ## Product Gaps
