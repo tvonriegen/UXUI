@@ -2,32 +2,47 @@
 
 | ID | Title | Branch | Base | Status | Validation | Owner | Notes |
 |----|-------|--------|------|--------|------------|-------|-------|
-| PR 0 | chore: add persistent workflow state tracking | `chore/workflow-state` | `caro-maturana` | Local committed / ready for PR | **Passed** (lint ✓, typecheck ✓, build ✓ — 2026-07-05 QA session) | not assigned | Introduces `docs/workflow/` and updates `docs/git/GIT_WORKFLOW.md`. Branch head carries `e01cecf` (main setup) and `f15550b` (docs finalization). Next step is to push/integrate the full local branch head — not cherry-pick `e01cecf` alone. Push blocked on SSH credential issue. |
-| PR 1 | fix: privacy contact routing (minor students via school) | `fix/privacy-contact-routing` | `caro-maturana` | Planned | Not run | not assigned | Route company contact with minor students through the school (school-mediated path) instead of exposing the student's direct contact data. |
+| PR 0 | chore: add persistent workflow state tracking | `chore/workflow-state` (integrated into `caro-maturana`) | `caro-maturana` | **Integrated locally** via fast-forward into `caro-maturana` on 2026-07-05; push to `origin` is the user's call (SSH blocked) | **Passed** (lint ✓, typecheck ✓, build ✓ — 2026-07-05 QA session) | not assigned | Introduces `docs/workflow/` and updates `docs/git/GIT_WORKFLOW.md`. The full local branch head — `e01cecf` (main setup), `f15550b` (docs finalization), and `adb64cf` (workflow branch handoff) — is now reachable from `caro-maturana`. |
+| PR 1 | fix: privacy contact routing (minor students via school) | `fix/privacy-contact-routing` | `caro-maturana` (post-PR 0 fast-forward) | **Decision package approved with guardrails / ready for implementation planning** | **Not run** (no code changes on this branch yet; decision / audit consolidation diff is the only working-tree change) | not assigned | Route company contact with minor students through the school (school-mediated path) instead of exposing the student's direct contact data. See `DECISION_LOG.md` ADR-002, `OPEN_QUESTIONS.md` Q6–Q11 (answered) + Q12–Q14 (residual), and `SESSION_LOG.md` (PR 1 decision / audit consolidation, 2026-07-05). |
 
 ## PR 0 — Detail
 
-- Branch: `chore/workflow-state`
-- Base: `caro-maturana`
+- Branch: `chore/workflow-state`.
+- Base: `caro-maturana`.
+- Integration: fast-forwarded into `caro-maturana` locally on 2026-07-05. All three commits — `e01cecf`, `f15550b`, `adb64cf` — are reachable from the new `caro-maturana` HEAD. The push of the now-integrated branch (or of `caro-maturana`) to `origin` is the user's call; SSH credentials are still blocked on this machine.
 - Scope:
   - Create `docs/workflow/STATUS.md`, `NEXT_ACTIONS.md`, `SESSION_LOG.md`, `DECISION_LOG.md`, `OPEN_QUESTIONS.md`, `PR_TRACKER.md`.
   - Update `docs/git/GIT_WORKFLOW.md` to require reading `STATUS.md`, `NEXT_ACTIONS.md`, `PR_TRACKER.md` at session start and updating `STATUS.md`, `NEXT_ACTIONS.md`, `SESSION_LOG.md`, `PR_TRACKER.md`, and `KNOWN_ISSUES.md` at session close.
 - Files touched in this PR: only documentation under `docs/`.
-- Commit message (planned): `chore: add persistent workflow state tracking`.
-- Commits on `chore/workflow-state`:
+- Commits on `chore/workflow-state` (all now in `caro-maturana`):
   - `e01cecf chore: add persistent workflow state tracking` — main PR 0 setup commit (2026-07-05).
   - `f15550b docs: finalize workflow state after PR 0 setup` — documentation-only follow-up on the same branch (2026-07-05).
-- The full local branch head (both commits) is not yet on `origin`; push blocked by SSH credential issue. The next step is to push/integrate the **full local branch head of `chore/workflow-state`**, not cherry-pick `e01cecf` alone.
-- Validation: **passed** (2026-07-05 QA session). `npm run lint` ✓, `npm run typecheck` ✓, `npm run build` ✓. No dummy env values required.
-- Last known good validation (baseline `caro-maturana`, 2026-07-05, dummy public env values): lint passed, typecheck passed, build passed. `npm run install:web` reported 21 dependency vulnerabilities (not auto-fixed, see `KNOWN_ISSUES.md`).
+  - `adb64cf docs: clarify workflow branch handoff` — final docs touch-up clarifying the handoff into `caro-maturana` (2026-07-05).
+- Validation: **passed** (2026-07-05 QA session, against the pre-integration `chore/workflow-state` HEAD). `npm run lint` ✓, `npm run typecheck` ✓, `npm run build` ✓. No dummy env values required.
+- Last known good validation (baseline `caro-maturana` pre-integration, 2026-07-05, dummy public env values): lint passed, typecheck passed, build passed. `npm run install:web` reported 21 dependency vulnerabilities (not auto-fixed, see `KNOWN_ISSUES.md`).
 
 ## PR 1 — Detail
 
-- Branch: `fix/privacy-contact-routing` (to be created from `caro-maturana` after PR 0 is integrated).
+- Branch: `fix/privacy-contact-routing` (created from `caro-maturana` after the PR 0 fast-forward).
 - Purpose: route company contact with minor students through the school (school-mediated path) instead of exposing the student's direct contact data.
-- Scope (preliminary):
-  - Identify the company-to-candidate contact flow used for minor students (profile, application, message routes in `apps/web`) and the Supabase RLS policies that gate contact fields.
-  - Update the routing and/or RLS policies so that when a company contacts a minor candidate, the contact is delivered to / mediated by the school rather than reaching the student directly.
+- Status: **decision package approved with guardrails / ready for implementation planning**. The decision / audit consolidation diff is the only working-tree change; no code, RLS, or migration changes have been made on the branch yet. Implementation is unblocked once the decision-documentation state is committed and / or an explicit implementation approval is given, and once the residual implementation questions in `OPEN_QUESTIONS.md` Q12–Q14 are answered in the implementation plan.
+- Architecture-auditor verdict (2026-07-05): **Aprobar con observaciones** — do not block, provided the ajustes imprescindibles are incorporated before / during implementation. The required guardrails (CR-1 / C3 admin-client elimination; CR-2 / C2 `can_converse` on both insert sides; M1 `isMinor` predicate; M2 `contact_requests` RLS; M3 indexes; M4 `schema.sql` alignment; M-5 / M7 `notifications.metadata` + idempotent migration; M-6 / M6 verification mechanism; M-2 / M8 `SECURITY DEFINER` hygiene; secondary decisions on student visibility, cancellation, `rejection_reason`, Colegio↔Egresado) are captured in `DECISION_LOG.md` ADR-002. See `SESSION_LOG.md` (PR 1 Start and PR 1 decision / audit consolidation, 2026-07-05).
+- Direct contact-surface points identified during the read-only exploration (to be reworked by PR 1):
+  - `apps/web/src/app/talent/page.tsx` — creates conversations on behalf of a company toward candidates.
+  - `apps/web/src/app/messages/page.tsx` — opens the company↔student and school↔student conversation paths.
+  - `apps/web/src/app/actions/interviews.ts` — uses the admin Supabase client to create interview proposals, bypassing RLS. To be refactored to the RLS-constrained server-action client bound to `auth.uid()` (CR-1 / C3).
+  - Supabase RLS on `conversations` — currently validates only participant membership; must be tightened so that `can_converse(a, b)` gates `conversations INSERT` and `messages INSERT`, with `conversations SELECT` remaining participant-based for history (soft-lock per M5).
+- Scope (now that C1–C4, M1–M8, and the secondary decisions are decided in ADR-002):
+  - Add the `contact_requests` table, supporting indexes (pair/status and school/status), and RLS policies (M2, M3). Idempotent migration.
+  - Add or update the `is_minor(role, age)` SQL function and the `can_converse(a, b)` SQL function with explicit `search_path`, `STABLE`, and minimum grants (M1, M3, M8).
+  - Update `conversations` and `messages` RLS so that `can_converse` gates both inserts (CR-2 / C2, M5).
+  - Extend `notifications` to include `metadata jsonb NOT NULL DEFAULT '{}'` and a CHECK that allows `contact_request` with `metadata.status` (M5, M7). Idempotent migration.
+  - Add the `contact_request` DB trigger that writes the notification row (C4). The trigger is the only writer for the `contact_request` notification kind in PR 1.
+  - Refactor `apps/web/src/app/actions/interviews.ts::proposeInterview` to drop the admin client; for minor candidates, create or reuse a `contact_requests` row in `pending` and do not move `job_applications.status` to `interviewing` until approval (CR-1 / C3).
+  - Add the school-side approve / reject path and the company-side cancel path on `contact_requests`; wire the approval outcome to the `can_converse` gate and to the soft-lock / reuse-or-create conversation logic (M2, M5; resolves Q13).
+  - Regenerate `supabase/schema.sql` for the touched sections and record any residual drift in `docs/technical/KNOWN_ISSUES.md` (C1, M4).
+  - Pick and document the `is-minor` / contact-routing verification mechanism (M6; resolves Q12).
+  - Confirm the `respondInterview` / `cancelInterview` admin-client scope (Q14): either confirm they stay out of scope for PR 1, or justify any admin-client use with a concrete, narrow, documented reason (per CR-1 / C3).
   - Add or extend a test that asserts a company's contact intent toward a minor student is routed through the school-mediated path and the student's direct contact data is not exposed in the company-facing response.
-- Documentation: update `SESSION_LOG.md`, `PR_TRACKER.md`, and `docs/architecture/SECURITY_MODEL.md`.
-- Validation: lint / typecheck / build plus the new minor-student routing test.
+- Documentation: update `SESSION_LOG.md`, `PR_TRACKER.md`, `DECISION_LOG.md`, and `docs/architecture/SECURITY_MODEL.md` as the work lands.
+- Validation: **not run** in the PR 1 Start and PR 1 decision / audit consolidation sessions. Planned for the next session after the docs commit and the implementation plan are approved: `npm run lint` / `npm run typecheck` / `npm run build` plus the chosen `is-minor` / contact-routing verification mechanism.
