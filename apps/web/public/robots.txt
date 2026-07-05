@@ -8,4 +8,4 @@ Disallow: /muro
 Disallow: /talent
 Disallow: /empleos
 
-Sitemap: https://classlink.vercel.app/sitemap.xml
+Sitemap: https://talenthub.vercel.app/sitemap.xml

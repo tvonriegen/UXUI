@@ -23,8 +23,8 @@ import CursorGlow          from "@/components/layout/CursorGlow";
 import ChatWidget           from "@/components/chat/ChatWidget";
 
 export const metadata: Metadata = {
-  title:       "ClassLink – Vocational Excellence",
-  description: "Connecting vocational students with local companies",
+  title:       "TalentHub",
+  description: "Verified technical talent and assisted applications",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,7 +1,7 @@
 "use client";
 // ──────────────────────────────────────────────────────────
 // TrustTriangleInsights
-// Live metrics that demonstrate ClassLink's core value prop:
+// Live metrics that demonstrate TalentHub's core value prop:
 // the three-way trust relationship between Students, Schools,
 // and Companies that no generic job board can offer.
 //
@@ -140,7 +140,7 @@ function CompanyView({ companyId }: { companyId: string }) {
       <div className="bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-100 rounded-2xl p-4">
         <div className="flex items-center gap-2 mb-2">
           <ShieldCheck size={16} className="text-violet-600" />
-          <p className="text-sm font-bold text-violet-800">El Triángulo de Confianza ClassLink</p>
+          <p className="text-sm font-bold text-violet-800">El Triángulo de Confianza TalentHub</p>
         </div>
         <p className="text-xs text-violet-700 leading-relaxed">
           Cada estudiante en esta plataforma tiene un historial verificado por su institución educativa.
@@ -195,7 +195,7 @@ function CompanyView({ companyId }: { companyId: string }) {
         <MetricTile
           label="Reputación promedio"
           value={`${data.avgReputationScore} pts`}
-          sub="del talento en ClassLink"
+          sub="del talento en TalentHub"
           icon={<TrendingUp size={18} className="text-violet-600" />}
           color="bg-violet-50 border-violet-100 text-violet-900"
         />
@@ -292,7 +292,7 @@ function StudentView({ studentId }: { studentId: string }) {
         <MetricTile
           label="Insignias ganadas"
           value={data.earnedBadges}
-          sub="en ClassLink"
+          sub="en TalentHub"
           icon={<Award size={18} className="text-cyan-600" />}
           color="bg-cyan-50 border-cyan-100 text-cyan-900"
         />
@@ -306,7 +306,7 @@ function StudentView({ studentId }: { studentId: string }) {
         <MetricTile
           label="Puntuación total"
           value={`${data.reputationScore} pts`}
-          sub="reputación ClassLink"
+          sub="reputación TalentHub"
           icon={<TrendingUp size={18} className="text-emerald-600" />}
           color="bg-emerald-50 border-emerald-100 text-emerald-900"
         />
@@ -345,7 +345,7 @@ export default function TrustTriangleInsights({ role, companyId, studentId }: Pr
       <div className={`px-5 py-3.5 border-b border-slate-100 flex items-center gap-2 ${isCompany ? "bg-violet-50/60" : "bg-cyan-50/60"}`}>
         <ShieldCheck size={15} className={isCompany ? "text-violet-600" : "text-cyan-600"} />
         <p className="text-sm font-bold text-slate-700">
-          {isCompany ? "Insights del Ecosistema ClassLink" : "Tu Posicionamiento en ClassLink"}
+          {isCompany ? "Insights del Ecosistema TalentHub" : "Tu Posicionamiento en TalentHub"}
         </p>
       </div>
       <div className="p-5">

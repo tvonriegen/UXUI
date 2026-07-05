@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════════
--- ClassLink – FULL SCHEMA RESET  (v3 – matches current app code)
+-- TalentHub – FULL SCHEMA RESET  (v3 – matches current app code)
 -- ═══════════════════════════════════════════════════════════════════
 -- HOW TO USE:
 --   1. Supabase Dashboard → SQL Editor → New query

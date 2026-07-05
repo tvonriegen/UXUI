@@ -1,6 +1,6 @@
 "use client";
 // ──────────────────────────────────────────────────────────
-// ClassLink – Authentication Context (Supabase)
+// TalentHub – Authentication Context (Supabase)
 // ──────────────────────────────────────────────────────────
 // Wraps Supabase Auth so the rest of the app keeps the same
 // AuthUser shape and useAuth() hook it already relies on.

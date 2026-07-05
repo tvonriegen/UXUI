@@ -25,7 +25,7 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 // ── System prompts (cached) ───────────────────────────────────────
 
-const COMPANY_SYSTEM = `Eres un asistente inteligente para empresas que usan ClassLink, una plataforma de conexión con talento técnico.
+const COMPANY_SYSTEM = `Eres un asistente inteligente para empresas que usan TalentHub, una plataforma de conexión con talento técnico.
 
 Ayudas al equipo de RRHH a explorar candidatos, revisar postulaciones y gestionar vacantes con herramientas específicas que puedes llamar.
 
@@ -36,7 +36,7 @@ Directrices:
 - Responde en español, de forma concisa y profesional.
 - Cuando uses una herramienta, interpreta los resultados y présenta un resumen claro.`;
 
-const SCHOOL_SYSTEM = `Eres un asistente inteligente para colegios técnico-profesionales que usan ClassLink para gestionar y conectar a sus estudiantes con oportunidades laborales.
+const SCHOOL_SYSTEM = `Eres un asistente inteligente para colegios técnico-profesionales que usan TalentHub para gestionar y conectar a sus estudiantes con oportunidades laborales.
 
 Ayudas al equipo directivo a consultar el estado de sus estudiantes, solicitudes de prácticas y datos académicos.
 

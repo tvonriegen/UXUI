@@ -7,7 +7,7 @@
 //
 // Connects to:
 //  - useAuth() for current user info
-//  - localStorage "classlink_config" for dark/compact toggles
+//  - localStorage "talenthub_config" for dark/compact toggles
 //  - role-context for notification preferences
 // ──────────────────────────────────────────────────────────
 
@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 
 // ── Config helpers (mirror ConfigModal logic) ─────────────
-const STORAGE_KEY = "classlink_config";
+const STORAGE_KEY = "talenthub_config";
 
 interface AppConfig {
   darkMode:    boolean;
@@ -296,7 +296,7 @@ export default function SettingsPage() {
                   "Reportar un problema",
                   "Términos y condiciones",
                   "Política de privacidad",
-                  "Acerca de ClassLink v2.0",
+                  "Acerca de TalentHub v2.0",
                 ].map((item) => (
                   <button
                     key={item}

@@ -1,6 +1,6 @@
-# ClassLink – Vocational Excellence Platform
+# TalentHub Web
 
-A fully functional React (Next.js 14 App Router) prototype for a technical high school platform connecting vocational students with local companies.
+Next.js 14 App Router application for TalentHub, a platform connecting technical-professional students, graduates, schools and companies through verified profiles and assisted applications.
 
 ## 🚀 Quick Start
 
@@ -10,13 +10,13 @@ A fully functional React (Next.js 14 App Router) prototype for a technical high 
 #    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 #    nvm install 20
 
-# 2. Navigate to the project
-cd classlink-app
+# 2. From the repository root, install app dependencies
+npm run install:web
 
-# 3. Install dependencies
-npm install
+# 3. Copy env example for the web app
+cp .env.example apps/web/.env.local
 
-# 4. Run the dev server
+# 4. Run the dev server from the root
 npm run dev
 
 # 5. Open in browser
@@ -25,28 +25,28 @@ npm run dev
 
 ## ✨ Features
 
-### 🔄 Global Role Switcher
+### Global Role Switcher
 - Dropdown in the header: **Estudiante / Egresado / Empresa / Colegio**
 - All screens dynamically re-render based on selected role
 
-### 📊 Dynamic Dashboards (per role)
+### Dynamic Dashboards (per role)
 - **Colegio**: Institutional KPIs, request queue with dismiss actions
 - **Estudiante**: XP progress bar, daily streak, badge grid (gamification)
 - **Empresa**: Talent pipeline metrics, recent matches
 - **Egresado**: Profile views, alumni ranking, suggested actions
 
-### 🔔 Interactive Notifications
+### Interactive Notifications
 - Role-based notification bubbles with unread count
 - "Colegio" → Company contact requests
 - "Estudiante" → New badge approved
 - Mark individual or all as read
 
-### 📌 El Muro (Feed)
+### El Muro (Feed)
 - Stateful tabs: **Publicaciones y Eventos** / **Portafolios Destacados**
 - "Crear Publicación" button opens a modal dialog
 - Like/unlike toggle with count
 
-### 🔍 Talent Directory (Buscador de Alumnos)
+### Talent Directory
 - Real-time search by name or skill
 - Dropdown filters: Specialty + Student/Graduate role
 - **Privacy render logic**:
@@ -54,19 +54,19 @@ npm run dev
   - `Estudiante` → "Solicitar vía Colegio" button
   - `Empresa` → "Solicitar Contacto" button
 
-### 💬 Messages
+### Messages
 - Conversation list with active highlight
 - Real-time chat with send functionality
 - Mobile-responsive: list → chat view toggle
 
-### 👤 Profile & Gamification
+### Profile, Evidence and Gamification
 - XP progress bar with level
 - Daily streak counter
 - Verified badge grid (earned/locked)
 - "Descargar CV Público" button with feedback state
 - Portfolio showcase
 
-### 📱 Responsive Design
+### Responsive Design
 - **Desktop**: Fixed left sidebar + wide content
 - **Mobile (≤768px)**: Sidebar hidden → Instagram-style bottom nav
 - Smooth transitions throughout

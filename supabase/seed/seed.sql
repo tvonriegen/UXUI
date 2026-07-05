@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════════
--- ClassLink – Seed Data (v1)
+-- TalentHub – Seed Data (v1)
 -- ═══════════════════════════════════════════════════════════════════
 -- HOW TO RUN
 --   Supabase Dashboard → SQL Editor → New query → Paste & Run
@@ -332,7 +332,7 @@ SET session_replication_role = 'replica';
 
 -- ─────────────────────────────────────────────────────────────────
 -- SECTION A – AUTH USERS
--- Creates login-able accounts. Password for all seeds: ClassLink2024!
+-- Creates login-able accounts. Password for all SQL seed accounts: TalentHub2026!
 -- ─────────────────────────────────────────────────────────────────
 
 INSERT INTO auth.users (
@@ -349,133 +349,133 @@ VALUES
 -- ── COLEGIOS ──────────────────────────────────────────────────────
 
 ('11111111-1111-1111-1111-000000000001','00000000-0000-0000-0000-000000000000',
- 'coordinacion@cecjmc.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'coordinacion@cecjmc.cl', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"CECJMC","role":"Colegio"}', 'authenticated','authenticated', NOW(),NOW(),'','','',''),
 
 ('11111111-1111-1111-1111-000000000002','00000000-0000-0000-0000-000000000000',
- 'secretaria@liceombb.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'secretaria@liceombb.cl', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"Liceo Barros Borgoño","role":"Colegio"}', 'authenticated','authenticated', NOW(),NOW(),'','','',''),
 
 ('11111111-1111-1111-1111-000000000003','00000000-0000-0000-0000-000000000000',
- 'admin@ceiamaipu.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'admin@ceiamaipu.cl', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"CEIA Maipú","role":"Colegio"}', 'authenticated','authenticated', NOW(),NOW(),'','','',''),
 
 ('11111111-1111-1111-1111-000000000004','00000000-0000-0000-0000-000000000000',
- 'coord@ctpsanalberto.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'coord@ctpsanalberto.cl', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"CTP San Alberto Hurtado","role":"Colegio"}', 'authenticated','authenticated', NOW(),NOW(),'','','',''),
 
 -- ── EMPRESAS ──────────────────────────────────────────────────────
 
 ('22222222-2222-2222-2222-000000000001','00000000-0000-0000-0000-000000000000',
- 'rrhh@metalchile.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'rrhh@metalchile.cl', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"MetalChile S.A.","role":"Empresa"}', 'authenticated','authenticated', NOW(),NOW(),'','','',''),
 
 ('22222222-2222-2222-2222-000000000002','00000000-0000-0000-0000-000000000000',
- 'rrhh@innovagreen.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'rrhh@innovagreen.cl', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"Innova Green Ltda.","role":"Empresa"}', 'authenticated','authenticated', NOW(),NOW(),'','','',''),
 
 ('22222222-2222-2222-2222-000000000003','00000000-0000-0000-0000-000000000000',
- 'contacto@autopartschile.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'contacto@autopartschile.cl', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"AutoParts Chile","role":"Empresa"}', 'authenticated','authenticated', NOW(),NOW(),'','','',''),
 
 ('22222222-2222-2222-2222-000000000004','00000000-0000-0000-0000-000000000000',
- 'rrhh@constructoraandina.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'rrhh@constructoraandina.cl', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"Constructora Andina SpA","role":"Empresa"}', 'authenticated','authenticated', NOW(),NOW(),'','','',''),
 
 ('22222222-2222-2222-2222-000000000005','00000000-0000-0000-0000-000000000000',
- 'info@friodelsur.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'info@friodelsur.cl', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"Frío del Sur S.A.","role":"Empresa"}', 'authenticated','authenticated', NOW(),NOW(),'','','',''),
 
 -- ── ESTUDIANTES ───────────────────────────────────────────────────
 
 ('33333333-3333-3333-3333-000000000001','00000000-0000-0000-0000-000000000000',
- 'marco.rivera@estudiante.cecjmc.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'marco.rivera@estudiante.cecjmc.cl', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"Marco Rivera","role":"Estudiante"}', 'authenticated','authenticated', NOW(),NOW(),'','','',''),
 
 ('33333333-3333-3333-3333-000000000002','00000000-0000-0000-0000-000000000000',
- 'valentina.ruiz@estudiante.cecjmc.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'valentina.ruiz@estudiante.cecjmc.cl', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"Valentina Ruiz","role":"Estudiante"}', 'authenticated','authenticated', NOW(),NOW(),'','','',''),
 
 ('33333333-3333-3333-3333-000000000003','00000000-0000-0000-0000-000000000000',
- 'pedro.sanchez@estudiante.cecjmc.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'pedro.sanchez@estudiante.cecjmc.cl', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"Pedro Sánchez","role":"Estudiante"}', 'authenticated','authenticated', NOW(),NOW(),'','','',''),
 
 ('33333333-3333-3333-3333-000000000004','00000000-0000-0000-0000-000000000000',
- 'camila.ortiz@estudiante.cecjmc.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'camila.ortiz@estudiante.cecjmc.cl', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"Camila Ortiz","role":"Estudiante"}', 'authenticated','authenticated', NOW(),NOW(),'','','',''),
 
 ('33333333-3333-3333-3333-000000000005','00000000-0000-0000-0000-000000000000',
- 'sofia.vargas@estudiante.cecjmc.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'sofia.vargas@estudiante.cecjmc.cl', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"Sofía Vargas","role":"Estudiante"}', 'authenticated','authenticated', NOW(),NOW(),'','','',''),
 
 ('33333333-3333-3333-3333-000000000006','00000000-0000-0000-0000-000000000000',
- 'felipe.castro@estudiante.cecjmc.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'felipe.castro@estudiante.cecjmc.cl', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"Felipe Castro","role":"Estudiante"}', 'authenticated','authenticated', NOW(),NOW(),'','','',''),
 
 ('33333333-3333-3333-3333-000000000007','00000000-0000-0000-0000-000000000000',
- 'javiera.munoz@estudiante.liceombb.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'javiera.munoz@estudiante.liceombb.cl', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"Javiera Muñoz","role":"Estudiante"}', 'authenticated','authenticated', NOW(),NOW(),'','','',''),
 
 ('33333333-3333-3333-3333-000000000008','00000000-0000-0000-0000-000000000000',
- 'bastian.torres@estudiante.cecjmc.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'bastian.torres@estudiante.cecjmc.cl', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"Bastián Torres","role":"Estudiante"}', 'authenticated','authenticated', NOW(),NOW(),'','','',''),
 
 ('33333333-3333-3333-3333-000000000009','00000000-0000-0000-0000-000000000000',
- 'lucas.espinoza@estudiante.ctpsanalberto.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'lucas.espinoza@estudiante.ctpsanalberto.cl', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"Lucas Espinoza","role":"Estudiante"}', 'authenticated','authenticated', NOW(),NOW(),'','','',''),
 
 -- ── EGRESADOS ─────────────────────────────────────────────────────
 
 ('44444444-4444-4444-4444-000000000001','00000000-0000-0000-0000-000000000000',
- 'alejandro.mendoza@classlink.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'alejandro.mendoza@talenthub.local', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"Alejandro Mendoza","role":"Egresado"}', 'authenticated','authenticated', NOW(),NOW(),'','','',''),
 
 ('44444444-4444-4444-4444-000000000002','00000000-0000-0000-0000-000000000000',
- 'elena.rodriguez@classlink.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'elena.rodriguez@talenthub.local', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"Elena Rodríguez","role":"Egresado"}', 'authenticated','authenticated', NOW(),NOW(),'','','',''),
 
 ('44444444-4444-4444-4444-000000000003','00000000-0000-0000-0000-000000000000',
- 'diego.herrera@classlink.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'diego.herrera@talenthub.local', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"Diego Herrera","role":"Egresado"}', 'authenticated','authenticated', NOW(),NOW(),'','','',''),
 
 ('44444444-4444-4444-4444-000000000004','00000000-0000-0000-0000-000000000000',
- 'andres.lopez@classlink.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'andres.lopez@talenthub.local', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"Andrés López","role":"Egresado"}', 'authenticated','authenticated', NOW(),NOW(),'','','',''),
 
 ('44444444-4444-4444-4444-000000000005','00000000-0000-0000-0000-000000000000',
- 'carlos.mendez@classlink.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'carlos.mendez@talenthub.local', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"Carlos Méndez","role":"Egresado"}', 'authenticated','authenticated', NOW(),NOW(),'','','',''),
 
 ('44444444-4444-4444-4444-000000000006','00000000-0000-0000-0000-000000000000',
- 'ana.beltran@classlink.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'ana.beltran@talenthub.local', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"Ana Beltrán","role":"Egresado"}', 'authenticated','authenticated', NOW(),NOW(),'','','',''),
 
 ('44444444-4444-4444-4444-000000000007','00000000-0000-0000-0000-000000000000',
- 'roberto.vasquez@classlink.cl', crypt('ClassLink2024!', gen_salt('bf')),
+ 'roberto.vasquez@talenthub.local', crypt('TalentHub2026!', gen_salt('bf')),
  NOW(), NOW(), '{"provider":"email","providers":["email"]}',
  '{"name":"Roberto Vásquez","role":"Egresado"}', 'authenticated','authenticated', NOW(),NOW(),'','','','')
 
@@ -652,7 +652,7 @@ INSERT INTO public.profiles (
 -- ── EGRESADOS ─────────────────────────────────────────────────────
 
 ('44444444-4444-4444-4444-000000000001',
- 'alejandro.mendoza@classlink.cl', 'Alejandro Mendoza', 'Egresado',
+ 'alejandro.mendoza@talenthub.local', 'Alejandro Mendoza', 'Egresado',
  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
  'Egresado de Mecatrónica CECJMC 2024. Especializado en automatización industrial con PLC Siemens S7 e IoT para manufactura. Disponible para proyecto o empleo.',
  'Lo Espejo, Santiago',
@@ -660,7 +660,7 @@ INSERT INTO public.profiles (
  '','','','',0,'',NULL,0,NULL),
 
 ('44444444-4444-4444-4444-000000000002',
- 'elena.rodriguez@classlink.cl', 'Elena Rodríguez', 'Egresado',
+ 'elena.rodriguez@talenthub.local', 'Elena Rodríguez', 'Egresado',
  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face',
  'Técnica Electricista egresada 2023. 2 años de experiencia en instalaciones industriales y proyectos fotovoltaicos. Certificada NEC y AutoCAD Electrical.',
  'Maipú, Santiago',
@@ -668,7 +668,7 @@ INSERT INTO public.profiles (
  '','','','',0,'',NULL,0,NULL),
 
 ('44444444-4444-4444-4444-000000000003',
- 'diego.herrera@classlink.cl', 'Diego Herrera', 'Egresado',
+ 'diego.herrera@talenthub.local', 'Diego Herrera', 'Egresado',
  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face',
  'Soldador certificado AWS D1.1 con 3 años de experiencia en estructuras metálicas, tuberías de presión y supervisión de soldaduras. Inspector CWI Level I.',
  'Pudahuel, Santiago',
@@ -676,7 +676,7 @@ INSERT INTO public.profiles (
  '','','','',0,'',NULL,0,NULL),
 
 ('44444444-4444-4444-4444-000000000004',
- 'andres.lopez@classlink.cl', 'Andrés López', 'Egresado',
+ 'andres.lopez@talenthub.local', 'Andrés López', 'Egresado',
  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face',
  'Técnico Mecatrónico Senior con 4 años en líneas de producción automotriz. Experto en PLC Allen Bradley, robots Fanuc y sistemas HMI/SCADA.',
  'Quilicura, Santiago',
@@ -684,7 +684,7 @@ INSERT INTO public.profiles (
  '','','','',0,'',NULL,0,NULL),
 
 ('44444444-4444-4444-4444-000000000005',
- 'carlos.mendez@classlink.cl', 'Carlos Méndez', 'Egresado',
+ 'carlos.mendez@talenthub.local', 'Carlos Méndez', 'Egresado',
  'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=face',
  'Electricista Senior especializado en subestaciones de media tensión y sistemas de protección. 5 años en proyectos industriales de alta envergadura.',
  'Estación Central, Santiago',
@@ -692,7 +692,7 @@ INSERT INTO public.profiles (
  '','','','',0,'',NULL,0,NULL),
 
 ('44444444-4444-4444-4444-000000000006',
- 'ana.beltran@classlink.cl', 'Ana Beltrán', 'Egresado',
+ 'ana.beltran@talenthub.local', 'Ana Beltrán', 'Egresado',
  'https://images.unsplash.com/photo-1558203728-00f45181dd84?w=200&h=200&fit=crop&crop=face',
  'Técnica Automotriz egresada 2023 con 2 años en diagnóstico electrónico avanzado y mecánica preventiva. Manejo de scanner profesional VCDS y Bosch.',
  'Pudahuel, Santiago',
@@ -700,7 +700,7 @@ INSERT INTO public.profiles (
  '','','','',0,'',NULL,0,NULL),
 
 ('44444444-4444-4444-4444-000000000007',
- 'roberto.vasquez@classlink.cl', 'Roberto Vásquez', 'Egresado',
+ 'roberto.vasquez@talenthub.local', 'Roberto Vásquez', 'Egresado',
  'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=200&h=200&fit=crop&crop=face',
  'Soldador Inspector AWS CWI con 4 años en proyectos oil & gas y plantas industriales. Certificado en END: Radiografía, Ultrasonido y Líquidos Penetrantes.',
  'Maipú, Santiago',

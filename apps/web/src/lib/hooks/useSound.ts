@@ -12,7 +12,7 @@ import { useCallback, useRef, useState } from "react";
 export function useSound() {
   const [muted, setMuted] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
-    return localStorage.getItem("classlink_muted") === "true";
+    return localStorage.getItem("talenthub_muted") === "true";
   });
 
   const ctxRef = useRef<AudioContext | null>(null);
@@ -77,7 +77,7 @@ export function useSound() {
     setMuted((prev) => {
       const next = !prev;
       if (typeof window !== "undefined") {
-        localStorage.setItem("classlink_muted", String(next));
+        localStorage.setItem("talenthub_muted", String(next));
       }
       return next;
     });

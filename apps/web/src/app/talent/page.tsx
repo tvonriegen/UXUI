@@ -32,7 +32,7 @@ const ACTIVITIES = [
   { id: "a4", category: "career",  title: "Postúlate a una práctica",        xp: 50,  done: false, description: "Envía tu primera postulación a una vacante en Empleos.", icon: Target },
   { id: "a5", category: "tech",    title: "Alcanza el Nivel 2",              xp: 0,   done: false, description: "Acumula suficiente XP para subir de nivel.", icon: Star },
   { id: "a6", category: "career",  title: "Descarga tu CV",                  xp: 20,  done: false, description: "Genera y descarga tu CV desde tu perfil.", icon: BookOpen },
-  { id: "a7", category: "soft",    title: "Mantén una racha de 7 días",      xp: 70,  done: false, description: "Accede a ClassLink durante 7 días consecutivos.", icon: Flame },
+  { id: "a7", category: "soft",    title: "Mantén una racha de 7 días",      xp: 70,  done: false, description: "Accede a TalentHub durante 7 días consecutivos.", icon: Flame },
   { id: "a8", category: "project", title: "Agrega 3 proyectos al portafolio",xp: 150, done: false, description: "Construye un portafolio sólido con múltiples proyectos.", icon: Trophy },
 ] as const;
 

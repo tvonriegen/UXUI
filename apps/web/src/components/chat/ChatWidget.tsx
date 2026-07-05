@@ -117,7 +117,7 @@ export default function ChatWidget() {
           m.id === placeholderId
             ? {
                 ...m,
-                content: "¡Hola! Soy el Asistente ClassLink. Todavía estoy en desarrollo, pero muy pronto podré ayudarte con todo lo que necesites. ¡Mantente al tanto! 🚀",
+                content: "¡Hola! Soy el Asistente TalentHub. Todavía estoy en desarrollo, pero muy pronto podré ayudarte con todo lo que necesites. ¡Mantente al tanto! 🚀",
                 pending: false,
               }
             : m
@@ -233,7 +233,7 @@ export default function ChatWidget() {
               <Bot size={15} className="text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-white leading-tight">Asistente ClassLink</p>
+              <p className="text-sm font-bold text-white leading-tight">Asistente TalentHub</p>
               <p className="text-[10px] text-white/70">{role} · IA con herramientas</p>
             </div>
             <div className="flex items-center gap-1.5">

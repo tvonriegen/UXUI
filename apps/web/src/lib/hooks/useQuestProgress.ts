@@ -18,7 +18,7 @@ export function useQuestProgress() {
       if (!res.ok) return { ok: false };
       const data = await res.json();
       window.dispatchEvent(
-        new CustomEvent("classlink:quest-progress", {
+        new CustomEvent("talenthub:quest-progress", {
           detail: {
             code,
             completed: Boolean(data?.completed),

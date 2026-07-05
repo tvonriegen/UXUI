@@ -824,7 +824,7 @@ export default function EmpleosPage() {
                           <>
                             <button
                               onClick={() => {
-                                const text = encodeURIComponent(`Vacante: ${job.title}${job.specialty ? " — " + job.specialty : ""}${job.location ? " · " + job.location : ""}. ¡Aplica en ClassLink!`);
+                                const text = encodeURIComponent(`Vacante: ${job.title}${job.specialty ? " — " + job.specialty : ""}${job.location ? " · " + job.location : ""}. ¡Aplica en TalentHub!`);
                                 const url  = encodeURIComponent(window.location.href);
                                 window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}&summary=${text}`, "_blank", "noopener,noreferrer,width=600,height=500");
                               }}

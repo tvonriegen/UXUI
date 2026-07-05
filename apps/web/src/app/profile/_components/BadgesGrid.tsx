@@ -31,7 +31,7 @@ interface BadgesGridProps {
 
 function shareToLinkedIn(badge: UserBadge, profileName?: string) {
   const text = encodeURIComponent(
-    `${profileName ?? "Estudiante"} ha obtenido la insignia "${badge.name}" en ClassLink` +
+    `${profileName ?? "Estudiante"} ha obtenido la insignia "${badge.name}" en TalentHub` +
     (badge.skill_name ? ` por la habilidad técnica validada: ${badge.skill_name}` : "") +
     ". ¡Perfil institucional verificado!"
   );

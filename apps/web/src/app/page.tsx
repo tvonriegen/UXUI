@@ -2,7 +2,7 @@
 // ──────────────────────────────────────────────────────────
 // Dashboard Page – route: /
 // ──────────────────────────────────────────────────────────
-// The home page of ClassLink.
+// The home page of TalentHub.
 // Reads the current role from the global context and renders
 // the matching dashboard component inside the shared page shell.
 //

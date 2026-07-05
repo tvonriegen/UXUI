@@ -80,8 +80,8 @@ export default function DailyQuestsCard({ userId }: DailyQuestsCardProps) {
         )
       );
     };
-    window.addEventListener("classlink:quest-progress", handler);
-    return () => window.removeEventListener("classlink:quest-progress", handler);
+    window.addEventListener("talenthub:quest-progress", handler);
+    return () => window.removeEventListener("talenthub:quest-progress", handler);
   }, []);
 
   const totalXP    = useMemo(() => quests.reduce((s, q) => s + q.xp_reward, 0), [quests]);

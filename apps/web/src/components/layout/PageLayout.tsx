@@ -43,7 +43,7 @@ export default function PageLayout({ children }: PageLayoutProps) {
         <div className="flex flex-col items-center gap-3">
           {/* Animated brand logo placeholder */}
           <div className="w-10 h-10 rounded-xl primary-gradient flex items-center justify-center animate-pulse">
-            <span className="text-white font-black text-sm">CL</span>
+            <span className="text-white font-black text-sm">TH</span>
           </div>
           <p className="text-xs text-slate-400 font-medium">Cargando…</p>
         </div>

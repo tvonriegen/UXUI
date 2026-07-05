@@ -423,7 +423,7 @@ export default function ProfilePage() {
   // Welcome popup — only shown to students whose account is at least 1 hour old.
   // Brand-new users are exempt so they can explore freely before being prompted.
   useEffect(() => {
-    if (profile?.role === "Estudiante" && !localStorage.getItem("cl_onboarded")) {
+    if (profile?.role === "Estudiante" && !localStorage.getItem("th_onboarded")) {
       const ageMs   = profile.created_at ? Date.now() - new Date(profile.created_at).getTime() : 0;
       const ageHrs  = ageMs / (1000 * 60 * 60);
       if (ageHrs >= 1) setShowOnboarding(true);
@@ -629,7 +629,7 @@ export default function ProfilePage() {
     ${portfolio.map((p) => `<div style="margin-bottom:10px;"><strong style="font-size:14px;">${p.title}</strong>${p.description ? `<p style="font-size:13px;color:#64748b;margin-top:2px;">${p.description}</p>` : ""}${p.link ? `<a href="${p.link}" style="font-size:12px;color:#0891b2;">${p.link}</a>` : ""}</div>`).join("")}
   </div>` : ""}
 
-  <div class="footer">Generado por ClassLink · ${new Date().toLocaleDateString("es-CR")}</div>
+  <div class="footer">Generado por TalentHub · ${new Date().toLocaleDateString("es-CR")}</div>
 </div>
 </body>
 </html>`;
@@ -2785,7 +2785,7 @@ export default function ProfilePage() {
 
       {/* ── Welcome Onboarding Modal ── */}
       {role === "Estudiante" && (
-        <Modal open={showOnboarding} onClose={() => { localStorage.setItem("cl_onboarded", "1"); setShowOnboarding(false); }} title="Bienvenido a ClassLink">
+        <Modal open={showOnboarding} onClose={() => { localStorage.setItem("th_onboarded", "1"); setShowOnboarding(false); }} title="Bienvenido a TalentHub">
           <div className="space-y-4">
             <div className="space-y-3">
               {[
@@ -2810,7 +2810,7 @@ export default function ProfilePage() {
               </p>
             </div>
             <button
-              onClick={() => { localStorage.setItem("cl_onboarded", "1"); setShowOnboarding(false); }}
+              onClick={() => { localStorage.setItem("th_onboarded", "1"); setShowOnboarding(false); }}
               className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-3 rounded-xl font-bold text-sm transition-colors"
             >
               Empezar

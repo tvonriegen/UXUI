@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════════
--- ClassLink – Complete Database Schema  (v2 – idempotent, re-runnable)
+-- TalentHub – Complete Database Schema  (v2 – idempotent, re-runnable)
 -- ═══════════════════════════════════════════════════════════════════
 -- HOW TO APPLY
 --   1. Supabase Dashboard → SQL Editor → New query

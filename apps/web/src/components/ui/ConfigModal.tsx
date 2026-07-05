@@ -3,7 +3,7 @@
 // ConfigModal – Application configuration center
 // ──────────────────────────────────────────────────────────
 // Opens when the "Configuración" button in the sidebar is clicked.
-// Settings are persisted in localStorage under "classlink_config".
+// Settings are persisted in localStorage under "talenthub_config".
 //
 // Sections:
 //  - Apariencia  : Dark mode, Compact view
@@ -38,7 +38,7 @@ const DEFAULT_CONFIG: AppConfig = {
   debugInfo:   false,
 };
 
-const STORAGE_KEY = "classlink_config";
+const STORAGE_KEY = "talenthub_config";
 
 function loadConfig(): AppConfig {
   try {
@@ -216,7 +216,7 @@ export default function ConfigModal({ open, onClose }: ConfigModalProps) {
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">
           <div>
             <h2 className="text-base font-bold text-slate-900">Configuración</h2>
-            <p className="text-[11px] text-slate-400 mt-0.5">ClassLink · Ajustes de la app</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">TalentHub · Ajustes de la app</p>
           </div>
           <button
             onClick={onClose}
@@ -354,7 +354,7 @@ export default function ConfigModal({ open, onClose }: ConfigModalProps) {
           </button>
 
           <p className="text-center text-[10px] text-slate-300 mt-6 mb-2">
-            ClassLink · v0.9.0 dev · Todos los derechos reservados
+            TalentHub · v0.9.0 dev · Todos los derechos reservados
           </p>
         </div>
       </div>

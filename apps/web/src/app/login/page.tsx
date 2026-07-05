@@ -95,9 +95,9 @@ export default function LoginPage() {
             <div className="relative">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-sm">
-                  <span className="text-white font-black text-base">CL</span>
+                  <span className="text-white font-black text-base">TH</span>
                 </div>
-                <span className="text-white font-bold text-xl tracking-tight">ClassLink</span>
+                <span className="text-white font-bold text-xl tracking-tight">TalentHub</span>
               </div>
               <h1 className="text-2xl font-extrabold text-white tracking-tight">
                 Bienvenido de vuelta
@@ -229,7 +229,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-[11px] text-slate-400 mt-4">
-          ClassLink © 2025 — Plataforma vocacional
+          TalentHub © 2026 — Plataforma vocacional
         </p>
       </div>
     </div>

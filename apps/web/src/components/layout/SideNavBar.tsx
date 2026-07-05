@@ -116,7 +116,7 @@ export default function SideNavBar() {
       {/* ── Brand strip ── */}
       <div className="px-5 py-3.5 border-b border-slate-100 flex items-center gap-2.5">
         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center shadow-sm shrink-0">
-          <span className="text-white font-black text-xs">CL</span>
+          <span className="text-white font-black text-xs">TH</span>
         </div>
         <div>
           <span className="text-[15px] font-extrabold tracking-tight text-slate-900">

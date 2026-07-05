@@ -1,6 +1,6 @@
 // ──────────────────────────────────────────────────────────
 // POST /api/seed
-// Creates the four ClassLink demo accounts and seeds demo content.
+// Creates the four TalentHub demo accounts and seeds demo content.
 // Safe to call multiple times — existing accounts are reused.
 //
 // Demo accounts created:
@@ -365,13 +365,13 @@ export async function POST(request: Request) {
     const notifs = [
       {
         user_id: alanId,
-        title:   "¡Bienvenido a ClassLink!",
+        title:   "¡Bienvenido a TalentHub!",
         body:    "Tu cuenta está lista. Explora el muro, conecta con empresas y muestra tu talento.",
         type:    "info",
       },
       {
         user_id: ianId,
-        title:   "¡Bienvenido a ClassLink!",
+        title:   "¡Bienvenido a TalentHub!",
         body:    "Tu cuenta está lista. Revisa las vacantes de Google CR y otras empresas aliadas.",
         type:    "info",
       },

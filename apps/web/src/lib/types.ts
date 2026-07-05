@@ -1,5 +1,5 @@
 // ──────────────────────────────────────────────────────────
-// ClassLink – Global TypeScript Types
+// TalentHub – Global TypeScript Types
 // ──────────────────────────────────────────────────────────
 // All shared data interfaces live here so every component
 // imports from one authoritative source.

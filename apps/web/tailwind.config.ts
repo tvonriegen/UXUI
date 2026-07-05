@@ -1,9 +1,9 @@
 /* ════════════════════════════════════════════════════════
-   ClassLink – Tailwind CSS Configuration
+   TalentHub – Tailwind CSS Configuration
    ════════════════════════════════════════════════════════
 
    This file extends the default Tailwind theme with:
-   - ClassLink brand colour palette (cl-* prefix)
+   - TalentHub brand colour palette (cl-* prefix retained for now)
    - Manrope font family
    - Custom border-radius scale
    - Custom keyframes & animation utilities (used alongside

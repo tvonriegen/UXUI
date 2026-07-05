@@ -1,6 +1,6 @@
 "use client";
 // ──────────────────────────────────────────────────────────
-// ClassLink – Global Role Context
+// TalentHub – Global Role Context
 // Role is derived exclusively from the authenticated Supabase
 // profile row — never from mutable client state.
 // ──────────────────────────────────────────────────────────

@@ -11,7 +11,7 @@ export default function GlobalError({ error, reset }: ErrorProps) {
   useEffect(() => {
     // Log to error tracking in production
     if (typeof window !== "undefined" && (window as any).__sentry__) {
-      console.error("[ClassLink Error]", error);
+      console.error("[TalentHub Error]", error);
     }
   }, [error]);
 

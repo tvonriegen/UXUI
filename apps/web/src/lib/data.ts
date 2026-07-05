@@ -20,7 +20,7 @@ export const PROFILES: Record<string, UserProfile> = {
     role: "Estudiante",
     name: "Felipe Castro",
     avatar: "https://images.unsplash.com/photo-1463453091185-61582044d556?w=200&h=200&fit=crop&crop=face",
-    email: "felipe.castro@classlink.cl",
+    email: "felipe.castro@talenthub.local",
     bio: "Estudiante de 3er año de Mecatrónica en CECJMC. Apasionado por la robótica educativa, IoT y la impresión 3D. Buscando prácticas en automatización.",
     location: "Lo Espejo, Santiago",
     joinedDate: "2024-08-15",

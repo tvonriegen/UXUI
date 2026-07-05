@@ -48,7 +48,7 @@ function scoreLabel(score: number): { label: string; color: string } {
 
 function shareLinkedIn(name: string, score: number) {
   const text = encodeURIComponent(
-    `${name} tiene un Reputation Score de ${score} pts en ClassLink, la plataforma de empleabilidad técnica. ` +
+    `${name} tiene un Reputation Score de ${score} pts en TalentHub, la plataforma de empleabilidad técnica. ` +
     "Perfil institucional verificado y respaldado por colegio técnico."
   );
   const url  = encodeURIComponent(window.location.origin + "/talent");
@@ -112,7 +112,7 @@ export default function ReputationCard({
       <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-5 py-4 flex items-center justify-between">
         <div>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Puntuación de Reputación</p>
-          <p className="text-white font-bold text-sm mt-0.5">Perfil Verificado ClassLink</p>
+          <p className="text-white font-bold text-sm mt-0.5">Perfil Verificado TalentHub</p>
         </div>
         <button
           onClick={() => shareLinkedIn(studentName, reputationScore)}
