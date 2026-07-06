@@ -161,3 +161,117 @@ Negative / Trade-offs:
 - CHECK-based per-status column on `notifications`. Rejected: the CHECK inflates and duplicates state already represented by `contact_requests.status`; `metadata.status` is sufficient (C4, M-5 / M-7).
 - Hard-migrating existing Empresa↔minor conversations to a school-mediated thread. Rejected for PR 1: it would alter or hide history; soft-lock + reuse-or-create on approval preserves history and is reversible.
 - Allow Colegio↔Egresado by default in `can_converse`. Rejected: deny-by-default keeps the privacy surface small; any future allow rule must be added explicitly and tested, and is not a PR 1 deliverable (secondary decisions).
+
+## ADR-003 — PR 2 feature boundaries: stacked branch, phase scope, and gate conditions
+
+- Status: Accepted (stacked branch policy, Phase A scope, Phase B scope, ProfilePage deferral, "no schema / RLS / migration / `package.json` dependency changes" rule); Pending (test mechanism — `OPEN_QUESTIONS.md` Q17).
+- Date: 2026-07-05.
+- Branch: `refactor/feature-boundaries` (stacked on `fix/privacy-contact-routing`).
+- PR: PR 2 — `refactor: split high-risk feature pages into modules`.
+- Auditor verdict basis: 2026-07-05 architecture-auditor **Aprobar con observaciones** for plan / docs; **BLOQUEAR** implementation until the gate conditions below are met. The detailed architecture, target folder tree, layer contracts, extraction order, risk matrix, acceptance criteria, validation checklist, and commit plan live in `docs/architecture/PR2_FEATURE_BOUNDARIES.md`.
+
+### Context
+
+PR 1 (`fix: privacy contact routing (minor students via school)`) is committed and pushed to `fix/privacy-contact-routing` (HEAD `7a881f6`), and PR #2 is opened against `caro-maturana` at `https://github.com/tvonriegen/UXUI/pull/2`. The `Vercel` GitHub check on PR #2 failed while the `Vercel Preview Comments` check passed; the Vercel project is owned by a teammate / partner's GitHub account and is not visible / fixable from this workspace. Local validation is green (`verify:is-minor` 7/7, `typecheck`, `lint`, `build` with no dummy env). The blocker is external, not local.
+
+PR 2 must decompose the high-risk feature pages surfaced by the PR 1 architecture review (`profile`, `muro`, `empleos`, `administracion`, `messages`, `DashboardColegio`, `talent`, `apps/web/src/app/actions/contact-requests.ts`) into focused modules with clear boundaries, so that the privacy-sensitive paths identified by PR 1 are isolated and reusable, and the high-risk feature pages stop accumulating complexity.
+
+The architect verdict for PR 2 requires:
+
+- A small, reversible, and auditable diff. The previous PR set a "small and reversible" bar; PR 2 must respect it.
+- No behavior / UI changes. PR 2 is a refactor only.
+- A safety net (characterization tests) for the contact-routing service layer before moving privacy-sensitive logic. PR 1 used a no-new-dependency `verify:*` script; PR 2 must decide whether to keep that approach or to add a minimal test runner.
+- An explicit decision on the ProfilePage deep split, which is the largest single file in the repo.
+- An explicit policy on the branch base, because PR #2 cannot land in `caro-maturana` while the Vercel check is failing externally.
+
+This ADR records the architectural decisions that resolve the architect's findings so PR 2 can move from architecture planning to implementation once Gate 2 (test mechanism) is resolved.
+
+### Decision
+
+#### Sub-decision: Stacked branch policy (Accepted)
+
+- `refactor/feature-boundaries` is cut from `fix/privacy-contact-routing` (HEAD `7a881f6`) and PR 2 is opened against `fix/privacy-contact-routing` (not `caro-maturana`) until PR #2 lands in `caro-maturana`. The user has accepted this approach (2026-07-05) because the merge of PR #2 into `caro-maturana` is blocked by the external Vercel check and the user cannot inspect / fix Vercel from this workspace.
+- After PR #2 lands in `caro-maturana`, PR 2 is retargeted or rebased to `caro-maturana`. The retarget / rebase policy is an open question tracked in `OPEN_QUESTIONS.md` Q18.
+- This is a **workaround for an external blocker**, not a permanent policy. Once PR #2 merges, future PRs return to branching from `caro-maturana` per `docs/git/GIT_WORKFLOW.md`.
+
+#### Sub-decision: Phase A scope (Accepted)
+
+Phase A is the recommended first commit set. It is the minimum PR 2 that the architect verdict approves, and it is small, reversible, and wraps the privacy-sensitive code in reusable modules so future surfaces (and Phase B) can compose them.
+
+- Move `ensureConversation` from the private body of `apps/web/src/app/actions/contact-requests.ts` to `apps/web/src/lib/services/conversations.ts` (exported). Public server action export unchanged. Canonical pair ordering, race-handling, and `last_message_at` semantics preserved byte-for-byte.
+- Extract the Empresa ↔ minor decision cascade from `requestContactWithTalent` into a pure `apps/web/src/lib/services/contact-policy.ts` (no IO; uses the existing `isMinorProfile` from `lib/utils/is-minor.ts`).
+- Wrap the dedup / insert path in `apps/web/src/lib/services/contact-requests.ts`. The server action becomes a thin shell; public exports stay byte-identical.
+- Extract the school approve / reject JSX from `apps/web/src/components/dashboard/DashboardColegio.tsx` into `apps/web/src/components/contact-routing/ContactRequestQueue.tsx`. Same Tailwind classes, same loading skeleton, same review buttons.
+- Encapsulate the talent page CTA call to `requestContactWithTalent` in `apps/web/src/lib/hooks/useContactTalent.ts` and / or `apps/web/src/components/contact-routing/ContactTalentButton.tsx`. User-visible CTA is unchanged.
+
+#### Sub-decision: Phase B scope (Accepted, optional)
+
+Phase B exists to keep PR 2 from growing past the architect's "small and reversible" tolerance. It is **optional** and only pursued if Phase A is small and green.
+
+- Route-local presentational splits for `muro`, `empleos`, `administracion` (route-local `_components` / `_hooks` / `_types` / `_utils`).
+- `messages` only if the conversations / messages surface starts sharing helpers with the contact-routing services; otherwise left alone.
+- Each route is its own commit, so a bad split in `muro` does not block `empleos` or `administracion`.
+
+#### Sub-decision: ProfilePage deep split deferred (Accepted)
+
+- `apps/web/src/app/profile/page.tsx` (2888 lines, complexity 61) is the largest single file in the repository. A meaningful role-aware split (Estudiante / Egresado / Empresa / Colegio) touches data shape, evidence state, and the render path.
+- The architect verdict is to defer this to a dedicated PR (PR 3 or later) and **not attempt it in PR 2**. PR 2 may only extract a small, low-risk presentational fragment from `profile/page.tsx` if it lands without changing the render path or the data contract, and only if it does not grow PR 2 past the "small and reversible" tolerance.
+- A follow-up row is added to `docs/workflow/PR_TRACKER.md` (PR 3 — planned, not started) so the deferred work is not lost.
+
+#### Sub-decision: "No schema / RLS / migration / `package.json` dependency changes" rule (Accepted)
+
+- No schema / RLS / migration changes. Privacy guarantee remains at the database layer (RLS + DB trigger + `can_converse`) per ADR-002. PR 2 only moves code, not data guarantees.
+- No `package.json` dependency changes by default. A minimal pure-service test runner is a recommendation, not an assumption; the decision is captured in `OPEN_QUESTIONS.md` Q17 and below in this ADR.
+- No changes to `apps/web/src/app/api/`. No changes to `apps/web/src/app/actions/interviews.ts` (PR 1 already RLS-constrained). No changes to `apps/web/src/app/actions/company.ts` or `apps/web/src/app/actions/school.ts` unless required by Phase A and approved.
+
+#### Sub-decision: Server action public exports stay byte-identical (Accepted)
+
+- `requestContactWithTalent`, `approveContactRequest`, `rejectContactRequest`, `cancelContactRequest` keep their names, parameter order, and return shapes. Internal body shrinks as it delegates to `lib/services/contact-requests.ts` and `lib/services/conversations.ts`. No call site changes.
+
+#### Sub-decision: Test mechanism (Pending — `OPEN_QUESTIONS.md` Q17)
+
+- This is the implementation gate (Phase A Gate 2) that blocks code from landing. The owner must pick one of:
+  - **(a)** Accept a minimal pure-service test runner (e.g. `node --test`, `vitest` with no new dependencies beyond what is already in the lockfile, or another low-friction choice). The choice and the justification are recorded in this ADR as a follow-up update.
+  - **(b)** Keep the PR 1 `verify:*` script approach and add `verify:contact-policy` for the canonical cases of the new `contact-policy` pure decision function. No new `package.json` dependency.
+- Until this sub-decision is made, PR 2 implementation is held in architecture planning.
+
+#### Sub-decision: Phase A gate conditions (Accepted)
+
+- **Gate 1 — Stacked branch accepted.** Captured in this ADR. **Resolved (2026-07-05).**
+- **Gate 2 — Test mechanism decided.** Pending. Implementation cannot start until resolved. `OPEN_QUESTIONS.md` Q17.
+- **Gate 3 — No behavior change.** Process gate; resolved by the implementation notes (side-by-side before / after for each public function: same inputs, same outputs, same Supabase calls in the same order, same error messages).
+- **Gate 4 — Validation green.** Process gate; resolved at the implementation pass.
+
+#### Sub-decision: Phase B gate conditions (Accepted)
+
+- **Gate B1 — Phase A is merged** (or at minimum, locally green and the user accepts Phase B on the stacked branch).
+- **Gate B2 — Each route split is independent and revertible.** Each route ships as its own commit.
+- **Gate B3 — No new tests required.** Phase B is presentational; the existing PR 1 + Phase A test surface is enough.
+- **Gate B4 — No new `package.json` dependencies.** Same rule as Phase A.
+
+### Consequences
+
+Positive:
+
+- The privacy guarantee from PR 1 (RLS + DB trigger + `can_converse`) is preserved. PR 2 only moves code, not data guarantees.
+- The privacy-sensitive code (contact-routing services, the school approve / reject queue, the talent page CTA call) is wrapped in focused, reusable modules. Future surfaces (e.g. interview proposal) can compose them.
+- Server action public exports stay byte-identical, so no call site in `apps/web/` changes. The diff is auditable as pure refactor.
+- The stacked branch policy unblocks PR 2 work without merging PR #2 into `caro-maturana` while the external Vercel check is failing. The user has accepted this approach.
+- The ProfilePage deep split is explicitly deferred, with a follow-up row in `PR_TRACKER.md` (PR 3 — planned, not started). The deferral is not lost.
+- Phase B is gated on Phase A's success, so PR 2 cannot grow past the "small and reversible" tolerance without an explicit decision to keep going.
+
+Negative / Trade-offs:
+
+- The stacked branch will need a rebase / retarget to `caro-maturana` after PR #2 lands. The rebase risk is low because PR 2 does not touch `supabase/`, `package.json`, or `apps/web/src/app/api/`, but it is real and is tracked in `OPEN_QUESTIONS.md` Q18.
+- The ProfilePage deep split stays deferred. The largest single file in the repo stays large after PR 2. The follow-up PR 3 must be opened to avoid losing the work.
+- The test mechanism (Gate 2) is unresolved at the time of this ADR. PR 2 implementation is held in architecture planning until the owner picks a mechanism.
+- Some duplication with `docs/technical/REFACTORING_PLAN.md` (Phase 4 / Phase 5) and `docs/workflow/STATUS.md` (current phase). Mitigated by pointing to those files from `PR2_FEATURE_BOUNDARIES.md` and this ADR instead of copying their content.
+
+### Alternatives Considered
+
+- Wait for PR #2 to land in `caro-maturana` before starting PR 2. Rejected: the merge of PR #2 is blocked by an external party the user cannot influence; waiting would stall the cleanup phase. The stacked branch policy is the accepted workaround.
+- Start PR 2 from `caro-maturana` and accept the risk of merge conflicts when PR #2 lands. Rejected: the user accepted the stacked branch approach; the conflict risk is non-zero, and the stacked approach gives a clean rebase target.
+- Move the ProfilePage deep split into PR 2. Rejected: a meaningful role-aware split touches data shape, evidence state, and the render path. The architect verdict is to defer it to a dedicated PR (PR 3 or later).
+- Make Phase A and Phase B mandatory in PR 2. Rejected: PR 2 must respect the "small and reversible" bar from PR 1. Phase B is optional and gated on Phase A's success.
+- Add a heavyweight test runner (e.g. full Vitest + jsdom + testing-library) to the repo. Rejected for the default: the PR 1 `verify:*` script approach is intentionally low-friction; PR 2 may upgrade it only if the owner explicitly approves.
+- Add a new `package.json` dependency to PR 2 by default. Rejected: the rule is "no new dependencies by default"; any addition must be justified by Gate 2 and recorded in this ADR.

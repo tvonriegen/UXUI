@@ -4,7 +4,7 @@
 |----|-------|--------|------|--------|------------|-------|-------|
 | PR 0 | chore: add persistent workflow state tracking | `chore/workflow-state` (integrated into `caro-maturana`) | `caro-maturana` | **Integrated locally** via fast-forward into `caro-maturana` on 2026-07-05; push to `origin` is the user's call (SSH blocked) | **Passed** (lint ✓, typecheck ✓, build ✓ — 2026-07-05 QA session) | not assigned | Introduces `docs/workflow/` and updates `docs/git/GIT_WORKFLOW.md`. The full local branch head — `e01cecf` (main setup), `f15550b` (docs finalization), and `adb64cf` (workflow branch handoff) — is now reachable from `caro-maturana`. |
 | PR 1 | fix: privacy contact routing (minor students via school) | `fix/privacy-contact-routing` | `caro-maturana` (post-PR 0 fast-forward) | **PR #2 opened / pushed / local validation passed / Vercel external failing** | **Passed locally** (`npm run verify:is-minor` ✓ 7/7, `npm run typecheck` ✓, `npm run lint` ✓, `npm run build` ✓ no dummy env) | not assigned (Vercel: teammate / partner who owns the Vercel project) | Route company contact with minor students through the school-mediated path. Implementation is committed and pushed to `origin/fix/privacy-contact-routing` (HEAD `7a881f6`). PR #2 opened against `caro-maturana` at `https://github.com/tvonriegen/UXUI/pull/2`. GitHub checks: `Vercel` **failed**, `Vercel Preview Comments` **passed**. The Vercel project is owned by a teammate / partner's GitHub account, so the user cannot inspect or fix it from this workspace (`npx vercel inspect <deployment> --logs` reports `No existing credentials found`). This is an **external** deployment issue, not a local code validation problem. See `DECISION_LOG.md` ADR-002 and resolved `OPEN_QUESTIONS.md` Q12–Q14. Security review verdict after B1 / M1 fixes: APROBAR, no BLOCKER / HIGH. Runtime Supabase migration smoke test is a recommended follow-up, not a blocker. |
-| PR 2 | refactor: split high-risk feature pages into modules | `refactor/feature-boundaries` (planned) | `caro-maturana` (post-PR 1 / PR #2 merge) | **Planned** — branch from `caro-maturana` after PR #2 is merged | not run | not assigned | Decomposes the high-risk feature pages surfaced by the PR 1 architecture review (e.g. `talent`, `messages`, interview proposal) into focused modules with clear boundaries, so that the privacy-sensitive paths identified by PR 1 are isolated and reusable. Cannot start coding until the merge policy for PR #2 is decided (so the diff is based on the correct `caro-maturana` state). Stacked branch off local `caro-maturana` is acceptable only if explicitly accepted by the owner. |
+| PR 2 | refactor: split high-risk feature pages into modules | `refactor/feature-boundaries` (stacked on `fix/privacy-contact-routing` while PR #2 is held by the external Vercel blocker) | `fix/privacy-contact-routing` until PR #2 lands; retarget / rebase to `caro-maturana` after PR #2 lands | **Architecture planning in progress / stacked on PR 1 / implementation not started** | not run (no code in the architecture pass) | not assigned | Decomposes the high-risk feature pages surfaced by the PR 1 architecture review into focused modules with clear boundaries, so that the privacy-sensitive paths identified by PR 1 are isolated and reusable. The detailed target folder tree, layer contracts, extraction order, risk matrix, acceptance criteria, validation checklist, and commit plan live in `docs/architecture/PR2_FEATURE_BOUNDARIES.md` (new in this pass). Architect verdict (2026-07-05): Aprobar con observaciones for plan / docs; BLOQUEAR implementation until gate conditions are met. Stacked branch accepted by the user (captured in `DECISION_LOG.md` ADR-003). Phase A (low-risk extractions around the PR 1 flow) is the recommended first commit set; Phase B (route-local presentational splits for `muro` / `empleos` / `administracion`) is optional, only if Phase A is small and green. **ProfilePage deep split is explicitly deferred** to a dedicated PR (PR 3 or later). Implementation is gated on `OPEN_QUESTIONS.md` Q17 (test mechanism). |
 
 ## PR 0 — Detail
 
@@ -36,7 +36,7 @@
   - Supabase RLS on `conversations` — previously validated only participant membership; now `can_converse(a, b)` gates `conversations INSERT` and `messages INSERT`, with `conversations SELECT` remaining participant-based for history (soft-lock per M5).
 - Scope (now that C1–C4, M1–M8, and the secondary decisions are decided in ADR-002, and the implementation is committed / pushed):
   - Add the `contact_requests` table, supporting indexes (pair/status and school/status), and RLS policies (M2, M3). Idempotent migration.
-  - Add or update the `is_minor(role, age)` SQL function and the `can_converse(a, b)` SQL function with explicit `search_path`, `STABLE`, and minimum grants (M1, M3, M8).
+  - Add or update the `is_minor_profile(role, age)` SQL function and the `can_converse(a, b)` SQL function with explicit `search_path`, `STABLE`, and minimum grants (M1, M3, M8).
   - Update `conversations` and `messages` RLS so that `can_converse` gates both inserts (CR-2 / C2, M5).
   - Extend `notifications` to include `metadata jsonb NOT NULL DEFAULT '{}'` and a CHECK that allows `contact_request` with `metadata.status` (M5, M7). Idempotent migration.
   - Add the `contact_request` DB trigger that writes the notification row (C4). The trigger is the only writer for the `contact_request` notification kind in PR 1.
@@ -57,14 +57,47 @@
   - `7a881f6 docs: record privacy contact routing implementation` — workflow / security / traceability docs.
 - Vercel external blocker: see `KNOWN_ISSUES.md` (External deployment issues) and `OPEN_QUESTIONS.md` Q16. Owner action: teammate / project owner must inspect / fix Vercel or grant access. Exact command for the owner: `npx vercel inspect dpl_EssKcBKdJbuTK6n8JB3JkmgwDwua --logs`.
 
-## PR 2 — Detail (planned)
+## PR 2 — Detail (architecture planning, stacked on PR 1)
 
-- Branch: `refactor/feature-boundaries` (planned).
-- Base: `caro-maturana` after PR #2 is merged.
-- Purpose: decompose the high-risk feature pages surfaced by the PR 1 architecture review (e.g. `talent`, `messages`, interview proposal) into focused modules with clear boundaries, so that the privacy-sensitive paths identified by PR 1 are isolated and reusable.
-- Status: **planned** — do not start coding until the merge policy for PR #2 (Vercel external blocker) is decided, so the next branch is based on the correct `caro-maturana` state. If the merge of PR #2 is held by the Vercel blocker, PR 2 can be prepared as a stacked branch off the local `caro-maturana` only if explicitly accepted by the owner.
-- Scope (initial, to be refined when work starts):
-  - Extract the contact-routing flow from the `talent` page into a focused `contact-routing` module (server actions in `apps/web/src/app/actions/contact-requests.ts` + UI section) so it can be reused by other surfaces.
-  - Extract the interview-proposal flow from `apps/web/src/app/actions/interviews.ts` into a dedicated `interview-proposal` module so the privacy-sensitive path is isolated from the rest of the interview state machine.
-  - Extract the school-side approval / rejection queue from `apps/web/src/components/dashboard/DashboardColegio.tsx` into a dedicated module.
-  - Document the module split in `docs/architecture/` and update `TRACEABILITY_MATRIX.md`.
+- Branch: `refactor/feature-boundaries` (stacked on `fix/privacy-contact-routing` while PR #2 is held by the external Vercel blocker).
+- Base: `fix/privacy-contact-routing` until PR #2 lands; retarget / rebase to `caro-maturana` after PR #2 lands (`OPEN_QUESTIONS.md` Q18, `DECISION_LOG.md` ADR-003 sub-decision "Stacked branch policy").
+- Purpose: decompose the high-risk feature pages surfaced by the PR 1 architecture review (`profile`, `muro`, `empleos`, `administracion`, `messages`, `DashboardColegio`, `talent`, `apps/web/src/app/actions/contact-requests.ts`) into focused modules with clear boundaries, so that the privacy-sensitive paths identified by PR 1 are isolated and reusable, and the high-risk feature pages stop accumulating complexity.
+- Status: **architecture planning in progress / stacked on PR 1 / implementation not started**. The detailed target folder tree, layer contracts, extraction order, risk matrix, acceptance criteria, validation checklist, and commit plan live in `docs/architecture/PR2_FEATURE_BOUNDARIES.md` (new in this pass). No code, RLS, migration, server action, helper, script, UI, or `package.json` file is touched in the architecture pass. The previous docs commit `c795e14 docs: record external Vercel blocker for PR 1` is on this branch and is not on `fix/privacy-contact-routing`.
+- Architecture-auditor verdict (2026-07-05): **Aprobar con observaciones** for the plan and the docs; **BLOQUEAR** implementation until the gate conditions in `PR2_FEATURE_BOUNDARIES.md` are met. The required guardrails (no schema / RLS / migration changes; no behavior / UI changes; no `respondInterview` / `cancelInterview` admin-client review; no ProfilePage deep split; no new `package.json` dependencies except a minimal pure-service test runner if explicitly approved; server action public exports stay byte-identical) are captured in `DECISION_LOG.md` ADR-003 and referenced from `OPEN_QUESTIONS.md` Q17 (test mechanism) and Q18 (retarget / rebase policy).
+- Phase A — low-risk extraction around the PR 1 flow (recommended first):
+  - Move `ensureConversation` from the private body of `apps/web/src/app/actions/contact-requests.ts` to `apps/web/src/lib/services/conversations.ts` (exported). Public server action export unchanged.
+  - Extract the Empresa ↔ minor decision cascade from `requestContactWithTalent` into a pure `apps/web/src/lib/services/contact-policy.ts` (no IO; uses the existing `isMinorProfile` from `lib/utils/is-minor.ts`).
+  - Wrap the dedup / insert path in `apps/web/src/lib/services/contact-requests.ts`. The server action becomes a thin shell; public exports stay byte-identical.
+  - Extract the school approve / reject JSX from `apps/web/src/components/dashboard/DashboardColegio.tsx` into `apps/web/src/components/contact-routing/ContactRequestQueue.tsx`. Same Tailwind classes, same loading skeleton, same review buttons.
+  - Encapsulate the talent page CTA call to `requestContactWithTalent` in `apps/web/src/lib/hooks/useContactTalent.ts` and / or `apps/web/src/components/contact-routing/ContactTalentButton.tsx`. User-visible CTA is unchanged.
+- Phase B — route-local presentational splits (optional, only if Phase A is small and green):
+  - `apps/web/src/app/muro/page.tsx` (1373 lines) — split into `apps/web/src/app/muro/_components`, `_hooks`, `_types`, `_utils`. Page becomes a composition root.
+  - `apps/web/src/app/empleos/page.tsx` (1036 lines) — split into `apps/web/src/app/empleos/_components`, `_hooks`, `_types`, `_utils`. Page becomes a composition root.
+  - `apps/web/src/app/administracion/page.tsx` (1309 lines) — split into `apps/web/src/app/administracion/_components`, `_hooks`, `_types`, `_utils`. Page becomes a composition root.
+  - `apps/web/src/app/messages/page.tsx` (680 lines) — only if the conversations / messages surface starts sharing helpers with the contact-routing services; otherwise left alone.
+- ProfilePage deep split — explicitly deferred to a dedicated PR (PR 3 or later). PR 2 may only extract a small, low-risk presentational fragment from `profile/page.tsx` if it lands without changing the render path or the data contract.
+- Implementation gate (`OPEN_QUESTIONS.md` Q17, `DECISION_LOG.md` ADR-003 sub-decision "Test mechanism"):
+  - **Gate 1 — Stacked branch accepted.** Captured in `DECISION_LOG.md` ADR-003. **Resolved (2026-07-05).**
+  - **Gate 2 — Test mechanism decided.** Either a minimal pure-service test runner is approved (and recorded in `DECISION_LOG.md` ADR-003) or PR 2 keeps the PR 1 `verify:*` script approach and adds `verify:contact-policy`. **Open (`OPEN_QUESTIONS.md` Q17).** Implementation cannot start until this is resolved.
+  - **Gate 3 — No behavior change.** Process gate; resolved by the implementation notes.
+  - **Gate 4 — Validation green.** Process gate; resolved at the implementation pass.
+- Files added / updated in this pass (no commit yet, no push):
+  - **Added:** `docs/architecture/PR2_FEATURE_BOUNDARIES.md` (architecture entry point for PR 2).
+  - **Updated:** `docs/architecture/CODEBASE_MAP.md` (PR 1 contact-routing additions; PR 2 planned boundaries; high-risk file list with line counts and PR 2 phase mapping).
+  - **Updated:** `docs/technical/REFACTORING_PLAN.md` (Phase 4 = PR 2 phases A / B with gate conditions; Phase 5 = follow-up chore PRs; ProfilePage deep split explicitly deferred).
+  - **Updated:** `docs/workflow/STATUS.md` (current branch = `refactor/feature-boundaries`; current phase = PR 2 architecture planning).
+  - **Updated:** `docs/workflow/NEXT_ACTIONS.md` (immediate actions for the PR 2 architecture pass; decision flow for Gate 2; Phase A commit plan).
+  - **Updated:** `docs/workflow/SESSION_LOG.md` (PR 2 architecture setup entry).
+  - **Updated:** `docs/workflow/DECISION_LOG.md` (ADR-003 added).
+  - **Updated:** `docs/workflow/OPEN_QUESTIONS.md` (Q17 and Q18 added).
+  - **Updated:** `docs/requirements/TRACEABILITY_MATRIX.md` (PR 2 added as a technical-enabler row).
+  - **Updated:** this file.
+- Validation: not run in the architecture pass, by design (documentation only). Local validation status (PR 1 QA + Security Pass, 2026-07-05): **green** — `npm run verify:is-minor` ✓ (7/7), `npm run typecheck` ✓, `npm run lint` ✓, `npm run build` ✓ (no dummy env). PR 2 implementation validation is defined in `PR2_FEATURE_BOUNDARIES.md` (validation checklist + acceptance criteria).
+
+## PR 3 — Detail (planned, not started — ProfilePage deep split)
+
+- Branch: TBD.
+- Base: `caro-maturana` after PR 2 is merged and retargeted.
+- Purpose: split `apps/web/src/app/profile/page.tsx` (2888 lines, complexity 61) by role (Estudiante / Egresado / Empresa / Colegio). Deferred from PR 2 by the architect verdict (`PR2_FEATURE_BOUNDARIES.md`).
+- Status: **planned** — do not start coding until PR 2 is merged. Tracked in `OPEN_QUESTIONS.md` (follow-up) and this row will be expanded when the work starts.
+- Scope (initial, to be refined when work starts): a role-aware split that touches data shape, evidence state, and the render path. Out of scope for PR 2.

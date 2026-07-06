@@ -1,62 +1,77 @@
 # TalentHub Next Actions
-## Immediate (PR 1 — `fix/privacy-contact-routing` → PR #2 against `caro-maturana`)
+## Immediate (PR 2 — `refactor/feature-boundaries`, stacked on `fix/privacy-contact-routing`)
 
-Architecture-auditor verdict (2026-07-05): **Aprobar con observaciones**. Security follow-up verdict after the B1 / M1 fixes (2026-07-05): **APROBAR, sin BLOCKER / HIGH**. PR 1 implementation is **committed and pushed** to `origin/fix/privacy-contact-routing` (HEAD `7a881f6`), and PR **#2** is opened against `caro-maturana` at `https://github.com/tvonriegen/UXUI/pull/2`. The user must explicitly ask before any further commit / push.
+PR 2 architecture is staged on disk on `refactor/feature-boundaries` (HEAD `c795e14 docs: record external Vercel blocker for PR 1` at the start of this pass). The detailed plan lives in `docs/architecture/PR2_FEATURE_BOUNDARIES.md` (new). No code, RLS, migration, helper, UI, or `package.json` file was touched in this pass. The user must explicitly ask before any further commit / push.
 
-**Current implementation status.** PR 1 code is committed, pushed, and local validation passed: `npm run verify:is-minor` (7/7 canonical cases), `npm run typecheck`, `npm run lint`, and `npm run build` (no dummy env) all green. Security review approved after the B1 (`trg_profiles_guard_role_age` trigger + tightened `profiles_update` policy) and M1 (`email` removed from the talent directory client select) fixes. Runtime Supabase migration / RLS / trigger verification on a live instance is still recommended before merge / deploy, not a blocker.
+**PR 2 branch posture.** `refactor/feature-boundaries` is a stacked branch cut from `fix/privacy-contact-routing` because PR #2 against `caro-maturana` is held by the external Vercel check. The user has accepted this approach (2026-07-05). The architecture pass records the posture in `DECISION_LOG.md` ADR-003 and in `OPEN_QUESTIONS.md` Q18 (retarget / rebase policy). No code lands in this pass.
 
-**GitHub checks on PR #2.** `Vercel` **failed**, `Vercel Preview Comments` **passed**. The user cannot inspect / fix the Vercel failure from this workspace because the Vercel project is owned by a teammate / partner's GitHub account (`npx vercel inspect <deployment> --logs` reports `No existing credentials found`). The failure is an **external** deployment / access blocker, not a local code validation problem.
+**Architect verdict (2026-07-05).** Aprobar con observaciones for the plan and the docs. BLOQUEAR implementation until the gate conditions in `PR2_FEATURE_BOUNDARIES.md` are met. Sub-decisions recorded in `DECISION_LOG.md` ADR-003: stacked branch policy (accepted), test mechanism (open — `OPEN_QUESTIONS.md` Q17), ProfilePage deep split deferred, no schema / RLS / migration / `package.json` dependency changes.
 
-### Immediate actions (PR #2 / Vercel external blocker)
+### Immediate actions (PR 2 architecture setup — this pass)
 
-1. **Document the Vercel external blocker.** Done in this pass: `STATUS.md`, `NEXT_ACTIONS.md` (this file), `PR_TRACKER.md`, `SESSION_LOG.md`, `KNOWN_ISSUES.md`, `OPEN_QUESTIONS.md` (Q16).
-2. **Ask the teammate / project owner for Vercel logs / settings.** The Vercel project is not visible as owned by this user, so the owner must inspect or grant access. Exact command for the owner to run from a machine with valid Vercel credentials:
-   ```
-   npx vercel inspect dpl_EssKcBKdJbuTK6n8JB3JkmgwDwua --logs
-   ```
-   If the failure is a real code issue, the owner / user must surface the build error and a fix is required in PR #2. If the failure is a Vercel project / environment / access issue, it is out of scope for the PR #2 code diff and should be tracked in `KNOWN_ISSUES.md` until resolved.
-3. **Merge policy decision (owner).** Decide whether to merge PR #2 into `caro-maturana` despite the failing external Vercel check (local validation passed; the only failing check is the external one) or wait for the Vercel failure to be resolved. Capture the decision in `SESSION_LOG.md` once known.
-4. **If PR #2 is accepted despite Vercel:** merge `fix/privacy-contact-routing` into `caro-maturana` (the user already pushed the branch; the merge itself is the user's call). Then proceed to PR 2 (see "After Current PR" below).
-5. **If PR #2 is held for the Vercel fix:** do not start coding PR 2 yet — wait for the merge policy decision so the next branch is based on the correct `caro-maturana` state.
+1. **Created the PR 2 architecture entry point.** `docs/architecture/PR2_FEATURE_BOUNDARIES.md` (new). Goals, non-goals, target folder tree, layer contracts, extraction order, risk matrix, acceptance criteria, validation checklist, commit plan, gate conditions, deferred work, risk register, open decisions, references.
+2. **Updated the codebase map.** `docs/architecture/CODEBASE_MAP.md` now lists the PR 1 contact-routing additions (committed and pushed to `fix/privacy-contact-routing`) and the PR 2 planned boundaries (architecture only). High-risk file list includes line counts (2026-07-05) and PR 2 phase mapping.
+3. **Updated the refactoring plan.** `docs/technical/REFACTORING_PLAN.md` now includes Phase 4 (PR 2 phases A / B with gate conditions) and Phase 5 (follow-up chore PRs). ProfilePage deep split is explicitly deferred.
+4. **Updated the workflow state.** `docs/workflow/STATUS.md` now reads `refactor/feature-boundaries` as the current branch and PR 2 architecture planning as the current phase.
+5. **Updated the next actions.** This file.
+6. **Updated the PR tracker.** `docs/workflow/PR_TRACKER.md` PR 2 row: status = architecture planning in progress / stacked on PR 1; base = `fix/privacy-contact-routing` until PR #2 lands. Detail section expanded.
+7. **Updated the session log.** `docs/workflow/SESSION_LOG.md` PR 2 architecture setup entry added.
+8. **Updated the decision log.** `docs/workflow/DECISION_LOG.md` ADR-003 added.
+9. **Updated the open questions.** `docs/workflow/OPEN_QUESTIONS.md` Q17 (test mechanism) and Q18 (retarget / rebase policy) added.
+10. **Updated the traceability matrix.** `docs/requirements/TRACEABILITY_MATRIX.md` PR 2 added as a technical-enabler row (no functional requirement change).
 
-**Push / remote.** The push of `fix/privacy-contact-routing` (up to `7a881f6`) succeeded earlier in this session. Future pushes are still blocked by SSH credentials (`Permission denied (publickey)`); restore credentials before any further push.
+### Immediate actions (PR 2 — what the user should do next, in order)
 
-**Runtime Supabase migration smoke test (recommended follow-up, not a blocker).** Apply `supabase/migrations/20260705000001_contact_requests.sql` to a Supabase instance and exercise, at minimum:
+1. **Review and accept the PR 2 architecture.** Read `docs/architecture/PR2_FEATURE_BOUNDARIES.md` and `DECISION_LOG.md` ADR-003. Confirm:
+   - Stacked branch policy (cut from `fix/privacy-contact-routing`; PR 2 PR base = `fix/privacy-contact-routing` until PR #2 lands).
+   - Phase A scope (the five low-risk extractions around the PR 1 contact-routing flow).
+   - Phase B (optional, only if Phase A is small and green) — route-local presentational splits for `muro`, `empleos`, `administracion`.
+   - ProfilePage deep split is explicitly deferred to a dedicated PR (PR 3 or later).
+   - No schema / RLS / migration / `package.json` dependency changes except a minimal pure-service test runner if explicitly approved.
+2. **Pick a test mechanism (Gate 2).** Open: `OPEN_QUESTIONS.md` Q17. The architect requires a safety net before moving privacy-sensitive code. Two acceptable options:
+   - **(a)** Accept a minimal pure-service test runner (e.g. `node --test`, `vitest` with no new dependencies, or another low-friction choice). The choice and the justification are recorded in `DECISION_LOG.md` ADR-003 sub-decision "Test mechanism".
+   - **(b)** Keep the PR 1 `verify:*` script approach and add `verify:contact-policy` for the canonical cases of the new `contact-policy` pure decision function. No new `package.json` dependency.
+3. **Commit the PR 2 architecture docs.** Stage `docs/architecture/PR2_FEATURE_BOUNDARIES.md` and the workflow / architecture updates; commit on `refactor/feature-boundaries` with a `docs:` prefix per `docs/git/COMMIT_CONVENTION.md`. Push to `origin/refactor/feature-boundaries` once SSH credentials are restored (or wait for the user to push).
+4. **Open PR 2 against `fix/privacy-contact-routing`** (not `caro-maturana`) per the stacked branch policy. The PR base will be retargeted to `caro-maturana` after PR #2 lands; see `OPEN_QUESTIONS.md` Q18.
+5. **Once Gate 2 is resolved: implement Phase A.** Follow the commit plan in `PR2_FEATURE_BOUNDARIES.md` (five atomic commits, in order):
+   1. `refactor(web): move ensureConversation to lib/services/conversations.ts`.
+   2. `refactor(web): extract contact-policy pure decision logic`.
+   3. `refactor(web): route contact-requests server action through services`.
+   4. `refactor(web): extract ContactRequestQueue presentational component`.
+   5. `refactor(web): encapsulate talent page contact CTA in hook and component`.
+   If a verification script is added (e.g. `verify:contact-policy`), it lands as a separate `chore` commit on top, not folded into the refactor commits.
+6. **Update the workflow files as Phase A lands.** `docs/workflow/SESSION_LOG.md`, `docs/workflow/PR_TRACKER.md`, `docs/architecture/CODEBASE_MAP.md`, `docs/technical/REFACTORING_PLAN.md`, and `docs/requirements/TRACEABILITY_MATRIX.md` reflect the actual diff at each commit.
+7. **If Phase A is small and green: consider Phase B (optional).** Three independent commits, one per route. Each route is its own revertible unit.
 
-- Company minor contact request insert (RLS accepts) and direct non-minor contact path.
-- `profiles.role` / `profiles.age` direct update from a non-service role is rejected (B1 fix); update from a service role succeeds.
-- School approve path opens / reuses the company↔student conversation and unlocks message inserts.
-- School reject path closes the request and the `contact_request` notification is emitted by the trigger (not the server action).
-- Message soft-lock holds before approval: `messages INSERT` between a company and a minor student without an approved `contact_request` is denied.
+### Guardrails baked into PR 2 (from ADR-003 + the architect verdict)
 
-**Guardrails baked into PR 1 (from ADR-002).**
+- **No schema / RLS / migration changes.** Privacy guarantee remains at the database layer (RLS + DB trigger + `can_converse`) per `DECISION_LOG.md` ADR-002. PR 2 only moves code, not data guarantees.
+- **No behavior / UI changes.** PR 2 is a refactor. The company → minor contact request still creates or reuses a `contact_requests` row in `pending`; the school approve / reject queue still drives the same flow; the talent page CTA still calls the same server action; `proposeInterview` still does not use the admin client.
+- **No ProfilePage deep split.** `apps/web/src/app/profile/page.tsx` (2888 lines, complexity 61) is the largest single file in the repo. A meaningful role-aware split is a dedicated PR (PR 3 or later), not PR 2. PR 2 may extract a small, low-risk presentational fragment from it only if it lands without changing the render path or the data contract.
+- **Server action public exports stay byte-identical.** `requestContactWithTalent`, `approveContactRequest`, `rejectContactRequest`, `cancelContactRequest` keep their names, parameter order, and return shapes. Internal body shrinks as it delegates to `lib/services/contact-requests.ts` and `lib/services/conversations.ts`.
+- **No new `package.json` dependencies by default.** A minimal pure-service test runner is a recommendation, not an assumption; the decision is captured in `OPEN_QUESTIONS.md` Q17 and `DECISION_LOG.md` ADR-003.
+- **Stacked branch policy.** PR 2 PR base = `fix/privacy-contact-routing` until PR #2 lands; retarget / rebase to `caro-maturana` after PR #2 lands. `OPEN_QUESTIONS.md` Q18.
 
-- **CR-1 / C3 — no admin client in the contact/interview flow.** `proposeInterview` is on the RLS-constrained server-action client bound to `auth.uid()`. No `createAdminClient()` call in the PR 1 contact / interview path.
-- **CR-2 / C2 — `can_converse` on both insert sides.** Gate `conversations INSERT` and `messages INSERT` with `can_converse(a, b)`. `conversations SELECT` is participant-based for history (soft-lock per M5).
-- **M1 — `isMinor(role, age)` predicate.** Canonical `role === 'Estudiante' && (age === null || age < 18)` shared between TS helper and SQL function.
-- **M2 — `contact_requests` RLS.** SELECT for company / school; INSERT for company; UPDATE for company (cancel `pending`) and school (approve / reject); DELETE denied. A minor student does not see `pending` rows in PR 1.
-- **M3 — indexes.** Pair/status for `can_converse` lookup; school/status for the review queue. Shipped in the same migration.
-- **M4 — `schema.sql` alignment.** Regenerated for the PR 1 touched sections; residual broader drift recorded in `KNOWN_ISSUES.md`.
-- **M5 / M7 — `notifications.metadata`.** `jsonb NOT NULL DEFAULT '{}'`; CHECK accepts `contact_request`; status in `metadata.status`. Migration is idempotent.
-- **M6 — verification mechanism.** `scripts/verify-is-minor.mjs` (7 canonical cases) plus root `verify:is-minor` script; no new dependency added.
-- **M8 — `SECURITY DEFINER` hygiene.** Explicit `SET search_path = public`, minimum grants, explicit `REVOKE` from `PUBLIC`, `STABLE` for read-only helpers, no mutations in the new functions.
-- **Secondary.** Student-side visibility: no `pending` for minor students in PR 1. Cancellation: company may cancel `pending`. `rejection_reason`: optional, visible to company and school, not to student in PR 1. Colegio↔Egresado: deny by default in `can_converse`; any future allow rule is out of scope for PR 1.
+### Validation criteria (PR 2 implementation, when Gate 2 is resolved)
 
-**Validation criteria (this implementation pass, 2026-07-05).**
-
-- `npm run verify:is-minor` ✓ (7/7 canonical cases).
+- `npm run verify:is-minor` ✓ (PR 1; still green).
+- `npm run verify:contact-policy` ✓ (Phase A Gate 2, if added).
 - `npm run typecheck` ✓.
 - `npm run lint` ✓.
-- `npm run build` ✓ (no dummy env values required).
-- Security review (post B1 / M1 fixes): **APROBAR, sin BLOCKER / HIGH**.
-- Runtime Supabase migration / RLS / trigger verification: recommended follow-up before merge / deploy, not a blocker.
+- `npm run build` ✓ (no dummy env).
+- If a test runner was accepted (Gate 2 option a): the corresponding test command passes on `lib/services/contact-policy.ts` (pure decision), `lib/services/conversations.ts` (`ensureConversation` reuse / race-recovery with a fake client), and `lib/services/contact-requests.ts` (the service wrapper used by the server action).
+- Public exports of `apps/web/src/app/actions/contact-requests.ts` byte-identical to PR 1 HEAD.
+- No changes to `supabase/migrations/`, `supabase/schema.sql`, RLS policies, or `apps/web/src/app/api/`.
+- Documentation updated as commits land.
 
 ## After Current PR
 
-- **PR 2: `refactor/feature-boundaries` — `refactor: split high-risk feature pages into modules`.** Follow-up to PR 1. Branch from `caro-maturana` **after PR 1 is merged** (i.e. after PR #2 lands in `caro-maturana`). Decomposes the high-risk feature pages surfaced by the PR 1 architecture review (e.g. `talent`, `messages`, interview proposal) into focused modules with clear boundaries, so that the privacy-sensitive paths identified by PR 1 are isolated and reusable. If the merge of PR #2 is held by the Vercel blocker, PR 2 can be prepared as a stacked branch off the local `caro-maturana` only if explicitly accepted by the owner. Capture the concrete module split and migration steps in `PR_TRACKER.md` when the work starts.
+- **PR 3 (planned, not started).** ProfilePage deep split — `apps/web/src/app/profile/page.tsx` (2888 lines, complexity 61) split by role (Estudiante / Egresado / Empresa / Colegio). Deferred from PR 2 by the architect verdict. Tracked in `OPEN_QUESTIONS.md` (follow-up) and a future row in `PR_TRACKER.md`. Branch from `caro-maturana` after PR 2 lands and is retargeted.
+- **Follow-up chore PRs (tracked separately).** Dependency vulnerability triage (21 vulnerabilities from `npm run install:web`); broader schema snapshot drift; `respondInterview` / `cancelInterview` admin-client review; runtime Supabase migration / RLS / trigger smoke test for PR 1. None are PR 2 deliverables.
 
 ## Blocked
 
 - **Vercel check on PR #2 is failing — external / out-of-this-workspace blocker.** The Vercel project is owned by a teammate / partner's GitHub account, so the user cannot inspect or fix it from this workspace (`npx vercel inspect <deployment> --logs` reports `No existing credentials found`). Owner action: teammate / project owner must inspect / fix Vercel or grant access. Tracked in `docs/technical/KNOWN_ISSUES.md` (External deployment issues) and `docs/workflow/OPEN_QUESTIONS.md` Q16.
-- **Push to `origin` is blocked.** SSH authentication fails with `Permission denied (publickey)`. The push of `fix/privacy-contact-routing` (up to `7a881f6`) succeeded earlier in this session; further pushes remain blocked until credentials are restored.
+- **PR 2 implementation is gated on Gate 2 (test mechanism).** Until the owner picks a test mechanism (`OPEN_QUESTIONS.md` Q17), Phase A code cannot land. The architecture pass does not require Gate 2 to be resolved; only the implementation pass does.
+- **Push to `origin` is blocked.** SSH authentication fails with `Permission denied (publickey)`. The push of `fix/privacy-contact-routing` (up to `7a881f6`) succeeded earlier; further pushes remain blocked until credentials are restored.
 - **`npm run install:web` reports 21 dependency vulnerabilities** on the baseline. Not auto-fixed to avoid unplanned breaking upgrades; tracked in `docs/technical/KNOWN_ISSUES.md`. Resolution to be scheduled as a dedicated chore PR.

@@ -106,3 +106,29 @@
 - Impact: PR #2 is held by the external check. PR 2 (`refactor/feature-boundaries`) is on hold until the merge policy for PR #2 is decided, so the next branch is based on the correct `caro-maturana` state.
 - Owner: not assigned. The Vercel side is owned by a teammate / partner. The merge policy decision is the repository owner's call.
 - Action: ask the teammate / partner who owns the Vercel project to run `npx vercel inspect dpl_EssKcBKdJbuTK6n8JB3JkmgwDwua --logs`, share the build logs, fix the build if actionable, or grant the user access. Capture the team's merge policy in this file and reflect it in `STATUS.md`, `NEXT_ACTIONS.md`, and `KNOWN_ISSUES.md` once known.
+
+## Q17 — PR 2 test mechanism for the contact-routing service layer (Phase A Gate 2)
+
+- Type: Implementation gate.
+- Description: PR 2 (`refactor/feature-boundaries`, stacked on `fix/privacy-contact-routing`) introduces pure / RLS-aware services in `apps/web/src/lib/services/` (notably `contact-policy.ts` and `conversations.ts::ensureConversation`) and wraps the contact-requests server action in a service. The architect verdict (2026-07-05) requires a safety net (characterization tests) for the contact-routing service layer before moving any privacy-sensitive logic. PR 1 used a no-new-dependency `verify:*` script approach (`scripts/verify-is-minor.mjs` + root `verify:is-minor`). PR 2 must decide whether to keep that approach or to add a minimal test runner.
+- Sub-questions:
+  - Does the owner accept a minimal pure-service test runner (e.g. `node --test`, `vitest` with no new dependencies beyond what is already in the lockfile, or another low-friction choice) for PR 2?
+  - If yes, which runner, and what is the rationale? The choice and the justification must be recorded in `DECISION_LOG.md` ADR-003 (sub-decision "Test mechanism") and reflected in `package.json` if a script needs to be added at the root.
+  - If no, does PR 2 keep the PR 1 `verify:*` script approach and add `verify:contact-policy` for the canonical cases of the new `contact-policy` pure decision function? The canonical cases must cover at minimum: minor student (pending path), non-minor student (direct path), self-contact (deny), missing school for a minor student (error), and unknown role.
+  - Either way, the chosen mechanism must be runnable on `lib/services/contact-policy.ts`, `lib/services/conversations.ts`, and `lib/services/contact-requests.ts` without a live Supabase instance (i.e. with a fake client) so the safety net is hermetic and reproducible.
+- Impact: PR 2 Phase A code cannot land until this question is resolved. The architecture pass does not require this question to be answered; only the implementation pass does.
+- Owner: not assigned.
+- Action: capture the decision in `DECISION_LOG.md` ADR-003 (sub-decision "Test mechanism") and in `NEXT_ACTIONS.md` (Phase A commit plan). Reflect the mechanism in `package.json` only if explicitly approved.
+
+## Q18 — PR 2 base and retarget / rebase policy while PR #2 is held by the external Vercel blocker
+
+- Type: Process / branch policy.
+- Description: PR 2 (`refactor/feature-boundaries`) is cut from `fix/privacy-contact-routing` (HEAD `7a881f6`) as a **stacked** branch because PR #2 against `caro-maturana` is held by the external Vercel check. The user has accepted the stacked approach (2026-07-05). PR 2 is opened against `fix/privacy-contact-routing` until PR #2 lands. This question covers the post-merge policy: when PR #2 lands in `caro-maturana`, what is the procedure for retargeting or rebasing PR 2?
+- Sub-questions:
+  - Is the team OK with retargeting the PR 2 PR to `caro-maturana` after PR #2 merges? (Fast-forward is not possible because `fix/privacy-contact-routing` is already merged; the new base is `caro-maturana` post-merge.)
+  - Is a rebase preferred over a retarget? The rebase risk is low because PR 2 does not touch `supabase/`, `package.json`, or `apps/web/src/app/api/`, but it is real and must be planned for.
+  - If `caro-maturana` advances (e.g. dependency triage PR) before PR #2 lands, does the team accept a rebase of `refactor/feature-boundaries` onto the new `caro-maturana` HEAD? Or is the stacked branch frozen on `fix/privacy-contact-routing` `7a881f6` until PR #2 lands, and any drift is handled by a merge commit at retarget time?
+  - What is the merge policy for PR 2 itself: squash, merge commit, or rebase-and-merge? The team convention in `docs/git/COMMIT_CONVENTION.md` favors small atomic commits; a merge commit is acceptable for stacked PRs.
+- Impact: determines the mechanical procedure when PR #2 lands. Not a blocker for the architecture pass; must be answered before the first Phase A commit lands so the workflow is consistent.
+- Owner: not assigned.
+- Action: capture the policy in `DECISION_LOG.md` ADR-003 (sub-decision "Stacked branch policy", follow-up) and reflect it in `NEXT_ACTIONS.md` (the Phase A commit plan) and `PR_TRACKER.md` (PR 2 detail section).

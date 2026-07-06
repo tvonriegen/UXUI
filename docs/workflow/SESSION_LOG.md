@@ -269,7 +269,7 @@
 
 - **Push of the branch (by the user, before this documentation pass).** `origin/fix/privacy-contact-routing` is in sync with the local HEAD `7a881f6` per `git status --short --branch`. SSH credentials for further pushes remain blocked (`Permission denied (publickey)`).
 - **PR opened on GitHub.** PR **#2** opened against `caro-maturana` at `https://github.com/tvonriegen/UXUI/pull/2`.
-- **GitHub checks observed on PR #2.** `Vercel` **failed**, `Vercel Preview Comments` **passed**.
+- **GitHub checks observed on PR #2.** `Vercel` **failed**, `Vercel Preview Comments` **passed`.
 - **Local validations run earlier (PR 1 QA + Security Pass).** `npm run verify:is-minor` ✓ (7/7), `npm run typecheck` ✓, `npm run lint` ✓, `npm run build` ✓ (no dummy env). Local code validation is green.
 - **Attempted Vercel inspect (failed in this workspace).** The user attempted `npx vercel inspect dpl_EssKcBKdJbuTK6n8JB3JkmgwDwua --logs` from this workspace. Result: `No existing credentials found` — the Vercel project is owned by a teammate / partner's GitHub account, so it is not visible / fixable from this user's account. The user explicitly stated they cannot fix Vercel because the project belongs to the teammate / partner.
 
@@ -308,3 +308,81 @@
 
 - Owner / teammate resolves the Vercel external blocker (or grants access) and the merge-policy decision for PR #2 is captured here.
 - If PR #2 is merged into `caro-maturana`, start PR 2 (`refactor/feature-boundaries`) per `NEXT_ACTIONS.md` "After Current PR" and `PR_TRACKER.md`. If PR #2 is held by the Vercel fix, do not start PR 2.
+
+## 2026-07-05 — PR 2 architecture setup (stacked on PR 1)
+
+### Goal
+
+- PR 2 (`refactor/feature-boundaries`): set up the complete documentation architecture for the upcoming refactor of the high-risk feature pages (`profile`, `muro`, `empleos`, `administracion`, `messages`, `DashboardColegio`, `talent`, `apps/web/src/app/actions/contact-requests.ts`) into focused modules with clear boundaries, so that the privacy-sensitive paths identified by PR 1 are isolated and reusable. **Documentation only — no code, no commit, no push.**
+
+### Branch
+
+- `refactor/feature-boundaries`, cut from `fix/privacy-contact-routing` (HEAD `7a881f6`) as a **stacked** branch because PR #2 against `caro-maturana` is held by the external Vercel blocker. The user has accepted the stacked approach (2026-07-05). PR 2 will be opened against `fix/privacy-contact-routing` (not `caro-maturana`) until PR #2 lands; then PR 2 is retargeted / rebased to `caro-maturana` if needed (`OPEN_QUESTIONS.md` Q18, `DECISION_LOG.md` ADR-003 sub-decision "Stacked branch policy").
+- `git status` at session start: clean working tree on `refactor/feature-boundaries`; HEAD is `c795e14 docs: record external Vercel blocker for PR 1`. The `c795e14` commit is on `refactor/feature-boundaries` only and is not on `fix/privacy-contact-routing`.
+
+### High-risk files (baseline measurement, 2026-07-05)
+
+- `apps/web/src/app/profile/page.tsx` — 2888 lines, complexity 61. **Deferred to a dedicated PR (PR 3 or later); out of PR 2 scope.**
+- `apps/web/src/app/muro/page.tsx` — 1373 lines, complexity 36. Phase B (optional) in PR 2.
+- `apps/web/src/app/empleos/page.tsx` — 1036 lines, complexity 29. Phase B (optional) in PR 2.
+- `apps/web/src/app/administracion/page.tsx` — 1309 lines, complexity 19. Phase B (optional) in PR 2.
+- `apps/web/src/app/messages/page.tsx` — 680 lines, complexity 20. Only touched in PR 2 if the conversations / messages surface starts sharing helpers with the contact-routing services; otherwise left alone.
+- `apps/web/src/components/dashboard/DashboardColegio.tsx` — 443 lines. PR 1 privacy-sensitive (school approve / reject queue). Phase A in PR 2.
+- `apps/web/src/app/talent/page.tsx` — 659 lines. PR 1 privacy-sensitive (server-action call). Phase A in PR 2.
+- `apps/web/src/app/actions/contact-requests.ts` — 155 lines. PR 1 server action. Phase A in PR 2.
+
+### Architect verdict (2026-07-05)
+
+- **Plan / docs:** Aprobar con observaciones.
+- **Implementation:** BLOQUEAR until the gate conditions in `docs/architecture/PR2_FEATURE_BOUNDARIES.md` are met.
+- **Sub-decisions (captured in `DECISION_LOG.md` ADR-003):** stacked branch policy (accepted by the user 2026-07-05); test mechanism (open — `OPEN_QUESTIONS.md` Q17); Phase A scope (recommended first: low-risk extractions around the PR 1 contact-routing flow); Phase B scope (optional, only if Phase A is small and green: route-local presentational splits for `muro` / `empleos` / `administracion`); **ProfilePage deep split explicitly deferred** to a dedicated PR (PR 3 or later); no schema / RLS / migration / `package.json` dependency changes except a minimal pure-service test runner if explicitly approved.
+
+### Actions Run
+
+- **Authored the PR 2 architecture entry point.** `docs/architecture/PR2_FEATURE_BOUNDARIES.md` (new). Goals, non-goals, target folder tree, layer contracts (lib/services, components/contact-routing, lib/hooks), extraction order, risk matrix, acceptance criteria, validation checklist, commit plan (Phase A five commits, Phase B three commits), gate conditions (Phase A Gate 1–4, Phase B Gate B1–B4), deferred work (ProfilePage deep split, `respondInterview` / `cancelInterview` admin-client review, broader schema snapshot drift, dependency vulnerability triage, `talent/page.tsx` deeper refactor), risk register, open decisions, references.
+- **Updated the codebase map.** `docs/architecture/CODEBASE_MAP.md` now lists the PR 1 contact-routing additions (committed and pushed to `fix/privacy-contact-routing` HEAD `7a881f6`) and the PR 2 planned boundaries (architecture only). High-risk file list includes line counts (2026-07-05) and PR 2 phase mapping (Phase A / Phase B / Deferred).
+- **Updated the refactoring plan.** `docs/technical/REFACTORING_PLAN.md` now includes Phase 4 (PR 2 phases A / B with gate conditions) and Phase 5 (follow-up chore PRs: dependency vulnerability triage, broader schema snapshot drift, `respondInterview` / `cancelInterview` admin-client review, ProfilePage deep split, runtime Supabase migration / RLS / trigger smoke test). ProfilePage deep split is explicitly deferred.
+- **Updated the workflow state.** `docs/workflow/STATUS.md` reads `refactor/feature-boundaries` as the current branch and PR 2 architecture planning as the current phase. The stacked branch posture is recorded.
+- **Updated the next actions.** `docs/workflow/NEXT_ACTIONS.md` Immediate section now leads with the PR 2 architecture setup; the decision flow for Gate 2 (test mechanism) is documented; the Phase A commit plan is recorded; the guardrails (no schema / RLS / migration changes; no behavior / UI changes; no ProfilePage deep split; server action public exports stay byte-identical; no new `package.json` dependencies by default; stacked branch policy) are inlined.
+- **Updated the PR tracker.** `docs/workflow/PR_TRACKER.md` PR 2 row: status = architecture planning in progress / stacked on PR 1; base = `fix/privacy-contact-routing` until PR #2 lands. PR 2 detail section expanded with phase scopes, gate conditions, file list for this pass, and PR 3 (ProfilePage deep split) row added.
+- **Updated the decision log.** `docs/workflow/DECISION_LOG.md` ADR-003 added (stacked branch policy accepted; test mechanism pending; Phase A scope; Phase B scope optional; ProfilePage deep split deferred; no schema / RLS / migration / `package.json` dependency changes; server action public exports stay byte-identical).
+- **Updated the open questions.** `docs/workflow/OPEN_QUESTIONS.md` Q17 (test mechanism decision — open) and Q18 (PR 2 base / retarget policy — open) added.
+- **Updated the traceability matrix.** `docs/requirements/TRACEABILITY_MATRIX.md` PR 2 added as a technical-enabler row (no functional requirement change).
+- **Updated this file.** Added this entry.
+
+### Files Changed (this pass)
+
+- **Created:** `docs/architecture/PR2_FEATURE_BOUNDARIES.md`.
+- **Updated:** `docs/architecture/CODEBASE_MAP.md`.
+- **Updated:** `docs/technical/REFACTORING_PLAN.md`.
+- **Updated:** `docs/workflow/STATUS.md`.
+- **Updated:** `docs/workflow/NEXT_ACTIONS.md`.
+- **Updated:** `docs/workflow/PR_TRACKER.md`.
+- **Updated:** `docs/workflow/DECISION_LOG.md` (ADR-003).
+- **Updated:** `docs/workflow/OPEN_QUESTIONS.md` (Q17, Q18).
+- **Updated:** `docs/requirements/TRACEABILITY_MATRIX.md`.
+- **Updated:** `docs/workflow/SESSION_LOG.md` (this entry).
+- No code, RLS, migration, server action, helper, script, UI, or `package.json` file was touched. No commit, no push.
+
+### Validation
+
+- Not run in this session, by design (documentation-only pass, per task brief).
+- Local validation status (PR 1 QA + Security Pass, 2026-07-05): **green** — `npm run verify:is-minor` ✓ (7/7), `npm run typecheck` ✓, `npm run lint` ✓, `npm run build` ✓ (no dummy env).
+- PR 2 implementation validation is defined in `PR2_FEATURE_BOUNDARIES.md` (validation checklist + acceptance criteria) and is gated on `OPEN_QUESTIONS.md` Q17 (test mechanism).
+
+### Risks / Blockers
+
+- **External Vercel blocker (carried over from PR 1).** PR #2 against `caro-maturana` is held by the failing Vercel check. Tracked in `KNOWN_ISSUES.md` (External deployment issues) and `OPEN_QUESTIONS.md` Q16. The stacked branch approach is the user's accepted workaround.
+- **PR 2 implementation is gated on Gate 2 (test mechanism).** Until the owner picks a test mechanism (`OPEN_QUESTIONS.md` Q17), Phase A code cannot land. The architecture pass does not require Gate 2 to be resolved; only the implementation pass does.
+- **Stacked branch may need to retarget.** If `caro-maturana` advances (e.g. dependency triage PR) before PR #2 lands, the stacked branch will need a rebase. The rebase risk is low because PR 2 does not touch `supabase/`, `package.json`, or `apps/web/src/app/api/`, but it is real and is tracked in `OPEN_QUESTIONS.md` Q18.
+- **Phase B growth risk.** If Phase A is larger than the "small and reversible" tolerance, Phase B is dropped. The gate is the commit count and the diff size, not a calendar date.
+- **ProfilePage deep split deferred.** The largest single file in the repo stays large after PR 2. Tracked in `OPEN_QUESTIONS.md` (follow-up) and `PR_TRACKER.md` PR 3 (planned, not started).
+- **SSH push still blocked.** The push of `fix/privacy-contact-routing` (up to `7a881f6`) succeeded earlier; further pushes remain blocked by credentials (`Permission denied (publickey)`).
+
+### Next Session
+
+- Owner reviews `docs/architecture/PR2_FEATURE_BOUNDARIES.md` and `DECISION_LOG.md` ADR-003, confirms Phase A scope and the stacked branch policy, and picks a test mechanism (Gate 2 — `OPEN_QUESTIONS.md` Q17).
+- Commit the PR 2 architecture docs on `refactor/feature-boundaries` with a `docs:` prefix per `docs/git/COMMIT_CONVENTION.md`. Push to `origin/refactor/feature-boundaries` once SSH credentials are restored (or wait for the user to push). Open PR 2 against `fix/privacy-contact-routing` (not `caro-maturana`) per the stacked branch policy.
+- Once Gate 2 is resolved, implement Phase A per the commit plan in `PR2_FEATURE_BOUNDARIES.md` (five atomic commits, in order). Update `SESSION_LOG.md`, `PR_TRACKER.md`, `CODEBASE_MAP.md`, `REFACTORING_PLAN.md`, and `TRACEABILITY_MATRIX.md` as commits land.
+- If Phase A is small and green, consider Phase B (optional, three independent commits, one per route).
+- Open a follow-up entry in `OPEN_QUESTIONS.md` and a follow-up PR row in `PR_TRACKER.md` (PR 3 or later) for the ProfilePage deep split, so the deferred work is not lost.
