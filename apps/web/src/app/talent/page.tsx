@@ -4,15 +4,16 @@ import PageLayout from "@/components/layout/PageLayout";
 import { useRole } from "@/lib/role-context";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
-import { requestContactWithTalent } from "@/app/actions/contact-requests";
 import { TP_SPECIALTIES } from "@/lib/specialties";
+import ContactTalentButton from "@/components/contact-routing/ContactTalentButton";
 import SkillAssessmentActivity from "@/components/talent/SkillAssessmentActivity";
 import TechQuizActivity       from "@/components/talent/TechQuizActivity";
 import CareerMatchActivity    from "@/components/talent/CareerMatchActivity";
+import { useContactTalent } from "@/lib/hooks/useContactTalent";
 import {
   Search, SlidersHorizontal, MapPin, Award, Star,
   CheckCircle, Clock, XCircle, ChevronDown, X,
-  Loader2, MessageCircle, Zap, Trophy, Flame, Lock,
+  Loader2, Zap, Trophy, Flame, Lock,
   BookOpen, Code, Wrench, Lightbulb, Target, Shield, Brain, Compass, Cpu,
   type LucideIcon,
 } from "lucide-react";
@@ -376,8 +377,13 @@ export default function TalentPage() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [contacting, setContacting] = useState<string | null>(null);
-  const [contacted, setContacted] = useState<Record<string, "direct" | "school">>({});
+  const {
+    contactingId,
+    contacted,
+    error: contactError,
+    setError: setContactError,
+    requestContact,
+  } = useContactTalent();
 
   const [search, setSearch] = useState("");
   const [specialty, setSpecialty] = useState("Todas");
@@ -430,19 +436,7 @@ export default function TalentPage() {
 
   const handleContact = async (talent: TalentProfile) => {
     if (!user?.id || !talent.id) return;
-    setContacting(talent.id);
-    const result = await requestContactWithTalent(talent.id, `Solicitud de contacto desde el directorio de talento.`);
-
-    if (result.error) {
-      setError(result.error);
-    } else {
-      setError(null);
-      setContacted((prev) => ({
-        ...prev,
-        [talent.id]: result.requiresSchoolApproval ? "school" : "direct",
-      }));
-    }
-    setContacting(null);
+    await requestContact(talent.id, `Solicitud de contacto desde el directorio de talento.`);
   };
 
   const activeFilterCount = [
@@ -460,6 +454,7 @@ export default function TalentPage() {
   const ctaClass = viewerRole === "Empresa" ? "bg-violet-600 hover:bg-violet-700"
                  : viewerRole === "Colegio" ? "bg-amber-600 hover:bg-amber-700"
                  : "bg-cyan-600 hover:bg-cyan-700";
+  const visibleError = error ?? contactError;
 
   // Students get the Activities Playground instead of the talent directory
   // (after all hooks so Rules of Hooks are not violated)
@@ -544,9 +539,9 @@ export default function TalentPage() {
           </div>
         )}
 
-        {error && (
+        {visibleError && (
           <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-            {error} <button onClick={() => fetchProfiles(0)} className="ml-2 underline hover:no-underline">Reintentar</button>
+            {visibleError} <button onClick={() => { setContactError(null); fetchProfiles(0); }} className="ml-2 underline hover:no-underline">Reintentar</button>
           </div>
         )}
 
@@ -621,21 +616,14 @@ export default function TalentPage() {
                       <ChevronDown size={14} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                       {isExpanded ? "Menos" : "Ver más"}
                     </button>
-                    <button
+                    <ContactTalentButton
+                      label={ctaLabel}
+                      className={ctaClass}
+                      contactedState={contactedState}
+                      isContacting={contactingId === t.id}
+                      disabled={hasContacted || contactingId === t.id || !user}
                       onClick={() => handleContact(t)}
-                      disabled={hasContacted || contacting === t.id || !user}
-                      className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white transition-all btn-press disabled:opacity-50 ${hasContacted ? "bg-emerald-500" : ctaClass}`}
-                    >
-                      {contacting === t.id ? (
-                        <Loader2 size={12} className="animate-spin" />
-                      ) : contactedState === "school" ? (
-                        <><CheckCircle size={12} /> Pendiente colegio</>
-                      ) : contactedState === "direct" ? (
-                        <><CheckCircle size={12} /> Contacto creado</>
-                      ) : (
-                        <><MessageCircle size={12} /> {ctaLabel}</>
-                      )}
-                    </button>
+                    />
                   </div>
                 </div>
               </article>

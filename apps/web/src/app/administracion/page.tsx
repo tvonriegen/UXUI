@@ -10,6 +10,8 @@ import Modal from "@/components/ui/Modal";
 import { useAuth } from "@/lib/auth-context";
 import { useRole } from "@/lib/role-context";
 import { supabase } from "@/lib/supabase";
+import AdminHeader from "@/app/administracion/_components/AdminHeader";
+import AdminTabs from "@/app/administracion/_components/AdminTabs";
 import {
   createStudent,
   graduateStudent,
@@ -49,6 +51,7 @@ interface DbInternshipRequest {
 }
 
 type AdminTab = "Mis Estudiantes" | "Estadísticas" | "Solicitudes";
+const ADMIN_TABS = ["Mis Estudiantes", "Estadísticas", "Solicitudes"] as const satisfies readonly AdminTab[];
 
 // ── Component ─────────────────────────────────────────────
 
@@ -396,31 +399,8 @@ export default function AdministracionPage() {
     <PageLayout>
       <div className="p-4 md:p-6 lg:p-8 max-w-6xl mx-auto w-full space-y-6">
 
-        {/* ── Page Header ── */}
-        <div className="animate-fade-in-up">
-          <p className="text-sm text-amber-600 font-semibold mb-1">Panel del Centro</p>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Administración</h1>
-          <p className="text-slate-500 text-sm mt-1">
-            Gestiona tus estudiantes, estadísticas y solicitudes de práctica.
-          </p>
-        </div>
-
-        {/* ── Tabs ── */}
-        <div className="flex gap-1.5 bg-white border border-slate-200/60 rounded-xl p-1.5 w-fit animate-fade-in-up stagger-1">
-          {(["Mis Estudiantes", "Estadísticas", "Solicitudes"] as AdminTab[]).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
-                tab === t
-                  ? "bg-amber-50 text-amber-700 shadow-sm"
-                  : "text-slate-400 hover:text-slate-600"
-              }`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
+        <AdminHeader />
+        <AdminTabs tabs={ADMIN_TABS} activeTab={tab} onChange={setTab} />
 
         {/* ══════════════════════════════════════════════
             TAB: Mis Estudiantes

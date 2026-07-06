@@ -7,11 +7,12 @@ import { useRole } from "@/lib/role-context";
 import { supabase } from "@/lib/supabase";
 import { jobPostingSchema } from "@/lib/schemas";
 import { updateApplicationStatusSA, type AtsStatus } from "@/app/actions/company";
+import CompanyStatsGrid from "@/app/empleos/_components/CompanyStatsGrid";
 import { TP_SPECIALTIES } from "@/lib/specialties";
 import {
   Briefcase, MapPin, Plus, Loader2, ChevronDown, Send, CheckCircle,
   Users, ArrowUp, ArrowDown, Sparkles, UserPlus, UserCheck,
-  BarChart2, TrendingUp, Award, Eye, CalendarClock, ListChecks,
+  BarChart2, Eye, CalendarClock, ListChecks,
 } from "lucide-react";
 import { computeMatchScore, getMatchLabel, getMatchColor } from "@/lib/utils/matching";
 import { useToast } from "@/components/ui/Toast";
@@ -517,29 +518,7 @@ export default function EmpleosPage() {
         )}
 
         {/* ── Company Analytics Dashboard ── */}
-        {isCompany && companyStats && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 animate-fade-in-up stagger-1">
-            {[
-              { label: "Vacantes activas", value: companyStats.activeJobs,      icon: <Briefcase  size={16} />, color: "cyan"    },
-              { label: "Total candidatos", value: companyStats.totalApplicants, icon: <Users      size={16} />, color: "violet"  },
-              { label: "En entrevistas",   value: companyStats.interviewing,    icon: <TrendingUp size={16} />, color: "purple"  },
-              { label: "Contratados",      value: companyStats.hired,           icon: <Award      size={16} />, color: "emerald" },
-            ].map((stat) => (
-              <div
-                key={stat.label}
-                className="bg-white rounded-2xl p-4 border border-slate-200/60 shadow-sm flex items-center gap-3"
-              >
-                <div className={`w-9 h-9 rounded-xl bg-${stat.color}-50 flex items-center justify-center text-${stat.color}-600 shrink-0`}>
-                  {stat.icon}
-                </div>
-                <div>
-                  <p className={`text-2xl font-extrabold text-${stat.color}-600 leading-none`}>{stat.value}</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5 leading-tight">{stat.label}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        {isCompany && companyStats && <CompanyStatsGrid stats={companyStats} />}
 
         {error && (
           <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">{error}</div>
