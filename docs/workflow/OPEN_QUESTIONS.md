@@ -107,18 +107,20 @@
 - Owner: not assigned. The Vercel side is owned by a teammate / partner. The merge policy decision is the repository owner's call.
 - Action: ask the teammate / partner who owns the Vercel project to run `npx vercel inspect dpl_EssKcBKdJbuTK6n8JB3JkmgwDwua --logs`, share the build logs, fix the build if actionable, or grant the user access. Capture the team's merge policy in this file and reflect it in `STATUS.md`, `NEXT_ACTIONS.md`, and `KNOWN_ISSUES.md` once known.
 
-## Q17 — PR 2 test mechanism for the contact-routing service layer (Phase A Gate 2)
+## Q17 — PR 2 test mechanism for the contact-routing service layer (Phase A Gate 2) — answered
 
-- Type: Implementation gate.
+- Type: Answered.
+- Answer: The owner resolved Gate 2 by instruction: use the no-dependency PR 1 `verify:*` pattern and add root script `verify:contact-policy` backed by `scripts/verify-contact-policy.mjs`. No Vitest/Jest/test-runner dependency is added.
+- Validation: `npm run verify:contact-policy` passes 8 canonical cases for `decideContactPath` (self, Empresa -> minor with school, Empresa -> minor without school, Empresa -> Egresado, Empresa -> non-minor Estudiante, Colegio -> own Estudiante, Colegio -> other-school Estudiante, unknown role).
 - Description: PR 2 (`refactor/feature-boundaries`, stacked on `fix/privacy-contact-routing`) introduces pure / RLS-aware services in `apps/web/src/lib/services/` (notably `contact-policy.ts` and `conversations.ts::ensureConversation`) and wraps the contact-requests server action in a service. The architect verdict (2026-07-05) requires a safety net (characterization tests) for the contact-routing service layer before moving any privacy-sensitive logic. PR 1 used a no-new-dependency `verify:*` script approach (`scripts/verify-is-minor.mjs` + root `verify:is-minor`). PR 2 must decide whether to keep that approach or to add a minimal test runner.
 - Sub-questions:
   - Does the owner accept a minimal pure-service test runner (e.g. `node --test`, `vitest` with no new dependencies beyond what is already in the lockfile, or another low-friction choice) for PR 2?
   - If yes, which runner, and what is the rationale? The choice and the justification must be recorded in `DECISION_LOG.md` ADR-003 (sub-decision "Test mechanism") and reflected in `package.json` if a script needs to be added at the root.
   - If no, does PR 2 keep the PR 1 `verify:*` script approach and add `verify:contact-policy` for the canonical cases of the new `contact-policy` pure decision function? The canonical cases must cover at minimum: minor student (pending path), non-minor student (direct path), self-contact (deny), missing school for a minor student (error), and unknown role.
   - Either way, the chosen mechanism must be runnable on `lib/services/contact-policy.ts`, `lib/services/conversations.ts`, and `lib/services/contact-requests.ts` without a live Supabase instance (i.e. with a fake client) so the safety net is hermetic and reproducible.
-- Impact: PR 2 Phase A code cannot land until this question is resolved. The architecture pass does not require this question to be answered; only the implementation pass does.
+- Impact: Gate 2 no longer blocks the Phase A service-boundary implementation.
 - Owner: not assigned.
-- Action: capture the decision in `DECISION_LOG.md` ADR-003 (sub-decision "Test mechanism") and in `NEXT_ACTIONS.md` (Phase A commit plan). Reflect the mechanism in `package.json` only if explicitly approved.
+- Action: keep `verify:contact-policy` in the validation checklist for PR 2 Phase A.
 
 ## Q18 — PR 2 base and retarget / rebase policy while PR #2 is held by the external Vercel blocker
 

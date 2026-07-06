@@ -386,3 +386,90 @@
 - Once Gate 2 is resolved, implement Phase A per the commit plan in `PR2_FEATURE_BOUNDARIES.md` (five atomic commits, in order). Update `SESSION_LOG.md`, `PR_TRACKER.md`, `CODEBASE_MAP.md`, `REFACTORING_PLAN.md`, and `TRACEABILITY_MATRIX.md` as commits land.
 - If Phase A is small and green, consider Phase B (optional, three independent commits, one per route).
 - Open a follow-up entry in `OPEN_QUESTIONS.md` and a follow-up PR row in `PR_TRACKER.md` (PR 3 or later) for the ProfilePage deep split, so the deferred work is not lost.
+
+## 2026-07-05 — PR 2 Phase A service-boundary implementation
+
+### Goal
+
+- Implement only the authorized Phase A service-boundary extraction around `contact-requests`, resolve Gate 2 with a no-new-dependency verify script, and avoid schema/RLS/migration/API/profile/UI redesign changes. No commit, no push.
+
+### Initial Inspection
+
+- Confirmed `git status --short --branch` was clean on `refactor/feature-boundaries`.
+- Confirmed `git log --oneline -5` had `c3dead6 docs: define PR 2 feature boundary architecture` at HEAD.
+- Read `docs/architecture/PR2_FEATURE_BOUNDARIES.md` and `docs/workflow/NEXT_ACTIONS.md` before editing.
+
+### Actions Run
+
+- Moved `ensureConversation` from `apps/web/src/app/actions/contact-requests.ts` to `apps/web/src/lib/services/conversations.ts`, preserving canonical pair ordering, race fallback, and `last_message_at` initialization.
+- Added `apps/web/src/lib/services/contact-policy.ts` with pure `decideContactPath` and exported types for script/test coverage. It imports `isMinorProfile`.
+- Added `apps/web/src/lib/services/contact-requests.ts` as the internal RLS-client service used by `requestContactWithTalent`.
+- Reduced `apps/web/src/app/actions/contact-requests.ts` to a thin shell for `requestContactWithTalent`; public exports remain `requestContactWithTalent`, `approveContactRequest`, `rejectContactRequest`, and `cancelContactRequest`.
+- Added `scripts/verify-contact-policy.mjs` and root script `verify:contact-policy` without adding dependencies.
+- Updated workflow / architecture docs to record Gate 2 resolution, service-boundary extraction, validation, and deferred UI/Phase B work.
+
+### Validation
+
+- `npm run verify:contact-policy` ✓ — 8/8 canonical cases.
+- `npm run verify:is-minor` ✓ — 7/7 canonical cases.
+- `npm run typecheck` ✓.
+- `npm run lint` ✓.
+- `npm run build` ✓.
+
+### Guardrails Confirmed
+
+- No changes under `supabase/`.
+- No changes under `apps/web/src/app/api/`.
+- No changes to `apps/web/src/app/profile/page.tsx`.
+- No UI redesign and no intentional behavior change.
+- No new dependencies, no commit, no push.
+
+### Next Session
+
+- Review the staged diff and decide whether to keep PR 2 limited to this service-boundary subset or continue with the remaining optional Phase A UI extractions (`ContactRequestQueue`, `useContactTalent` / `ContactTalentButton`).
+- Commit only if explicitly requested by the user.
+
+## 2026-07-06 — PR 2 Phase A UI + Phase B presentational continuation
+
+### Goal
+
+- Complete the remaining Phase A contact-routing UI extraction and perform limited, reversible Phase B presentational route splits for `muro`, `empleos`, and `administracion`. No schema/RLS/migration, no `supabase/`, no `apps/web/src/app/api/`, no `profile/page.tsx`, no dependency, no commit, no push.
+
+### Initial Inspection
+
+- `git status --short --branch` showed `refactor/feature-boundaries` with uncommitted PR 2 Phase A service/doc changes.
+- `git diff --stat` showed existing changes in `apps/web/src/app/actions/contact-requests.ts`, workflow/architecture docs, `package.json`, new `apps/web/src/lib/services/`, and `scripts/verify-contact-policy.mjs`.
+
+### Actions Run
+
+- Added `apps/web/src/components/contact-routing/types.ts` for shared contact-routing UI types.
+- Extracted the school contact request mediation section from `DashboardColegio` into `apps/web/src/components/contact-routing/ContactRequestQueue.tsx`, preserving text, Tailwind classes, approve/reject buttons, spinner, and error UI.
+- Updated `apps/web/src/components/dashboard/DashboardColegio.tsx` to render `ContactRequestQueue` while keeping the existing Supabase query and approve/reject handlers in the page component.
+- Added `apps/web/src/lib/hooks/useContactTalent.ts` to own talent CTA loading/error/contacted state around `requestContactWithTalent`.
+- Added `apps/web/src/components/contact-routing/ContactTalentButton.tsx` and updated `apps/web/src/app/talent/page.tsx` to use the hook/button without changing labels or visible states.
+- Phase B `muro`: added `apps/web/src/app/muro/_components/MuroHeader.tsx` and replaced the equivalent header JSX. No feed fetch, filters, post mutations, comments, save logic, or job-apply logic moved.
+- Phase B `empleos`: added `apps/web/src/app/empleos/_components/CompanyStatsGrid.tsx` and replaced the equivalent company analytics grid. No server actions, `proposeInterview`, applicant mutations, or Supabase logic moved.
+- Phase B `administracion`: added `apps/web/src/app/administracion/_components/AdminHeader.tsx` and `AdminTabs.tsx`, then replaced equivalent JSX. No school actions/mutations, student management logic, request updates, or Supabase logic moved.
+- Updated workflow / architecture docs to record Phase A complete locally and Phase B presentational complete locally.
+
+### Validation
+
+- `npm run verify:is-minor` ✓ — 7/7 canonical cases.
+- `npm run verify:contact-policy` ✓ — 8/8 canonical cases.
+- `npm run typecheck` ✓ — `tsc --noEmit` clean.
+- `npm run lint` ✓ — no ESLint warnings or errors.
+- `npm run build` ✓ — Next.js production build compiled successfully, 20/20 static pages generated.
+
+### Guardrails Confirmed
+
+- No changes under `supabase/`.
+- No changes under `apps/web/src/app/api/`.
+- No changes to `apps/web/src/app/profile/page.tsx`.
+- No new dependencies.
+- No intentional UI/behavior changes.
+- No commit, no push.
+
+### Risks / Follow-up
+
+- Phase B was intentionally limited to pure presentation. Deeper route composition, hooks, and data-shape extractions remain future work.
+- Final validation matrix is green. Commit/push remain intentionally not performed.

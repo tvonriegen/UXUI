@@ -23,26 +23,26 @@
 
 PR 2 is the follow-up to PR 1 (`fix/privacy-contact-routing`, committed and pushed to `fix/privacy-contact-routing` HEAD `7a881f6`, PR #2 opened against `caro-maturana`, blocked by the external Vercel check). The architect verdict for PR 2 (2026-07-05) is **Aprobar con observaciones** for plan / docs and **BLOQUEAR** implementation until the gate conditions below are met. The detailed target tree, layer contracts, extraction order, risk matrix, acceptance criteria, validation checklist, and commit plan live in `docs/architecture/PR2_FEATURE_BOUNDARIES.md`. This file records the phase structure and the explicit deferrals.
 
-### Phase A — low-risk extraction around the PR 1 contact-routing flow (recommended first)
+### Phase A — low-risk extraction around the PR 1 contact-routing flow (complete locally)
 
-- Move `ensureConversation` from `apps/web/src/app/actions/contact-requests.ts` (private) to `apps/web/src/lib/services/conversations.ts` (exported). Public server action export unchanged.
-- Extract the Empresa ↔ minor decision cascade from `requestContactWithTalent` into a pure `apps/web/src/lib/services/contact-policy.ts` (no IO; uses the existing `isMinorProfile` from `lib/utils/is-minor.ts`).
-- Wrap the dedup / insert path in `apps/web/src/lib/services/contact-requests.ts`. The server action becomes a thin shell; public exports stay byte-identical.
-- Extract the school approve / reject JSX from `apps/web/src/components/dashboard/DashboardColegio.tsx` into `apps/web/src/components/contact-routing/ContactRequestQueue.tsx`. Same Tailwind classes, same loading skeleton, same review buttons.
-- Encapsulate the talent page CTA call to `requestContactWithTalent` in `apps/web/src/lib/hooks/useContactTalent.ts` and / or `apps/web/src/components/contact-routing/ContactTalentButton.tsx`. User-visible CTA is unchanged.
+- Done locally: move `ensureConversation` from `apps/web/src/app/actions/contact-requests.ts` (private) to `apps/web/src/lib/services/conversations.ts` (exported). Public server action export unchanged.
+- Done locally: extract the Empresa ↔ minor decision cascade from `requestContactWithTalent` into a pure `apps/web/src/lib/services/contact-policy.ts` (no IO; uses the existing `isMinorProfile` from `lib/utils/is-minor.ts`).
+- Done locally: wrap the dedup / insert path in `apps/web/src/lib/services/contact-requests.ts`. The server action becomes a thin shell; public exports stay byte-identical.
+- Done locally: extract the school approve / reject JSX from `apps/web/src/components/dashboard/DashboardColegio.tsx` into `apps/web/src/components/contact-routing/ContactRequestQueue.tsx`. Same Tailwind classes and same review buttons/spinner/error handling.
+- Done locally: encapsulate the talent page CTA call to `requestContactWithTalent` in `apps/web/src/lib/hooks/useContactTalent.ts` and `apps/web/src/components/contact-routing/ContactTalentButton.tsx`. User-visible CTA is unchanged.
 
 **Phase A gate conditions** (must all be true before code lands):
 
 - **Gate 1 — Stacked branch accepted.** `refactor/feature-boundaries` is cut from `fix/privacy-contact-routing` while PR #2 is held by the external Vercel blocker. Accepted by the user on 2026-07-05; captured in `DECISION_LOG.md` ADR-003.
-- **Gate 2 — Test mechanism decided.** Either a minimal pure-service test runner is approved (and recorded in `DECISION_LOG.md` ADR-003) or PR 2 keeps the PR 1 `verify:*` script approach and adds `verify:contact-policy`. Open: `OPEN_QUESTIONS.md` Q17.
+- **Gate 2 — Test mechanism decided.** Resolved by owner instruction on 2026-07-05: PR 2 keeps the PR 1 `verify:*` script approach and adds `verify:contact-policy`. No new dependency is added. See `OPEN_QUESTIONS.md` Q17 and `DECISION_LOG.md` ADR-003.
 - **Gate 3 — No behavior change.** The PR 2 implementation notes include a side-by-side before / after for each public function: same inputs, same outputs, same Supabase calls in the same order, same error messages.
 - **Gate 4 — Validation green.** `verify:is-minor` (PR 1), `verify:contact-policy` (if added), `typecheck`, `lint`, `build` all pass; if a test runner was approved, the corresponding test command passes too. No dummy env required.
 
-### Phase B — route-local presentational splits (optional, only if Phase A is small and green)
+### Phase B — route-local presentational splits (complete locally, limited scope)
 
-- `apps/web/src/app/muro/page.tsx` (1373 lines) — split into `apps/web/src/app/muro/_components`, `_hooks`, `_types`, `_utils`. Page becomes a composition root.
-- `apps/web/src/app/empleos/page.tsx` (1036 lines) — split into `apps/web/src/app/empleos/_components`, `_hooks`, `_types`, `_utils`. Page becomes a composition root.
-- `apps/web/src/app/administracion/page.tsx` (1309 lines) — split into `apps/web/src/app/administracion/_components`, `_hooks`, `_types`, `_utils`. Page becomes a composition root.
+- `apps/web/src/app/muro/page.tsx` — done locally: extracted `app/muro/_components/MuroHeader.tsx`. No fetch, filter, post, save, comment, or job-apply logic moved.
+- `apps/web/src/app/empleos/page.tsx` — done locally: extracted `app/empleos/_components/CompanyStatsGrid.tsx`. No server actions, `proposeInterview`, applicant mutations, or Supabase logic moved.
+- `apps/web/src/app/administracion/page.tsx` — done locally: extracted `app/administracion/_components/AdminHeader.tsx` and `AdminTabs.tsx`. No school actions, student mutations, request updates, or Supabase logic moved.
 - `apps/web/src/app/messages/page.tsx` (680 lines) — only if the conversations / messages surface starts sharing helpers with the contact-routing services; otherwise left alone.
 
 **Phase B gate conditions** (must all be true if Phase B is pursued):
@@ -61,7 +61,7 @@ PR 2 is the follow-up to PR 1 (`fix/privacy-contact-routing`, committed and push
 - No schema / RLS / migration changes. Privacy guarantee stays where the data lives (RLS + DB trigger + `can_converse`) per `DECISION_LOG.md` ADR-002.
 - No behavior / UI changes. PR 2 is a refactor only.
 - No `respondInterview` / `cancelInterview` admin-client review. Out of PR 1 scope (`OPEN_QUESTIONS.md` Q14); tracked in `KNOWN_ISSUES.md`. Not a PR 2 deliverable.
-- No new `package.json` dependencies by default. A minimal pure-service test runner is a recommendation, not an assumption; see `OPEN_QUESTIONS.md` Q17.
+- No new dependencies. Phase A uses the no-new-dependency `verify:contact-policy` script selected in `OPEN_QUESTIONS.md` Q17.
 
 ## Phase 5: Follow-up Chore PRs (tracked separately)
 

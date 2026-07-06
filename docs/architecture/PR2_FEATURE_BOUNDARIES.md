@@ -1,6 +1,6 @@
 # PR 2 — Feature Boundaries Architecture
 
-- Status: **Architecture planning, implementation gate pending.**
+- Status: **Phase A service-boundary implementation staged locally; Phase B optional.**
 - Date: 2026-07-05.
 - Branch: `refactor/feature-boundaries` (stacked on `fix/privacy-contact-routing` while PR #2 is held by the external Vercel blocker; see `DECISION_LOG.md` ADR-003).
 - PR: PR 2 — `refactor: split high-risk feature pages into modules`.
@@ -150,7 +150,7 @@ Notes on the tree:
 
 - **Thin wrapper.** Receives the RLS-constrained Supabase server-action client and the `auth.uid()`-bound user. Calls `contact-policy` to decide the path, then calls the `contact_requests` table for the dedup / insert path, and `conversations` (via `ensureConversation`) for the direct / approved path.
 - **No behavior change.** The server action `requestContactWithTalent` becomes a thin shell that calls this service and translates errors. Public exports and return shapes are preserved.
-- **No new dependencies.** Uses only `@supabase/supabase-js` types already in use.
+- **No framework side effects.** Adds no Next framework dependencies and does not import `next/cache`, `next/headers`, or `revalidatePath`; dashboard revalidation stays in `apps/web/src/app/actions/contact-requests.ts` after a successful school-mediated request.
 
 ### `lib/hooks/useContactTalent.ts` — UI hook
 
@@ -184,7 +184,7 @@ Phase A is the minimum PR 2 that the architect verdict approves. It is small, re
 ### Phase A — gate conditions (must be true before code lands)
 
 - **Gate 1 — Stacked branch accepted.** The user has accepted that `refactor/feature-boundaries` is cut from `fix/privacy-contact-routing` and PR 2 is opened against `fix/privacy-contact-routing` until PR #2 lands. Captured in `DECISION_LOG.md` ADR-003 (sub-decision "Stacked branch policy").
-- **Gate 2 — Test mechanism decided.** Either (a) the owner accepts a minimal pure-service test runner (e.g. `node --test`, `vitest` with no extra deps beyond what's already in the lockfile, or a documented script-style verify script), or (b) PR 2 keeps the `verify:*` script approach used by PR 1 and adds a `verify:contact-policy` script for the canonical cases. The decision is captured in `DECISION_LOG.md` ADR-003 (sub-decision "Test mechanism") and in `OPEN_QUESTIONS.md` Q17.
+- **Gate 2 — Test mechanism decided.** Resolved by owner instruction on 2026-07-05: PR 2 keeps the `verify:*` script approach used by PR 1 and adds `verify:contact-policy` for the canonical cases. No new dependency is added. The decision is captured in `DECISION_LOG.md` ADR-003 (sub-decision "Test mechanism") and in `OPEN_QUESTIONS.md` Q17.
 - **Gate 3 — No behavior change documented.** The PR 2 implementation notes include a side-by-side before / after for each public function: same inputs, same outputs, same Supabase calls in the same order, same error messages.
 - **Gate 4 — Validation green.** `npm run verify:is-minor` (PR 1), the new `verify:contact-policy` if added, `npm run typecheck`, `npm run lint`, and `npm run build` all pass. If a test runner was accepted, the corresponding test command passes too. No dummy env values required.
 
@@ -285,7 +285,7 @@ PR 2 implementation must satisfy the following before merge:
 ## Risk register (cumulative)
 
 - **External Vercel blocker remains.** PR 2 is stacked on `fix/privacy-contact-routing` because PR #2 cannot land in `caro-maturana` while the Vercel check is failing. Retargeting / rebasing to `caro-maturana` is a follow-up step after PR #2 lands; see `OPEN_QUESTIONS.md` Q18.
-- **Test runner decision is unresolved.** Phase A Gate 2 is a hard gate. If the owner does not pick a mechanism, Phase A cannot start coding; PR 2 is held in architecture planning. Resolution path: `OPEN_QUESTIONS.md` Q17 + `DECISION_LOG.md` ADR-003 (sub-decision "Test mechanism").
+- **Test runner decision resolved without new dependencies.** Phase A Gate 2 uses the PR 1 `verify:*` script pattern via `verify:contact-policy`. The safety net covers the pure decision logic; broader service behavior remains protected by typecheck/lint/build and RLS at runtime.
 - **`profile/page.tsx` deep split deferred.** The largest single file in the repo stays large after PR 2. The deferred split must be tracked in `OPEN_QUESTIONS.md` and a follow-up PR must be opened in `PR_TRACKER.md` to avoid losing the work.
 - **Stacked branch may need to retarget.** If `caro-maturana` advances (e.g. dependency triage PR) before PR #2 lands, the stacked branch will need a rebase. The rebase risk is low because PR 2 does not touch `supabase/`, `package.json`, or `apps/web/src/app/api/`, but it is real and must be planned for.
 - **Phase B growth risk.** If Phase A is larger than the "small and reversible" tolerance, Phase B is dropped. The gate is the commit count and the diff size, not a calendar date.
@@ -293,7 +293,7 @@ PR 2 implementation must satisfy the following before merge:
 ## Open decisions (gates to resolve before code lands)
 
 - **Gate 1 — Stacked branch policy.** Already accepted by the user (2026-07-05). Captured in `DECISION_LOG.md` ADR-003 (sub-decision "Stacked branch policy"). Not a blocker.
-- **Gate 2 — Test mechanism.** Open. See `OPEN_QUESTIONS.md` Q17. Must be answered before Phase A code lands.
+- **Gate 2 — Test mechanism.** Resolved. See `OPEN_QUESTIONS.md` Q17 and `DECISION_LOG.md` ADR-003.
 - **Gate 3 — No behavior change.** Process gate; resolved by the implementation notes. Not a separate question.
 - **Gate 4 — Validation green.** Process gate; resolved at the implementation pass. Not a separate question.
 - **Open question — Retarget / rebase policy when PR #2 lands.** Open. See `OPEN_QUESTIONS.md` Q18. Resolution is mechanical: rebase / retarget to `caro-maturana` after PR #2 is merged. Not a blocker for the architecture pass.
@@ -307,7 +307,7 @@ PR 2 implementation must satisfy the following before merge:
 - `docs/technical/REFACTORING_PLAN.md` — phases 1–3 (PR 2 phases A / B appended).
 - `docs/technical/KNOWN_ISSUES.md` — Vercel external blocker, residual schema drift, dependency vulnerabilities.
 - `docs/workflow/DECISION_LOG.md` — ADR-002 (PR 1), ADR-003 (PR 2 stacked branch + boundaries).
-- `docs/workflow/OPEN_QUESTIONS.md` — Q12–Q16 resolved; Q17 (test mechanism) and Q18 (retarget) open.
+- `docs/workflow/OPEN_QUESTIONS.md` — Q12–Q17 resolved; Q18 (retarget) open.
 - `docs/workflow/STATUS.md` — current branch `refactor/feature-boundaries`; phase PR 2 architecture planning.
 - `docs/workflow/NEXT_ACTIONS.md` — immediate actions for the PR 2 architecture pass.
 - `docs/workflow/PR_TRACKER.md` — PR 2 row and detail section.

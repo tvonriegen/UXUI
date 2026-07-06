@@ -164,7 +164,7 @@ Negative / Trade-offs:
 
 ## ADR-003 — PR 2 feature boundaries: stacked branch, phase scope, and gate conditions
 
-- Status: Accepted (stacked branch policy, Phase A scope, Phase B scope, ProfilePage deferral, "no schema / RLS / migration / `package.json` dependency changes" rule); Pending (test mechanism — `OPEN_QUESTIONS.md` Q17).
+- Status: Accepted (stacked branch policy, Phase A scope, Phase B scope, ProfilePage deferral, "no schema / RLS / migration / `package.json` dependency changes" rule, no-new-dependency `verify:contact-policy` test mechanism).
 - Date: 2026-07-05.
 - Branch: `refactor/feature-boundaries` (stacked on `fix/privacy-contact-routing`).
 - PR: PR 2 — `refactor: split high-risk feature pages into modules`.
@@ -228,17 +228,16 @@ Phase B exists to keep PR 2 from growing past the architect's "small and reversi
 
 - `requestContactWithTalent`, `approveContactRequest`, `rejectContactRequest`, `cancelContactRequest` keep their names, parameter order, and return shapes. Internal body shrinks as it delegates to `lib/services/contact-requests.ts` and `lib/services/conversations.ts`. No call site changes.
 
-#### Sub-decision: Test mechanism (Pending — `OPEN_QUESTIONS.md` Q17)
+#### Sub-decision: Test mechanism (Accepted — no-new-dependency verify script)
 
-- This is the implementation gate (Phase A Gate 2) that blocks code from landing. The owner must pick one of:
-  - **(a)** Accept a minimal pure-service test runner (e.g. `node --test`, `vitest` with no new dependencies beyond what is already in the lockfile, or another low-friction choice). The choice and the justification are recorded in this ADR as a follow-up update.
-  - **(b)** Keep the PR 1 `verify:*` script approach and add `verify:contact-policy` for the canonical cases of the new `contact-policy` pure decision function. No new `package.json` dependency.
-- Until this sub-decision is made, PR 2 implementation is held in architecture planning.
+- The owner resolved Phase A Gate 2 by instruction on 2026-07-05: keep the PR 1 `verify:*` script approach and add `verify:contact-policy` for the canonical cases of the new `contact-policy` pure decision function.
+- No new dependencies are added. The root script runs `node scripts/verify-contact-policy.mjs`; the script transpiles the TypeScript service in memory using the existing `typescript` dev dependency already present in `apps/web`.
+- Canonical cases covered: self-contact, Empresa -> minor Estudiante with school, Empresa -> minor Estudiante without school, Empresa -> Egresado, Empresa -> non-minor Estudiante, Colegio -> own Estudiante, Colegio -> another school's Estudiante, and unknown caller role.
 
 #### Sub-decision: Phase A gate conditions (Accepted)
 
 - **Gate 1 — Stacked branch accepted.** Captured in this ADR. **Resolved (2026-07-05).**
-- **Gate 2 — Test mechanism decided.** Pending. Implementation cannot start until resolved. `OPEN_QUESTIONS.md` Q17.
+- **Gate 2 — Test mechanism decided.** Resolved by the no-new-dependency `verify:contact-policy` script (2026-07-05). `OPEN_QUESTIONS.md` Q17 answered.
 - **Gate 3 — No behavior change.** Process gate; resolved by the implementation notes (side-by-side before / after for each public function: same inputs, same outputs, same Supabase calls in the same order, same error messages).
 - **Gate 4 — Validation green.** Process gate; resolved at the implementation pass.
 
@@ -264,7 +263,7 @@ Negative / Trade-offs:
 
 - The stacked branch will need a rebase / retarget to `caro-maturana` after PR #2 lands. The rebase risk is low because PR 2 does not touch `supabase/`, `package.json`, or `apps/web/src/app/api/`, but it is real and is tracked in `OPEN_QUESTIONS.md` Q18.
 - The ProfilePage deep split stays deferred. The largest single file in the repo stays large after PR 2. The follow-up PR 3 must be opened to avoid losing the work.
-- The test mechanism (Gate 2) is unresolved at the time of this ADR. PR 2 implementation is held in architecture planning until the owner picks a mechanism.
+- The test mechanism keeps the lightweight `verify:*` script style instead of adding a runner. This avoids new dependencies but covers only the pure `contact-policy` decision cases in this Phase A service-boundary pass.
 - Some duplication with `docs/technical/REFACTORING_PLAN.md` (Phase 4 / Phase 5) and `docs/workflow/STATUS.md` (current phase). Mitigated by pointing to those files from `PR2_FEATURE_BOUNDARIES.md` and this ADR instead of copying their content.
 
 ### Alternatives Considered
