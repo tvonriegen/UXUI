@@ -90,3 +90,19 @@
 ## Follow-up (not a blocker)
 
 - **Q15 — Runtime Supabase migration / RLS / trigger smoke test.** Local validation passed (`verify:is-minor` 7/7, lint, typecheck, build with no dummy env), and the security review approved the diff after the B1 / M1 fixes. The new migration in `supabase/migrations/20260705000001_contact_requests.sql` has not been exercised on a live Supabase instance in this pass. Recommended before merge / deploy: apply the migration to a Supabase instance and run end-to-end checks for company minor insert, school approve / reject, conversation reuse / create on approval, message soft-lock before approval, direct non-minor contact, and the B1 trigger rejecting a non-service `profiles.role` / `profiles.age` update. This is a follow-up, **not a blocker** for the PR 1 commit.
+
+## Q16 — Vercel owner access and merge policy for PR #2 (external preview check failing while local validation passes)
+
+- Type: External blocker / merge policy.
+- Description: The `Vercel` GitHub check on PR #2 (https://github.com/tvonriegen/UXUI/pull/2) failed; the `Vercel Preview Comments` check passed. Local validation (`npm run verify:is-minor` 7/7, `npm run typecheck`, `npm run lint`, `npm run build` with no dummy env) is green. The failing deployment id is `dpl_EssKcBKdJbuTK6n8JB3JkmgwDwua`. The Vercel project is owned by a teammate / partner's GitHub account, so the user cannot inspect or fix it from this workspace (`npx vercel inspect <deployment> --logs` reports `No existing credentials found`). The user explicitly stated they cannot fix Vercel because the project belongs to the teammate / partner. This is an **external** deployment / access issue, not a local code validation problem.
+- Question: which of the following is the team's policy when an external preview check (Vercel) is failing on a PR whose local validation is fully green, and the failing check is owned by someone outside this user's account?
+  - (a) Merge into `caro-maturana` despite the failing external check (local validation is the source of truth for this PR's code diff).
+  - (b) Block the merge until the external check is resolved (regardless of cause).
+  - (c) Branch-specific policy (e.g. merge with an explicit override, fast-forward after a teammate sign-off, etc.).
+- Sub-questions:
+  - Does the teammate / partner who owns the Vercel project have a documented runbook for inspecting failing preview builds? (Suggested command: `npx vercel inspect dpl_EssKcBKdJbuTK6n8JB3JkmgwDwua --logs` from a machine with valid Vercel credentials.)
+  - Should the user be granted access to the Vercel project so they can inspect / fix future failures directly, or is the handoff to the owner the permanent model?
+  - If the Vercel failure is a real code issue, must the fix land in this PR (re-open PR #2 / new fixup commit) or in a follow-up PR?
+- Impact: PR #2 is held by the external check. PR 2 (`refactor/feature-boundaries`) is on hold until the merge policy for PR #2 is decided, so the next branch is based on the correct `caro-maturana` state.
+- Owner: not assigned. The Vercel side is owned by a teammate / partner. The merge policy decision is the repository owner's call.
+- Action: ask the teammate / partner who owns the Vercel project to run `npx vercel inspect dpl_EssKcBKdJbuTK6n8JB3JkmgwDwua --logs`, share the build logs, fix the build if actionable, or grant the user access. Capture the team's merge policy in this file and reflect it in `STATUS.md`, `NEXT_ACTIONS.md`, and `KNOWN_ISSUES.md` once known.

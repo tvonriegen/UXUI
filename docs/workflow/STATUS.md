@@ -11,7 +11,8 @@
 ## Current PR / Task
 
 - Task: `fix: privacy contact routing (minor students via school)`.
-- Scope: route company contact with minor students through the school (school-mediated path) instead of exposing the student's direct contact data. Implementation is **complete on the working tree but uncommitted** on `fix/privacy-contact-routing`. Security review verdict after B1/M1 fixes: **APROBAR, sin BLOCKER / HIGH**. QA passed locally; runtime Supabase migration smoke test remains a recommended follow-up before merge.
+- Scope: route company contact with minor students through the school (school-mediated path) instead of exposing the student's direct contact data. Implementation is **committed and pushed** on `fix/privacy-contact-routing` (HEAD `7a881f6`); PR **#2** is opened against `caro-maturana` at `https://github.com/tvonriegen/UXUI/pull/2`. Security review verdict after B1/M1 fixes: **APROBAR, sin BLOCKER / HIGH**. Local validation (Q1 implementation pass + Q1 QA / security pass) passed. Runtime Supabase migration smoke test remains a recommended follow-up before merge.
+- **Current blocker is external, not local.** GitHub check `Vercel` failed on PR #2; the `Vercel Preview Comments` check passed. The Vercel project is owned by a teammate / partner's GitHub account, so the user cannot inspect or fix it from this workspace (`npx vercel inspect <deployment> --logs` reports `No existing credentials found`). The local diff passes lint / typecheck / build; the only failing check is the external deployment owned by someone else.
 
 ## Last Completed Work
 
@@ -21,21 +22,24 @@
 
 ## Current Working State
 
-- Working tree on `fix/privacy-contact-routing` carries the uncommitted PR 1 implementation diff (code + migration + schema snapshot + docs):
-  - DB: `supabase/migrations/20260705000001_contact_requests.sql` (new) and `supabase/schema.sql` snapshot for PR 1 touched sections.
-  - Server actions: `apps/web/src/app/actions/contact-requests.ts` (new) and refactor of `apps/web/src/app/actions/interviews.ts::proposeInterview` (admin client removed from the proposal path).
-  - UI wiring: `apps/web/src/app/talent/page.tsx` (server-action call, `email` removed from the client select as the M1 fix) and `apps/web/src/components/dashboard/DashboardColegio.tsx` (school approve / reject queue).
-  - Helpers / scripts: `apps/web/src/lib/utils/is-minor.ts` (new shared helper), `scripts/verify-is-minor.mjs` (new), root `verify:is-minor` script in `package.json`.
-  - Docs: `docs/workflow/*`, `docs/technical/KNOWN_ISSUES.md`, `docs/architecture/SECURITY_MODEL.md`, `docs/requirements/TRACEABILITY_MATRIX.md`, `docs/workflow/DECISION_LOG.md` ADR-002 implementation note.
-- Branch `fix/privacy-contact-routing` is **created**; the **decision package is approved with guardrails** (ADR-002), and the code implementation has landed locally. Nothing has been committed yet — the user must explicitly ask before any commit / push.
+- Branch `fix/privacy-contact-routing` is **committed and pushed to `origin/fix/privacy-contact-routing`**; HEAD is `7a881f6 docs: record privacy contact routing implementation`. Working tree is clean.
+- Commits added on top of the previous docs-only state `7a2b42f docs: document privacy contact routing decisions`:
+  - `bfbe3d5 feat(db): add mediated contact requests RLS` — `supabase/migrations/20260705000001_contact_requests.sql` (contact_requests, RLS, `is_minor_profile`, `can_converse`, `trg_profiles_guard_role_age`, approval conversation trigger, message / conversation gates).
+  - `7843e1b feat(web): add minor contact policy helper` — `apps/web/src/lib/utils/is-minor.ts` + `scripts/verify-is-minor.mjs` + root `verify:is-minor` script.
+  - `0bf3ecc feat(web): add school-mediated contact flow` — `apps/web/src/app/actions/contact-requests.ts` (new) + UI wiring on `apps/web/src/app/talent/page.tsx` (server-action call, `email` removed from the client select as the M1 fix) + `apps/web/src/components/dashboard/DashboardColegio.tsx` (school approve / reject queue).
+  - `4a86621 refactor(web): route interview proposals through privacy checks` — `apps/web/src/app/actions/interviews.ts::proposeInterview` (admin client removed from the proposal path).
+  - `62b7f56 chore(db): align schema snapshot for contact routing` — `supabase/schema.sql` snapshot for PR 1 touched sections.
+  - `7a881f6 docs: record privacy contact routing implementation` — workflow / security / traceability docs.
+- PR **#2** opened against `caro-maturana` at `https://github.com/tvonriegen/UXUI/pull/2`.
+- GitHub checks on PR #2 (as observed at this session): `Vercel` **failed**, `Vercel Preview Comments` **passed**.
 - Architecture-auditor verdict on PR 1 (2026-07-05): **Aprobar con observaciones** — guardrails captured in ADR-002 and incorporated in the implementation.
 - Security follow-up verdict (2026-07-05, after the B1 and M1 fixes): **APROBAR, sin BLOCKER / HIGH**. Detail in `SESSION_LOG.md` (PR 1 QA + Security Pass).
-- Validation in this implementation pass (2026-07-05): `npm run verify:is-minor` ✓ (7/7 canonical cases), `npm run typecheck` ✓, `npm run lint` ✓, `npm run build` ✓ (no dummy env required).
-- Git operations confirmed at session start: clean at `7a2b42f docs: document privacy contact routing decisions`. Working tree is now intentionally dirty with PR 1 implementation changes.
+- Local validation (2026-07-05, pre-push): `npm run verify:is-minor` ✓ (7/7 canonical cases), `npm run typecheck` ✓, `npm run lint` ✓, `npm run build` ✓ (no dummy env required).
 
 ## Known Breakages
 
-- Git pull over SSH failed with `Permission denied (publickey)` against `origin`; local was reported in sync with `origin` per `git status` at session start. Push is blocked until SSH credentials are restored.
+- **Vercel check failing on PR #2 — external / out-of-this-workspace blocker.** The `Vercel` GitHub check on PR #2 failed. The Vercel project is owned by a teammate / partner's GitHub account, so the user cannot inspect or fix it from this workspace (`npx vercel inspect <deployment> --logs` reports `No existing credentials found` here). The `Vercel Preview Comments` check passed. The user explicitly stated they cannot fix Vercel because the project belongs to the teammate / partner. This is an **external** deployment issue, not a local code validation problem. Tracked in `docs/technical/KNOWN_ISSUES.md` (External deployment issues) and `docs/workflow/OPEN_QUESTIONS.md` Q16. Owner action: teammate / project owner must inspect / fix Vercel or grant access.
+- Git pull over SSH failed with `Permission denied (publickey)` against `origin`; local is in sync with `origin` per `git status` and the push of `fix/privacy-contact-routing` (up to `7a881f6`) succeeded earlier in this session. Future pushes are still blocked until SSH credentials are restored.
 - 21 dependency vulnerabilities reported by `npm run install:web` on the baseline branch (tracked in `docs/technical/KNOWN_ISSUES.md`).
 - Historical migrations still include old project naming in comments only (tracked in `docs/technical/KNOWN_ISSUES.md`).
 - Broader historical schema snapshot drift remains between `supabase/schema.sql`, `supabase/full_reset.sql`, and older migrations; PR 1 updated touched sections only. Tracked in `docs/technical/KNOWN_ISSUES.md`.
@@ -43,17 +47,17 @@
 
 ## Next Recommended Action
 
-- **User must explicitly ask before any commit / push** on this branch. Do not auto-commit.
-- **Review the PR 1 diff end-to-end**, especially the new RLS policies, the `can_converse` predicate, the `trg_profiles_guard_role_age` trigger (B1 fix), and the conversation / message insert gates, before opening the PR.
-- **Optional commit grouping** (atomic, easy to revert), per `NEXT_ACTIONS.md` Immediate:
-  1. `feat(db): contact_requests + RLS + can_converse + approval trigger` — migration only.
-  2. `feat(web): is-minor shared helper + verify script` — `is-minor.ts`, `verify-is-minor.mjs`, `package.json` script.
-  3. `refactor(web): proposeInterview on RLS-constrained client` — `interviews.ts` refactor.
-  4. `feat(web): contact request server actions + UI wiring` — `contact-requests.ts`, `talent/page.tsx`, `DashboardColegio.tsx`.
-  5. `chore(db): align schema.sql for PR 1 touched sections` — `supabase/schema.sql`.
-  6. `docs: record PR 1 implementation / QA / security` — workflow + security + traceability docs.
-- **Recommended follow-up before merge / deploy** (not a blocker): apply `20260705000001_contact_requests.sql` to a Supabase instance and exercise the RLS paths end-to-end (company minor request insert, school approve / reject, conversation reuse / create on approval, message soft-lock before approval, direct non-minor contact, `profiles.role` / `profiles.age` direct-update rejection for non-service roles).
-- Push to `origin` is the user's call; SSH credentials are still blocked on this machine.
+- **PR #2 is committed and pushed; the blocker is the Vercel check, which is external.** Local validation already passed (lint, typecheck, build, `verify:is-minor`). The next decision is the **merge policy** while the Vercel check is failing.
+- **Recommended next actions (in order).**
+  1. **Teammate / project owner (Vercel side).** Ask the teammate / project owner who owns the Vercel project to inspect the failing deployment, share the build logs, fix the build if the failure is actionable, or grant the user access so they can fix it. Exact command for the owner to run from a machine with Vercel credentials:
+     ```
+     npx vercel inspect dpl_EssKcBKdJbuTK6n8JB3JkmgwDwua --logs
+     ```
+  2. **Owner merge-policy decision.** Decide whether to merge PR #2 into `caro-maturana` despite the failing Vercel check (the only failing check is the external one; local validation passed) or wait for the Vercel failure to be resolved first. If the Vercel failure is a real code issue it must be fixed in this PR; if it is a Vercel project / environment / access issue, it is out of scope for this PR's code diff.
+  3. **If PR #2 is accepted despite Vercel:** merge `fix/privacy-contact-routing` into `caro-maturana` (the user already pushed the branch; the merge itself is the user's call).
+  4. **Once PR #2 lands in `caro-maturana`:** start the next branch `refactor/feature-boundaries` (PR 2) per `NEXT_ACTIONS.md` "After Current PR" and `PR_TRACKER.md`. If PR #2 has to wait for the Vercel fix, PR 2 can also be prepared as a stacked branch off the local `caro-maturana` only if explicitly accepted.
+- **Do not start coding PR 2 until the merge policy for PR #2 is decided**, so the diff for `refactor/feature-boundaries` can be based on the correct `caro-maturana` state.
+- **User must explicitly ask before any further commit / push** on this branch. Do not auto-commit.
 
 ## Owner / Agent Notes
 

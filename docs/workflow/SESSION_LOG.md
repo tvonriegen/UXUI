@@ -241,3 +241,70 @@
 
 - User reviews the uncommitted diff; optionally splits into the six atomic commit groups listed in `NEXT_ACTIONS.md` (Immediate) and `STATUS.md` (Next Recommended Action). Push to `origin` is the user's call; SSH credentials are still blocked.
 - Schedule the runtime Supabase smoke test as a follow-up before merge / deploy (not a blocker).
+
+## 2026-07-05 — PR #2 opened / Vercel external blocker
+
+### Context
+
+- Branch: `fix/privacy-contact-routing` (HEAD `7a881f6 docs: record privacy contact routing implementation`).
+- Working tree at the start of the session: clean (per `git status --short --branch`).
+- The previous session (PR 1 QA + Security Pass) ended with the implementation uncommitted. In this session the user committed and pushed the PR 1 work and opened PR #2 against `caro-maturana`.
+
+### Branch state at session start
+
+- `git status --short --branch`:
+  ```
+  ## fix/privacy-contact-routing...origin/fix/privacy-contact-routing
+  ```
+  clean working tree on `7a881f6 docs: record privacy contact routing implementation` (already pushed to `origin` by the start of this session).
+- Commits added on top of the previous docs-only state `7a2b42f docs: document privacy contact routing decisions`:
+  - `bfbe3d5 feat(db): add mediated contact requests RLS`
+  - `7843e1b feat(web): add minor contact policy helper`
+  - `0bf3ecc feat(web): add school-mediated contact flow`
+  - `4a86621 refactor(web): route interview proposals through privacy checks`
+  - `62b7f56 chore(db): align schema snapshot for contact routing`
+  - `7a881f6 docs: record privacy contact routing implementation`
+
+### Commands User Ran (and observed results)
+
+- **Push of the branch (by the user, before this documentation pass).** `origin/fix/privacy-contact-routing` is in sync with the local HEAD `7a881f6` per `git status --short --branch`. SSH credentials for further pushes remain blocked (`Permission denied (publickey)`).
+- **PR opened on GitHub.** PR **#2** opened against `caro-maturana` at `https://github.com/tvonriegen/UXUI/pull/2`.
+- **GitHub checks observed on PR #2.** `Vercel` **failed**, `Vercel Preview Comments` **passed**.
+- **Local validations run earlier (PR 1 QA + Security Pass).** `npm run verify:is-minor` ✓ (7/7), `npm run typecheck` ✓, `npm run lint` ✓, `npm run build` ✓ (no dummy env). Local code validation is green.
+- **Attempted Vercel inspect (failed in this workspace).** The user attempted `npx vercel inspect dpl_EssKcBKdJbuTK6n8JB3JkmgwDwua --logs` from this workspace. Result: `No existing credentials found` — the Vercel project is owned by a teammate / partner's GitHub account, so it is not visible / fixable from this user's account. The user explicitly stated they cannot fix Vercel because the project belongs to the teammate / partner.
+
+### Decision
+
+- The blocker is **external** (Vercel project ownership / access), not local code validation. Local validation passed; the only failing check is the external one.
+- **Owner action required.** Teammate / partner who owns the Vercel project must inspect the failing deployment, share the build logs, fix the build if actionable, or grant the user access. Exact command for the owner to run from a machine with valid Vercel credentials:
+  ```
+  npx vercel inspect dpl_EssKcBKdJbuTK6n8JB3JkmgwDwua --logs
+  ```
+- **Merge policy.** Whether to merge PR #2 into `caro-maturana` despite the failing external Vercel check is the owner's call. If the Vercel failure is a real code issue it must be fixed in this PR; if it is a Vercel project / environment / access issue, it is out of scope for the PR #2 code diff.
+- **Do not start PR 2 (`refactor/feature-boundaries`)** until the merge policy for PR #2 is decided, so the next branch is based on the correct `caro-maturana` state. Stacked branch off local `caro-maturana` is acceptable only if explicitly accepted by the owner.
+
+### Files Changed (this documentation pass)
+
+- `docs/workflow/STATUS.md` — fixed stale "uncommitted" framing; recorded PR #2 opened / pushed, local validation passed, Vercel external blocker; updated "Current Working State" with the new commits and PR state; updated "Known Breakages" with the Vercel external blocker; updated "Next Recommended Action" with the Vercel owner action and the merge-policy decision flow.
+- `docs/workflow/NEXT_ACTIONS.md` — Immediate section now reflects PR #2 opened / pushed; added the Vercel external blocker sub-section with the exact `vercel inspect` command and the merge-policy decision flow; "After Current PR" notes the PR 2 (`refactor/feature-boundaries`) branch is planned but not startable yet; "Blocked" section adds the Vercel external blocker.
+- `docs/workflow/PR_TRACKER.md` — PR 1 row status updated to "PR #2 opened / pushed / local validation passed / Vercel external failing"; added PR 2 row in the table; added PR 2 detail section.
+- `docs/workflow/SESSION_LOG.md` — added this entry.
+- `docs/technical/KNOWN_ISSUES.md` — recorded the Vercel external deployment check failure as a known external deployment issue with owner action required.
+- `docs/workflow/OPEN_QUESTIONS.md` — added Q16 for Vercel owner access and merge policy when external preview check is failing but local validation passes.
+- No code, RLS, migration, server action, helper, script, UI, or `package.json` files were touched. No commit, no push.
+
+### Validation
+
+- Not run in this session, by design (documentation-only pass, per task brief).
+- Local validation status (PR 1 QA + Security Pass, 2026-07-05): **green** — `npm run verify:is-minor` ✓ (7/7), `npm run typecheck` ✓, `npm run lint` ✓, `npm run build` ✓ (no dummy env).
+
+### Risks / Follow-up
+
+- **External Vercel blocker.** Tracked in `KNOWN_ISSUES.md` (External deployment issues) and `OPEN_QUESTIONS.md` Q16. Owner action: teammate / project owner must inspect / fix Vercel or grant access.
+- **SSH push still blocked.** The push of `fix/privacy-contact-routing` (up to `7a881f6`) succeeded earlier in this session; further pushes remain blocked by credentials (`Permission denied (publickey)`).
+- **PR 2 (`refactor/feature-boundaries`) is on hold** until the merge policy for PR #2 is decided.
+
+### Next Session
+
+- Owner / teammate resolves the Vercel external blocker (or grants access) and the merge-policy decision for PR #2 is captured here.
+- If PR #2 is merged into `caro-maturana`, start PR 2 (`refactor/feature-boundaries`) per `NEXT_ACTIONS.md` "After Current PR" and `PR_TRACKER.md`. If PR #2 is held by the Vercel fix, do not start PR 2.
