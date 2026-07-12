@@ -21,7 +21,7 @@
 
 ## Phase 4: PR 2 — `refactor: split high-risk feature pages into modules` (PR 2 / `refactor/feature-boundaries`)
 
-PR 2 is the follow-up to PR 1 (`fix/privacy-contact-routing`, committed and pushed to `fix/privacy-contact-routing` HEAD `7a881f6`, PR #2 opened against `caro-maturana`, blocked by the external Vercel check). The architect verdict for PR 2 (2026-07-05) is **Aprobar con observaciones** for plan / docs and **BLOQUEAR** implementation until the gate conditions below are met. The detailed target tree, layer contracts, extraction order, risk matrix, acceptance criteria, validation checklist, and commit plan live in `docs/architecture/PR2_FEATURE_BOUNDARIES.md`. This file records the phase structure and the explicit deferrals.
+PR 2 is the follow-up to PR 1 (`fix/privacy-contact-routing`, committed and pushed to `fix/privacy-contact-routing` HEAD `7a881f6`, **merged to `caro-maturana` via PR #2 (https://github.com/tvonriegen/UXUI/pull/2) with merge commit `6f2be0f5740bc37764e360c4298b8adbcd64fa5f`**, including PR 1B `8f39ce63b67f43f11d5dd49a23d28876c4413d05 fix(security): enforce interview privacy at RLS`). The Vercel check on PR #2 was failing at the time of merge and is now historical for PR #2. The technical PR 2 (`refactor/feature-boundaries`) is the stacked follow-up; with the privacy PR #2 now merged, the technical PR 2 branch is being synced against the new `caro-maturana` HEAD. The architect verdict for PR 2 (2026-07-05) is **Aprobar con observaciones** for plan / docs and **BLOQUEAR** implementation until the gate conditions below are met. The detailed target tree, layer contracts, extraction order, risk matrix, acceptance criteria, validation checklist, and commit plan live in `docs/architecture/PR2_FEATURE_BOUNDARIES.md`. This file records the phase structure and the explicit deferrals.
 
 ### Phase A — low-risk extraction around the PR 1 contact-routing flow (complete locally)
 
@@ -33,7 +33,7 @@ PR 2 is the follow-up to PR 1 (`fix/privacy-contact-routing`, committed and push
 
 **Phase A gate conditions** (must all be true before code lands):
 
-- **Gate 1 — Stacked branch accepted.** `refactor/feature-boundaries` is cut from `fix/privacy-contact-routing` while PR #2 is held by the external Vercel blocker. Accepted by the user on 2026-07-05; captured in `DECISION_LOG.md` ADR-003.
+- **Gate 1 — Stacked branch accepted.** `refactor/feature-boundaries` is cut from `fix/privacy-contact-routing` while the privacy PR #2 was held by the external Vercel blocker. Accepted by the user on 2026-07-05; captured in `DECISION_LOG.md` ADR-003. The privacy PR #2 has since been merged to `caro-maturana`; the retarget / rebase policy for the technical PR 2 is the live open question (`OPEN_QUESTIONS.md` Q18).
 - **Gate 2 — Test mechanism decided.** Resolved by owner instruction on 2026-07-05: PR 2 keeps the PR 1 `verify:*` script approach and adds `verify:contact-policy`. No new dependency is added. See `OPEN_QUESTIONS.md` Q17 and `DECISION_LOG.md` ADR-003.
 - **Gate 3 — No behavior change.** The PR 2 implementation notes include a side-by-side before / after for each public function: same inputs, same outputs, same Supabase calls in the same order, same error messages.
 - **Gate 4 — Validation green.** `verify:is-minor` (PR 1), `verify:contact-policy` (if added), `typecheck`, `lint`, `build` all pass; if a test runner was approved, the corresponding test command passes too. No dummy env required.

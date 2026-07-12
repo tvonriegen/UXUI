@@ -172,7 +172,7 @@ Negative / Trade-offs:
 
 ### Context
 
-PR 1 (`fix: privacy contact routing (minor students via school)`) is committed and pushed to `fix/privacy-contact-routing` (HEAD `7a881f6`), and PR #2 is opened against `caro-maturana` at `https://github.com/tvonriegen/UXUI/pull/2`. The `Vercel` GitHub check on PR #2 failed while the `Vercel Preview Comments` check passed; the Vercel project is owned by a teammate / partner's GitHub account and is not visible / fixable from this workspace. Local validation is green (`verify:is-minor` 7/7, `typecheck`, `lint`, `build` with no dummy env). The blocker is external, not local.
+PR 1 (`fix: privacy contact routing (minor students via school)`) is committed and pushed to `fix/privacy-contact-routing` (HEAD `7a881f6`). PR **#2** (https://github.com/tvonriegen/UXUI/pull/2) is the privacy PR and has been **merged to `caro-maturana`** on 2026-07-12 (`T23:12:36Z`) with merge commit `6f2be0f5740bc37764e360c4298b8adbcd64fa5f`, bringing in the PR 1 implementation on `fix/privacy-contact-routing` and the PR 1B interview privacy RLS hardening (`8f39ce63b67f43f11d5dd49a23d28876c4413d05 fix(security): enforce interview privacy at RLS`, including `supabase/migrations/20260705000002_interviews_privacy_rls.sql`, the PR 1B INSERT/immutable-trigger correction: hardened `interviews_insert_company` `WITH CHECK` + `trg_interviews_guard_immutable` BEFORE UPDATE trigger on identity columns). The `Vercel` GitHub check on PR #2 failed while the `Vercel Preview Comments` check passed; the Vercel project is owned by a teammate / partner's GitHub account and is not visible / fixable from this workspace. The merge was performed with the failing check recorded as a known issue (option (a) in the original Q16 merge policy question); the failure is now **historical for PR #2** and remains tracked in `KNOWN_ISSUES.md` (External deployment issues). Local validation was green (`verify:is-minor` 7/7, `verify:interviews-privacy-rls` passed, `typecheck`, `lint`, `build` with no dummy env). The blocker was external, not local, and was the rationale for the stacked-branch posture of the technical PR 2 (`refactor/feature-boundaries`) until the privacy PR #2 landed. The technical PR 2 is now being synced against the new `caro-maturana` HEAD via a **merge sync** (the conflict resolution was mostly documentation / `package.json`, but the integration brings in the privacy PR #2 code, including the PR 1B migration). The **mandatory pre-`main` follow-up** is the **hardening of `interviews.status` UPDATE transitions** (a policy UPDATE that gates who can change `interviews.status` between `proposed` / `accepted` / `rejected` / `cancelled`) — this is **not** the INSERT/immutable trigger correction.
 
 PR 2 must decompose the high-risk feature pages surfaced by the PR 1 architecture review (`profile`, `muro`, `empleos`, `administracion`, `messages`, `DashboardColegio`, `talent`, `apps/web/src/app/actions/contact-requests.ts`) into focused modules with clear boundaries, so that the privacy-sensitive paths identified by PR 1 are isolated and reusable, and the high-risk feature pages stop accumulating complexity.
 
@@ -182,17 +182,17 @@ The architect verdict for PR 2 requires:
 - No behavior / UI changes. PR 2 is a refactor only.
 - A safety net (characterization tests) for the contact-routing service layer before moving privacy-sensitive logic. PR 1 used a no-new-dependency `verify:*` script; PR 2 must decide whether to keep that approach or to add a minimal test runner.
 - An explicit decision on the ProfilePage deep split, which is the largest single file in the repo.
-- An explicit policy on the branch base, because PR #2 cannot land in `caro-maturana` while the Vercel check is failing externally.
+- An explicit policy on the branch base, because the privacy PR #2 could not land in `caro-maturana` while the Vercel check was failing externally (the privacy PR #2 has since been merged to `caro-maturana` with merge commit `6f2be0f5740bc37764e360c4298b8adbcd64fa5f`, so the retarget / rebase policy is now the live open question for the technical PR 2; see `OPEN_QUESTIONS.md` Q18).
 
 This ADR records the architectural decisions that resolve the architect's findings so PR 2 can move from architecture planning to implementation once Gate 2 (test mechanism) is resolved.
 
 ### Decision
 
-#### Sub-decision: Stacked branch policy (Accepted)
+#### Sub-decision: Stacked branch policy (Accepted, evolving)
 
-- `refactor/feature-boundaries` is cut from `fix/privacy-contact-routing` (HEAD `7a881f6`) and PR 2 is opened against `fix/privacy-contact-routing` (not `caro-maturana`) until PR #2 lands in `caro-maturana`. The user has accepted this approach (2026-07-05) because the merge of PR #2 into `caro-maturana` is blocked by the external Vercel check and the user cannot inspect / fix Vercel from this workspace.
-- After PR #2 lands in `caro-maturana`, PR 2 is retargeted or rebased to `caro-maturana`. The retarget / rebase policy is an open question tracked in `OPEN_QUESTIONS.md` Q18.
-- This is a **workaround for an external blocker**, not a permanent policy. Once PR #2 merges, future PRs return to branching from `caro-maturana` per `docs/git/GIT_WORKFLOW.md`.
+- `refactor/feature-boundaries` is cut from `fix/privacy-contact-routing` (HEAD `7a881f6`) and PR 2 is opened against `fix/privacy-contact-routing` (not `caro-maturana`). The user accepted this approach (2026-07-05) because the privacy PR **#2** against `caro-maturana` was held by the external Vercel check at the time, and the user could not inspect / fix Vercel from this workspace.
+- **Update (2026-07-12).** The privacy PR #2 was **merged to `caro-maturana`** with merge commit `6f2be0f5740bc37764e360c4298b8adbcd64fa5f` on 2026-07-12 (`T23:12:36Z`), bringing in PR 1 + PR 1B. The `refactor/feature-boundaries` branch is now being synced against the new `caro-maturana` HEAD via a **merge sync** (the conflict resolution was mostly documentation / `package.json`, but the integration brings in the privacy PR #2 code, including the PR 1B migration). The retarget / rebase policy for the technical PR 2 is now the **live** open question and is tracked in `OPEN_QUESTIONS.md` Q18.
+- This is a **workaround for an external blocker**, not a permanent policy. With the privacy PR #2 now merged, the stacked-branch policy is being resolved in `OPEN_QUESTIONS.md` Q18; future PRs return to branching from `caro-maturana` per `docs/git/GIT_WORKFLOW.md`.
 
 #### Sub-decision: Phase A scope (Accepted)
 
@@ -255,21 +255,21 @@ Positive:
 - The privacy guarantee from PR 1 (RLS + DB trigger + `can_converse`) is preserved. PR 2 only moves code, not data guarantees.
 - The privacy-sensitive code (contact-routing services, the school approve / reject queue, the talent page CTA call) is wrapped in focused, reusable modules. Future surfaces (e.g. interview proposal) can compose them.
 - Server action public exports stay byte-identical, so no call site in `apps/web/` changes. The diff is auditable as pure refactor.
-- The stacked branch policy unblocks PR 2 work without merging PR #2 into `caro-maturana` while the external Vercel check is failing. The user has accepted this approach.
+- The stacked branch policy unblocks the technical PR 2 work without merging the privacy PR #2 into `caro-maturana` while the external Vercel check was failing. The user has accepted this approach. The privacy PR #2 has since been merged to `caro-maturana` (merge commit `6f2be0f5740bc37764e360c4298b8adbcd64fa5f`); the retarget / rebase policy for the technical PR 2 is the live open question (`OPEN_QUESTIONS.md` Q18).
 - The ProfilePage deep split is explicitly deferred, with a follow-up row in `PR_TRACKER.md` (PR 3 — planned, not started). The deferral is not lost.
 - Phase B is gated on Phase A's success, so PR 2 cannot grow past the "small and reversible" tolerance without an explicit decision to keep going.
 
 Negative / Trade-offs:
 
-- The stacked branch will need a rebase / retarget to `caro-maturana` after PR #2 lands. The rebase risk is low because PR 2 does not touch `supabase/`, `package.json`, or `apps/web/src/app/api/`, but it is real and is tracked in `OPEN_QUESTIONS.md` Q18.
+- The stacked branch will need a rebase / retarget to `caro-maturana` after the privacy PR #2 lands. The rebase risk is low because the technical PR 2 does not touch `supabase/`, `package.json`, or `apps/web/src/app/api/`, but it is real and is tracked in `OPEN_QUESTIONS.md` Q18. (The privacy PR #2 has now landed; the retarget / rebase policy is the live open question.)
 - The ProfilePage deep split stays deferred. The largest single file in the repo stays large after PR 2. The follow-up PR 3 must be opened to avoid losing the work.
 - The test mechanism keeps the lightweight `verify:*` script style instead of adding a runner. This avoids new dependencies but covers only the pure `contact-policy` decision cases in this Phase A service-boundary pass.
 - Some duplication with `docs/technical/REFACTORING_PLAN.md` (Phase 4 / Phase 5) and `docs/workflow/STATUS.md` (current phase). Mitigated by pointing to those files from `PR2_FEATURE_BOUNDARIES.md` and this ADR instead of copying their content.
 
 ### Alternatives Considered
 
-- Wait for PR #2 to land in `caro-maturana` before starting PR 2. Rejected: the merge of PR #2 is blocked by an external party the user cannot influence; waiting would stall the cleanup phase. The stacked branch policy is the accepted workaround.
-- Start PR 2 from `caro-maturana` and accept the risk of merge conflicts when PR #2 lands. Rejected: the user accepted the stacked branch approach; the conflict risk is non-zero, and the stacked approach gives a clean rebase target.
+- Wait for the privacy PR #2 to land in `caro-maturana` before starting the technical PR 2. Rejected: the merge of the privacy PR #2 was blocked by an external party the user could not influence; waiting would stall the cleanup phase. The stacked branch policy is the accepted workaround. (The privacy PR #2 has since landed; the workaround is now in the resolution phase via `OPEN_QUESTIONS.md` Q18.)
+- Start the technical PR 2 from `caro-maturana` and accept the risk of merge conflicts when the privacy PR #2 lands. Rejected: the user accepted the stacked branch approach; the conflict risk is non-zero, and the stacked approach gives a clean rebase target. (The conflict materialised as the merge sync from `origin/caro-maturana` now in progress; code-level conflict risk on the technical PR 2 remains low because the technical PR 2 does not touch `supabase/`, `package.json`, or `apps/web/src/app/api/`.)
 - Move the ProfilePage deep split into PR 2. Rejected: a meaningful role-aware split touches data shape, evidence state, and the render path. The architect verdict is to defer it to a dedicated PR (PR 3 or later).
 - Make Phase A and Phase B mandatory in PR 2. Rejected: PR 2 must respect the "small and reversible" bar from PR 1. Phase B is optional and gated on Phase A's success.
 - Add a heavyweight test runner (e.g. full Vitest + jsdom + testing-library) to the repo. Rejected for the default: the PR 1 `verify:*` script approach is intentionally low-friction; PR 2 may upgrade it only if the owner explicitly approves.
