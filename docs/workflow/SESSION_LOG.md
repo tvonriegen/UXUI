@@ -269,7 +269,7 @@
 
 - **Push of the branch (by the user, before this documentation pass).** `origin/fix/privacy-contact-routing` is in sync with the local HEAD `7a881f6` per `git status --short --branch`. SSH credentials for further pushes remain blocked (`Permission denied (publickey)`).
 - **PR opened on GitHub.** PR **#2** opened against `caro-maturana` at `https://github.com/tvonriegen/UXUI/pull/2`.
-- **GitHub checks observed on PR #2.** `Vercel` **failed**, `Vercel Preview Comments` **passed**.
+- **GitHub checks observed on PR #2.** `Vercel` **failed**, `Vercel Preview Comments` **passed`.
 - **Local validations run earlier (PR 1 QA + Security Pass).** `npm run verify:is-minor` ✓ (7/7), `npm run typecheck` ✓, `npm run lint` ✓, `npm run build` ✓ (no dummy env). Local code validation is green.
 - **Attempted Vercel inspect (failed in this workspace).** The user attempted `npx vercel inspect dpl_EssKcBKdJbuTK6n8JB3JkmgwDwua --logs` from this workspace. Result: `No existing credentials found` — the Vercel project is owned by a teammate / partner's GitHub account, so it is not visible / fixable from this user's account. The user explicitly stated they cannot fix Vercel because the project belongs to the teammate / partner.
 
@@ -309,6 +309,222 @@
 - Owner / teammate resolves the Vercel external blocker (or grants access) and the merge-policy decision for PR #2 is captured here.
 - If PR #2 is merged into `caro-maturana`, start PR 2 (`refactor/feature-boundaries`) per `NEXT_ACTIONS.md` "After Current PR" and `PR_TRACKER.md`. If PR #2 is held by the Vercel fix, do not start PR 2.
 
+## 2026-07-12 — Privacy PR #2 merged to `caro-maturana` (merge from `origin/caro-maturana` into `refactor/feature-boundaries` in progress)
+
+### Context
+
+- Branch: `refactor/feature-boundaries` (HEAD `c795e14` at the merge base, with stacked PR 2 architecture + service-boundary work on top).
+- Goal: a **merge sync** from `origin/caro-maturana` into `refactor/feature-boundaries` to sync the privacy PR #2 that landed on `caro-maturana` on 2026-07-12 (`T23:12:36Z`, merge commit `6f2be0f5740bc37764e360c4298b8adbcd64fa5f`, including the PR 1B RLS commit `8f39ce63b67f43f11d5dd49a23d28876c4413d05`). The conflict resolution was mostly documentation / `package.json`, but the integration brings in the privacy PR #2 code, including the PR 1B migration (`supabase/migrations/20260705000002_interviews_privacy_rls.sql`). Only the allowlisted documentation files are being edited by this docs-only resolution; `package.json`, `apps/web`, `supabase`, and `scripts` are out of scope and are left to the owner.
+
+### What landed on `caro-maturana` (privacy PR #2)
+
+- **Merge commit:** `6f2be0f5740bc37764e360c4298b8adbcd64fa5f Merge pull request #2 from tvonriegen/fix/privacy-contact-routing` (2026-07-12 `T23:12:36Z`).
+- **PR 1B RLS commit (in the merge):** `8f39ce63b67f43f11d5dd49a23d28876c4413d05 fix(security): enforce interview privacy at RLS`.
+- **PR 1 commits reachable from the merge:** `bfbe3d5`, `7843e1b`, `0bf3ecc`, `4a86621`, `62b7f56`, `7a881f6`.
+- **What the merge brought in:** the PR 1 implementation on `fix/privacy-contact-routing` (HEAD `7a881f6 docs: record privacy contact routing implementation`); the PR 1B interview privacy RLS hardening (`8f39ce6`), which includes `supabase/migrations/20260705000002_interviews_privacy_rls.sql` (hardened `interviews_insert_company` `WITH CHECK` + `trg_interviews_guard_immutable` BEFORE UPDATE trigger), `scripts/verify-interviews-privacy-rls.mjs`, root `verify:interviews-privacy-rls` script, and the PR 1B-touched `supabase/schema.sql` sections.
+- **Vercel check on PR #2 at merge time:** `Vercel` **failed**, `Vercel Preview Comments` **passed**. That failure is now **historical for PR #2** and remains tracked in `docs/technical/KNOWN_ISSUES.md` (External deployment issues) and `docs/workflow/OPEN_QUESTIONS.md` Q16. The user explicitly stated they cannot fix Vercel because the project belongs to the teammate / partner.
+
+### Technical PR 2 posture after the merge
+
+- The technical PR 2 (`refactor: split high-risk feature pages into modules`) is **not** asserted as merged. The local `refactor/feature-boundaries` branch holds the stacked Phase A + Phase B presentational work and is now being synced against the new `caro-maturana` HEAD via this merge sync.
+- The stacked-branch policy and the retarget / rebase procedure remain in `DECISION_LOG.md` ADR-003 and `OPEN_QUESTIONS.md` Q18. The merge is the trigger to revisit Q18 in a follow-up session: the technical PR 2's base is now drifting from `fix/privacy-contact-routing` to the new `caro-maturana` HEAD (which includes the privacy PR #2 merge commit), and a retarget or rebase is the open question.
+- `main` is **not** asserted as updated in this workflow state. The PR 1B INSERT/immutable-trigger correction (hardened `interviews_insert_company` `WITH CHECK` + `trg_interviews_guard_immutable` BEFORE UPDATE trigger on identity columns) is already applied in `supabase/migrations/20260705000002_interviews_privacy_rls.sql`. The **mandatory pre-`main` follow-up** is the **hardening of `interviews.status` UPDATE transitions** (a policy UPDATE that gates who can change `interviews.status` between `proposed` / `accepted` / `rejected` / `cancelled`) — this is **not** the INSERT/immutable trigger correction. Structural verification via `npm run verify:interviews-privacy-rls` passed locally, but the runtime Supabase **staging** smoke test for both PR 1 migrations is **pending** and is tracked in `OPEN_QUESTIONS.md` Q15.
+
+### Files Changed (this docs-only resolution)
+
+- `docs/workflow/STATUS.md` — `Current Phase`, `Current PR / Task`, `Last Completed Work`, `Current Working State`, `Known Breakages`, and `Next Recommended Action` resolved to reflect the privacy PR #2 merge and the technical PR 2 stacked posture. No commit, no push.
+- `docs/workflow/PR_TRACKER.md` — PR 1 row status updated to **Merged to `caro-maturana` via GitHub PR #2 (merge commit `6f2be0f`)**; PR 2 row updated to reflect the sync against `origin/caro-maturana` and the open retarget / rebase question.
+- `docs/workflow/NEXT_ACTIONS.md` — Immediate section now leads with the privacy PR #2 merge state (2026-07-12); the runtime Supabase staging smoke test is reframed as a **follow-up before `main`**, not a blocker for the privacy PR merge; the `interviews.status` UPDATE transition hardening is the mandatory pre-`main` follow-up (differentiated from the INSERT/immutable trigger correction already applied in PR 1B); `package.json` script-ordering is outside the docs-only allowlist and is left to the owner.
+- `docs/workflow/SESSION_LOG.md` — this entry.
+- `docs/requirements/TRACEABILITY_MATRIX.md` — FR-041 evidence row now reflects both PR 1 and PR 1B migrations reaching `caro-maturana` (no functional requirement change).
+- **`package.json`, `apps/web`, `supabase`, and `scripts` are out of scope for this docs-only resolution and were not edited.** `package.json` script-ordering (between `verify:contact-policy` and `verify:interviews-privacy-rls`) is outside the docs-only allowlist and is the owner's call.
+
+### Validation
+
+- Not run in this session, by design (this Phase 1D docs-only pass).
+- Privacy PR 1 / PR 1B local validation (2026-07-05): **green** — `npm ci --prefix apps/web` (21 baseline vulnerabilities), `npm run verify:is-minor` ✓ (7/7), `npm run verify:interviews-privacy-rls` ✓, `npm run typecheck` ✓, `npm run lint` ✓, `npm run build` ✓ (`.env.local` detected but no values read/displayed), `git diff --check` ✓. Security review verdict after the B1 and M1 fixes: **APROBAR, sin BLOCKER / HIGH**.
+- Technical PR 2 local validation (2026-07-06, pre-sync): `npm run verify:is-minor` ✓ (7/7), `npm run verify:contact-policy` ✓ (8/8), `npm run typecheck` ✓, `npm run lint` ✓, `npm run build` ✓. No regression introduced by this docs-only pass.
+
+### Risks / Follow-up
+
+- **Runtime Supabase staging smoke test is a follow-up before `main`**, not a blocker for the privacy PR #2 merge. Tracked in `OPEN_QUESTIONS.md` Q15. Required to promote `caro-maturana` → `main`.
+- **`package.json` script-ordering** (between `verify:contact-policy` and `verify:interviews-privacy-rls`) is outside the docs-only allowlist. The desired post-merge state keeps both scripts; the resolution is the owner's call.
+- **External Vercel blocker is historical for PR #2** but still tracked for future reference in `KNOWN_ISSUES.md` and `OPEN_QUESTIONS.md` Q16. No action required from this user's account.
+- **SSH push still blocked.** Local `caro-maturana` post-merge is the user's call to push once credentials are restored; this docs-only pass did not stage or commit any of the resolved documentation files.
+- **Technical PR 2 retarget / rebase policy (Q18) is now live.** The technical PR 2 branch's base needs a decision: retarget to the new `caro-maturana` HEAD, or rebase, or accept the stacked approach frozen at `fix/privacy-contact-routing` `7a881f6`. To be answered before the first Phase A commit on `refactor/feature-boundaries` lands.
+
+### Next Session
+
+- Resolve any remaining `package.json` script-ordering (between `verify:contact-policy` and `verify:interviews-privacy-rls`) outside the docs-only allowlist, as the owner's call.
+- Decide and capture the technical PR 2 retarget / rebase policy in `DECISION_LOG.md` ADR-003 (follow-up) and `OPEN_QUESTIONS.md` Q18, then reflect it in `NEXT_ACTIONS.md` and `PR_TRACKER.md`.
+- Schedule the runtime Supabase **staging** smoke test (privacy PR 1 / PR 1B migrations) as a **follow-up before `main`**, per `OPEN_QUESTIONS.md` Q15. Not a blocker for the privacy PR merge; a blocker for promoting `caro-maturana` → `main`.
+- The user must explicitly ask before any commit or push on `refactor/feature-boundaries`. Do not auto-commit.
+
+## 2026-07-05 — PR 2 architecture setup (stacked on PR 1)
+
+### Goal
+
+- PR 2 (`refactor/feature-boundaries`): set up the complete documentation architecture for the upcoming refactor of the high-risk feature pages (`profile`, `muro`, `empleos`, `administracion`, `messages`, `DashboardColegio`, `talent`, `apps/web/src/app/actions/contact-requests.ts`) into focused modules with clear boundaries, so that the privacy-sensitive paths identified by PR 1 are isolated and reusable. **Documentation only — no code, no commit, no push.**
+
+### Branch
+
+- `refactor/feature-boundaries`, cut from `fix/privacy-contact-routing` (HEAD `7a881f6`) as a **stacked** branch because the privacy PR #2 against `caro-maturana` was held by the external Vercel check at the time. The user accepted the stacked approach (2026-07-05). PR 2 was to be opened against `fix/privacy-contact-routing` (not `caro-maturana`) until the privacy PR #2 landed; the privacy PR #2 was subsequently **merged to `caro-maturana`** on 2026-07-12 (`T23:12:36Z`) with merge commit `6f2be0f5740bc37764e360c4298b8adbcd64fa5f` (see the 2026-07-12 entry below), and the retarget / rebase policy is in `OPEN_QUESTIONS.md` Q18 and `DECISION_LOG.md` ADR-003.
+- `git status` at session start: clean working tree on `refactor/feature-boundaries`; HEAD is `c795e14 docs: record external Vercel blocker for PR 1`. The `c795e14` commit is on `refactor/feature-boundaries` only and is not on `fix/privacy-contact-routing`.
+
+### High-risk files (baseline measurement, 2026-07-05)
+
+- `apps/web/src/app/profile/page.tsx` — 2888 lines, complexity 61. **Deferred to a dedicated PR (PR 3 or later); out of PR 2 scope.**
+- `apps/web/src/app/muro/page.tsx` — 1373 lines, complexity 36. Phase B (optional) in PR 2.
+- `apps/web/src/app/empleos/page.tsx` — 1036 lines, complexity 29. Phase B (optional) in PR 2.
+- `apps/web/src/app/administracion/page.tsx` — 1309 lines, complexity 19. Phase B (optional) in PR 2.
+- `apps/web/src/app/messages/page.tsx` — 680 lines, complexity 20. Only touched in PR 2 if the conversations / messages surface starts sharing helpers with the contact-routing services; otherwise left alone.
+- `apps/web/src/components/dashboard/DashboardColegio.tsx` — 443 lines. PR 1 privacy-sensitive (school approve / reject queue). Phase A in PR 2.
+- `apps/web/src/app/talent/page.tsx` — 659 lines. PR 1 privacy-sensitive (server-action call). Phase A in PR 2.
+- `apps/web/src/app/actions/contact-requests.ts` — 155 lines. PR 1 server action. Phase A in PR 2.
+
+### Architect verdict (2026-07-05)
+
+- **Plan / docs:** Aprobar con observaciones.
+- **Implementation:** BLOQUEAR until the gate conditions in `docs/architecture/PR2_FEATURE_BOUNDARIES.md` are met.
+- **Sub-decisions (captured in `DECISION_LOG.md` ADR-003):** stacked branch policy (accepted by the user 2026-07-05); test mechanism (open — `OPEN_QUESTIONS.md` Q17); Phase A scope (recommended first: low-risk extractions around the PR 1 contact-routing flow); Phase B scope (optional, only if Phase A is small and green: route-local presentational splits for `muro` / `empleos` / `administracion`); **ProfilePage deep split explicitly deferred** to a dedicated PR (PR 3 or later); no schema / RLS / migration / `package.json` dependency changes except a minimal pure-service test runner if explicitly approved.
+
+### Actions Run
+
+- **Authored the PR 2 architecture entry point.** `docs/architecture/PR2_FEATURE_BOUNDARIES.md` (new). Goals, non-goals, target folder tree, layer contracts (lib/services, components/contact-routing, lib/hooks), extraction order, risk matrix, acceptance criteria, validation checklist, commit plan (Phase A five commits, Phase B three commits), gate conditions (Phase A Gate 1–4, Phase B Gate B1–B4), deferred work (ProfilePage deep split, `respondInterview` / `cancelInterview` admin-client review, broader schema snapshot drift, dependency vulnerability triage, `talent/page.tsx` deeper refactor), risk register, open decisions, references.
+- **Updated the codebase map.** `docs/architecture/CODEBASE_MAP.md` now lists the PR 1 contact-routing additions (committed and pushed to `fix/privacy-contact-routing` HEAD `7a881f6`) and the PR 2 planned boundaries (architecture only). High-risk file list includes line counts (2026-07-05) and PR 2 phase mapping (Phase A / Phase B / Deferred).
+- **Updated the refactoring plan.** `docs/technical/REFACTORING_PLAN.md` now includes Phase 4 (PR 2 phases A / B with gate conditions) and Phase 5 (follow-up chore PRs: dependency vulnerability triage, broader schema snapshot drift, `respondInterview` / `cancelInterview` admin-client review, ProfilePage deep split, runtime Supabase migration / RLS / trigger smoke test). ProfilePage deep split is explicitly deferred.
+- **Updated the workflow state.** `docs/workflow/STATUS.md` reads `refactor/feature-boundaries` as the current branch and PR 2 architecture planning as the current phase. The stacked branch posture is recorded.
+- **Updated the next actions.** `docs/workflow/NEXT_ACTIONS.md` Immediate section now leads with the PR 2 architecture setup; the decision flow for Gate 2 (test mechanism) is documented; the Phase A commit plan is recorded; the guardrails (no schema / RLS / migration changes; no behavior / UI changes; no ProfilePage deep split; server action public exports stay byte-identical; no new `package.json` dependencies by default; stacked branch policy) are inlined.
+- **Updated the PR tracker.** `docs/workflow/PR_TRACKER.md` PR 2 row: status = architecture planning in progress / stacked on PR 1; base = `fix/privacy-contact-routing` until PR #2 lands. PR 2 detail section expanded with phase scopes, gate conditions, file list for this pass, and PR 3 (ProfilePage deep split) row added.
+- **Updated the decision log.** `docs/workflow/DECISION_LOG.md` ADR-003 added (stacked branch policy accepted; test mechanism pending; Phase A scope; Phase B scope optional; ProfilePage deep split deferred; no schema / RLS / migration / `package.json` dependency changes; server action public exports stay byte-identical).
+- **Updated the open questions.** `docs/workflow/OPEN_QUESTIONS.md` Q17 (test mechanism decision — open) and Q18 (PR 2 base / retarget policy — open) added.
+- **Updated the traceability matrix.** `docs/requirements/TRACEABILITY_MATRIX.md` PR 2 added as a technical-enabler row (no functional requirement change).
+- **Updated this file.** Added this entry.
+
+### Files Changed (this pass)
+
+- **Created:** `docs/architecture/PR2_FEATURE_BOUNDARIES.md`.
+- **Updated:** `docs/architecture/CODEBASE_MAP.md`.
+- **Updated:** `docs/technical/REFACTORING_PLAN.md`.
+- **Updated:** `docs/workflow/STATUS.md`.
+- **Updated:** `docs/workflow/NEXT_ACTIONS.md`.
+- **Updated:** `docs/workflow/PR_TRACKER.md`.
+- **Updated:** `docs/workflow/DECISION_LOG.md` (ADR-003).
+- **Updated:** `docs/workflow/OPEN_QUESTIONS.md` (Q17, Q18).
+- **Updated:** `docs/requirements/TRACEABILITY_MATRIX.md`.
+- **Updated:** `docs/workflow/SESSION_LOG.md` (this entry).
+- No code, RLS, migration, server action, helper, script, UI, or `package.json` file was touched. No commit, no push.
+
+### Validation
+
+- Not run in this session, by design (documentation-only pass, per task brief).
+- Local validation status (PR 1 QA + Security Pass, 2026-07-05): **green** — `npm run verify:is-minor` ✓ (7/7), `npm run typecheck` ✓, `npm run lint` ✓, `npm run build` ✓ (no dummy env).
+- PR 2 implementation validation is defined in `PR2_FEATURE_BOUNDARIES.md` (validation checklist + acceptance criteria) and is gated on `OPEN_QUESTIONS.md` Q17 (test mechanism).
+
+### Risks / Blockers
+
+- **External Vercel blocker on the privacy PR #2 was a carried-over context for the architecture setup, not a current blocker for the technical PR 2.** The privacy PR #2's `Vercel` GitHub check was failing at the time of the architecture setup, which is why the technical PR 2 branch was stacked on `fix/privacy-contact-routing`. Tracked in `KNOWN_ISSUES.md` (External deployment issues) and `OPEN_QUESTIONS.md` Q16. The privacy PR #2 has since been merged to `caro-maturana` on 2026-07-12 (see 2026-07-12 entry); the Vercel failure is now historical for that PR.
+- **PR 2 implementation is gated on Gate 2 (test mechanism).** Until the owner picks a test mechanism (`OPEN_QUESTIONS.md` Q17), Phase A code cannot land. The architecture pass does not require Gate 2 to be resolved; only the implementation pass does.
+- **Stacked branch may need to retarget.** If `caro-maturana` advances (e.g. dependency triage PR) before the technical PR 2 lands, the stacked branch will need a rebase. The rebase risk is low because the technical PR 2 does not touch `supabase/`, `package.json`, or `apps/web/src/app/api/`, but it is real and is tracked in `OPEN_QUESTIONS.md` Q18. With the privacy PR #2 now merged, Q18 is the live open question for the technical PR 2 branch.
+- **Phase B growth risk.** If Phase A is larger than the "small and reversible" tolerance, Phase B is dropped. The gate is the commit count and the diff size, not a calendar date.
+- **ProfilePage deep split deferred.** The largest single file in the repo stays large after PR 2. Tracked in `OPEN_QUESTIONS.md` (follow-up) and `PR_TRACKER.md` PR 3 (planned, not started).
+- **SSH push still blocked.** The push of `fix/privacy-contact-routing` (up to `7a881f6`) succeeded earlier; further pushes remain blocked by credentials (`Permission denied (publickey)`).
+
+### Next Session
+
+- Owner reviews `docs/architecture/PR2_FEATURE_BOUNDARIES.md` and `DECISION_LOG.md` ADR-003, confirms Phase A scope and the stacked branch policy, and picks a test mechanism (Gate 2 — `OPEN_QUESTIONS.md` Q17).
+- Commit the PR 2 architecture docs on `refactor/feature-boundaries` with a `docs:` prefix per `docs/git/COMMIT_CONVENTION.md`. Push to `origin/refactor/feature-boundaries` once SSH credentials are restored (or wait for the user to push). Open PR 2 against `fix/privacy-contact-routing` (not `caro-maturana`) per the stacked branch policy.
+- Once Gate 2 is resolved, implement Phase A per the commit plan in `PR2_FEATURE_BOUNDARIES.md` (five atomic commits, in order). Update `SESSION_LOG.md`, `PR_TRACKER.md`, `CODEBASE_MAP.md`, `REFACTORING_PLAN.md`, and `TRACEABILITY_MATRIX.md` as commits land.
+- If Phase A is small and green, consider Phase B (optional, three independent commits, one per route).
+- Open a follow-up entry in `OPEN_QUESTIONS.md` and a follow-up PR row in `PR_TRACKER.md` (PR 3 or later) for the ProfilePage deep split, so the deferred work is not lost.
+
+## 2026-07-05 — PR 2 Phase A service-boundary implementation
+
+### Goal
+
+- Implement only the authorized Phase A service-boundary extraction around `contact-requests`, resolve Gate 2 with a no-new-dependency verify script, and avoid schema/RLS/migration/API/profile/UI redesign changes. No commit, no push.
+
+### Initial Inspection
+
+- Confirmed `git status --short --branch` was clean on `refactor/feature-boundaries`.
+- Confirmed `git log --oneline -5` had `c3dead6 docs: define PR 2 feature boundary architecture` at HEAD.
+- Read `docs/architecture/PR2_FEATURE_BOUNDARIES.md` and `docs/workflow/NEXT_ACTIONS.md` before editing.
+
+### Actions Run
+
+- Moved `ensureConversation` from `apps/web/src/app/actions/contact-requests.ts` to `apps/web/src/lib/services/conversations.ts`, preserving canonical pair ordering, race fallback, and `last_message_at` initialization.
+- Added `apps/web/src/lib/services/contact-policy.ts` with pure `decideContactPath` and exported types for script/test coverage. It imports `isMinorProfile`.
+- Added `apps/web/src/lib/services/contact-requests.ts` as the internal RLS-client service used by `requestContactWithTalent`.
+- Reduced `apps/web/src/app/actions/contact-requests.ts` to a thin shell for `requestContactWithTalent`; public exports remain `requestContactWithTalent`, `approveContactRequest`, `rejectContactRequest`, and `cancelContactRequest`.
+- Added `scripts/verify-contact-policy.mjs` and root script `verify:contact-policy` without adding dependencies.
+- Updated workflow / architecture docs to record Gate 2 resolution, service-boundary extraction, validation, and deferred UI/Phase B work.
+
+### Validation
+
+- `npm run verify:contact-policy` ✓ — 8/8 canonical cases.
+- `npm run verify:is-minor` ✓ — 7/7 canonical cases.
+- `npm run typecheck` ✓.
+- `npm run lint` ✓.
+- `npm run build` ✓.
+
+### Guardrails Confirmed
+
+- No changes under `supabase/`.
+- No changes under `apps/web/src/app/api/`.
+- No changes to `apps/web/src/app/profile/page.tsx`.
+- No UI redesign and no intentional behavior change.
+- No new dependencies, no commit, no push.
+
+### Next Session
+
+- Review the staged diff and decide whether to keep PR 2 limited to this service-boundary subset or continue with the remaining optional Phase A UI extractions (`ContactRequestQueue`, `useContactTalent` / `ContactTalentButton`).
+- Commit only if explicitly requested by the user.
+
+## 2026-07-06 — PR 2 Phase A UI + Phase B presentational continuation
+
+### Goal
+
+- Complete the remaining Phase A contact-routing UI extraction and perform limited, reversible Phase B presentational route splits for `muro`, `empleos`, and `administracion`. No schema/RLS/migration, no `supabase/`, no `apps/web/src/app/api/`, no `profile/page.tsx`, no dependency, no commit, no push.
+
+### Initial Inspection
+
+- `git status --short --branch` showed `refactor/feature-boundaries` with uncommitted PR 2 Phase A service/doc changes.
+- `git diff --stat` showed existing changes in `apps/web/src/app/actions/contact-requests.ts`, workflow/architecture docs, `package.json`, new `apps/web/src/lib/services/`, and `scripts/verify-contact-policy.mjs`.
+
+### Actions Run
+
+- Added `apps/web/src/components/contact-routing/types.ts` for shared contact-routing UI types.
+- Extracted the school contact request mediation section from `DashboardColegio` into `apps/web/src/components/contact-routing/ContactRequestQueue.tsx`, preserving text, Tailwind classes, approve/reject buttons, spinner, and error UI.
+- Updated `apps/web/src/components/dashboard/DashboardColegio.tsx` to render `ContactRequestQueue` while keeping the existing Supabase query and approve/reject handlers in the page component.
+- Added `apps/web/src/lib/hooks/useContactTalent.ts` to own talent CTA loading/error/contacted state around `requestContactWithTalent`.
+- Added `apps/web/src/components/contact-routing/ContactTalentButton.tsx` and updated `apps/web/src/app/talent/page.tsx` to use the hook/button without changing labels or visible states.
+- Phase B `muro`: added `apps/web/src/app/muro/_components/MuroHeader.tsx` and replaced the equivalent header JSX. No feed fetch, filters, post mutations, comments, save logic, or job-apply logic moved.
+- Phase B `empleos`: added `apps/web/src/app/empleos/_components/CompanyStatsGrid.tsx` and replaced the equivalent company analytics grid. No server actions, `proposeInterview`, applicant mutations, or Supabase logic moved.
+- Phase B `administracion`: added `apps/web/src/app/administracion/_components/AdminHeader.tsx` and `AdminTabs.tsx`, then replaced equivalent JSX. No school actions/mutations, student management logic, request updates, or Supabase logic moved.
+- Updated workflow / architecture docs to record Phase A complete locally and Phase B presentational complete locally.
+
+### Validation
+
+- `npm run verify:is-minor` ✓ — 7/7 canonical cases.
+- `npm run verify:contact-policy` ✓ — 8/8 canonical cases.
+- `npm run typecheck` ✓ — `tsc --noEmit` clean.
+- `npm run lint` ✓ — no ESLint warnings or errors.
+- `npm run build` ✓ — Next.js production build compiled successfully, 20/20 static pages generated.
+
+### Guardrails Confirmed
+
+- No changes under `supabase/`.
+- No changes under `apps/web/src/app/api/`.
+- No changes to `apps/web/src/app/profile/page.tsx`.
+- No new dependencies.
+- No intentional UI/behavior changes.
+- No commit, no push.
+
+### Risks / Follow-up
+
+- Phase B was intentionally limited to pure presentation. Deeper route composition, hooks, and data-shape extractions remain future work.
+- Final validation matrix is green. Commit/push remain intentionally not performed.
+
 ## 2026-07-05 — PR 1B Interview privacy RLS hardening
 
 ### Context
@@ -345,11 +561,12 @@
 
 ### Risks / Follow-up
 
-- Runtime Supabase smoke test for `supabase/migrations/20260705000002_interviews_privacy_rls.sql` is **still pending**: verify that a company can still propose an interview for its own application, and that direct inserts with swapped `student_id`, wrong `company_id`, non-'proposed' status, or applications from another company are rejected. No remote Supabase instance was exercised during this pass.
+- Runtime Supabase **staging** smoke test for `supabase/migrations/20260705000002_interviews_privacy_rls.sql` is **still pending** as a **follow-up before `main`**: verify that a company can still propose an interview for its own application, and that direct inserts with swapped `student_id`, wrong `company_id`, non-'proposed' status, or applications from another company are rejected. No remote Supabase instance was exercised during this pass. Tracked in `OPEN_QUESTIONS.md` Q15. The **mandatory pre-`main` follow-up** is the **hardening of `interviews.status` UPDATE transitions** (a policy UPDATE that gates who can change `interviews.status` between `proposed` / `accepted` / `rejected` / `cancelled`) — not the INSERT/immutable trigger correction (already applied in PR 1B) — and is the gate for promoting `caro-maturana` → `main`; not a blocker for the privacy PR #2 merge.
 - `respondInterview` / `cancelInterview` still use the admin client and remain out of PR 1 / PR 1B scope; a follow-up admin-client review is still tracked.
 - Broader `schema.sql` / `full_reset.sql` / older-migration drift remains outside the PR 1B touched sections.
 
 ### Next Session
 
-- Run the runtime RLS / trigger smoke test on a Supabase staging instance when available.
-- User reviews the prepared changes and decides whether to amend PR #2 with these changes; this documentation pass prepares them as authorized in Phase 1C.
+- Run the runtime RLS / trigger smoke test on a Supabase **staging** instance when available, as a **follow-up before `main`** (see `OPEN_QUESTIONS.md` Q15).
+- The PR 1B changes were merged as part of GitHub PR #2 (https://github.com/tvonriegen/UXUI/pull/2) to `caro-maturana` with merge commit `6f2be0f5740bc37764e360c4298b8adbcd64fa5f`; the commit `8f39ce63b67f43f11d5dd49a23d28876c4413d05 fix(security): enforce interview privacy at RLS` is reachable from `caro-maturana` via that merge. The "amend PR #2" framing in the original entry is now **historical**: the PR #2 update happened through the merge itself, not as a separate amend.
+- Schedule the runtime Supabase staging smoke test as a follow-up before `main` (not a blocker for the privacy PR #2 merge; a blocker for promoting `caro-maturana` → `main`).
