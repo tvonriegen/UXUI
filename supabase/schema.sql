@@ -201,6 +201,51 @@ CREATE TABLE IF NOT EXISTS job_applications (
   UNIQUE (job_id, student_id)
 );
 
+-- Runtime canonical column for the applicant. Historical migrations use
+-- applicant_id, while the snapshot above still uses student_id as the alias.
+-- Add applicant_id so the hardened interviews policy can reference it.
+ALTER TABLE job_applications
+  ADD COLUMN IF NOT EXISTS applicant_id UUID REFERENCES profiles(id) ON DELETE CASCADE;
+
+UPDATE job_applications
+  SET applicant_id = student_id
+  WHERE applicant_id IS NULL AND student_id IS NOT NULL;
+
+ALTER TABLE job_applications
+  ALTER COLUMN applicant_id SET NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_job_applications_applicant ON job_applications(applicant_id);
+CREATE INDEX IF NOT EXISTS idx_job_applications_student   ON job_applications(student_id);
+
+
+-- ─────────────────────────────────────────────────────────────────
+-- SECTION 6B – INTERVIEWS
+-- ─────────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS interviews (
+  id             UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  application_id UUID        NOT NULL REFERENCES job_applications(id) ON DELETE CASCADE,
+  company_id     UUID        NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  student_id     UUID        NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  proposed_at    TIMESTAMPTZ NOT NULL,
+  duration_mins  INT         NOT NULL DEFAULT 30,
+  modality       TEXT        NOT NULL DEFAULT 'video'
+                             CHECK (modality IN ('video','presencial','telefono')),
+  location       TEXT        NOT NULL DEFAULT '',
+  meeting_link   TEXT        NOT NULL DEFAULT '',
+  status         TEXT        NOT NULL DEFAULT 'proposed'
+                             CHECK (status IN ('proposed','accepted','declined','completed','cancelled','rescheduled')),
+  notes          TEXT        NOT NULL DEFAULT '',
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_interviews_app
+  ON interviews(application_id, proposed_at);
+
+CREATE INDEX IF NOT EXISTS idx_interviews_participants
+  ON interviews(student_id, company_id);
+
 
 -- ─────────────────────────────────────────────────────────────────
 -- SECTION 7 – INTERNSHIP REQUESTS (school admin queue)
@@ -394,6 +439,7 @@ ALTER TABLE post_likes         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE post_comments      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE job_postings       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE job_applications   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE interviews         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE internship_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE alliances          ENABLE ROW LEVEL SECURITY;
 ALTER TABLE conversations      ENABLE ROW LEVEL SECURITY;
@@ -552,6 +598,27 @@ CREATE POLICY "contact_requests_school_review" ON contact_requests FOR UPDATE
   WITH CHECK (auth.uid() = school_id AND status IN ('approved','rejected'));
 CREATE POLICY "contact_requests_delete_denied" ON contact_requests FOR DELETE USING (FALSE);
 
+-- interviews
+CREATE POLICY "interviews_select" ON interviews FOR SELECT
+  USING (auth.uid() = company_id OR auth.uid() = student_id);
+CREATE POLICY "interviews_insert_company" ON interviews FOR INSERT
+  WITH CHECK (
+    auth.uid() = company_id
+    AND status = 'proposed'
+    AND EXISTS (
+      SELECT 1
+      FROM job_applications ja
+      JOIN job_postings jp ON jp.id = ja.job_id
+      WHERE ja.id = application_id
+        AND ja.applicant_id = student_id
+        AND jp.company_id = auth.uid()
+        AND jp.company_id = company_id
+    )
+    AND can_converse(company_id, student_id)
+  );
+CREATE POLICY "interviews_update_participant" ON interviews FOR UPDATE
+  USING (auth.uid() = company_id OR auth.uid() = student_id);
+
 -- profile_views
 CREATE POLICY "pv_select" ON profile_views FOR SELECT
   USING (auth.uid() = viewer_id OR auth.uid() = viewed_id);
@@ -684,6 +751,28 @@ DROP TRIGGER IF EXISTS trg_contact_request_notify_upd ON contact_requests;
 CREATE TRIGGER trg_contact_request_notify_upd
   AFTER UPDATE OF status ON contact_requests
   FOR EACH ROW EXECUTE FUNCTION trg_fn_contact_request_notify();
+
+-- ── interviews: immutable identity columns on UPDATE ──────────────
+CREATE OR REPLACE FUNCTION trg_fn_interviews_guard_immutable()
+RETURNS TRIGGER LANGUAGE plpgsql
+SET search_path = public
+AS $$
+BEGIN
+  IF NEW.application_id IS DISTINCT FROM OLD.application_id
+     OR NEW.company_id IS DISTINCT FROM OLD.company_id
+     OR NEW.student_id IS DISTINCT FROM OLD.student_id
+     OR NEW.created_at IS DISTINCT FROM OLD.created_at THEN
+    RAISE EXCEPTION 'interview identity fields (application_id, company_id, student_id, created_at) are immutable';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_interviews_guard_immutable ON interviews;
+CREATE TRIGGER trg_interviews_guard_immutable
+  BEFORE UPDATE ON interviews
+  FOR EACH ROW EXECUTE FUNCTION trg_fn_interviews_guard_immutable();
 
 -- ── keep likes_count in sync ──────────────────────────────────────
 CREATE OR REPLACE FUNCTION sync_likes_count()

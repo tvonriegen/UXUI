@@ -308,3 +308,48 @@
 
 - Owner / teammate resolves the Vercel external blocker (or grants access) and the merge-policy decision for PR #2 is captured here.
 - If PR #2 is merged into `caro-maturana`, start PR 2 (`refactor/feature-boundaries`) per `NEXT_ACTIONS.md` "After Current PR" and `PR_TRACKER.md`. If PR #2 is held by the Vercel fix, do not start PR 2.
+
+## 2026-07-05 — PR 1B Interview privacy RLS hardening
+
+### Context
+
+- Branch: `fix/privacy-contact-routing`.
+- Start state: clean working tree at `c795e1401d2734e70240f4b8071db8573f5304a5` (HEAD == origin/fix/privacy-contact-routing).
+- Goal: close the direct-insert bypass on `interviews` inside the same PR #2, without committing or pushing.
+
+### Actions Run
+
+- Created `supabase/migrations/20260705000002_interviews_privacy_rls.sql`:
+  - Replaced `interviews_insert_company` with a `WITH CHECK` policy enforcing `auth.uid() = company_id`, `status = 'proposed'`, application ownership via `job_applications` → `job_postings`, `applicant_id = student_id`, and `can_converse(company_id, student_id)`.
+  - Added `trg_interviews_guard_immutable` BEFORE UPDATE trigger to prevent mutation of `application_id`, `company_id`, `student_id`, and `created_at`.
+- Audited `interviews_update_participant`: it allowed mutating identity columns, so the immutable trigger was required and added.
+- Updated `supabase/schema.sql` for PR 1B touched sections only:
+  - Added `applicant_id` to `job_applications` and kept `student_id` as the sync alias.
+  - Added the `interviews` table, indexes, RLS enable, policies (select / hardened insert / update), and the immutable trigger.
+- Added `scripts/verify-interviews-privacy-rls.mjs` and root `verify:interviews-privacy-rls` script in `package.json`.
+- Updated documentation:
+  - `docs/technical/KNOWN_ISSUES.md` — recorded the bypass fix and pending runtime smoke test.
+  - `docs/architecture/SECURITY_MODEL.md` — added PR 1B interview INSERT hardening section.
+  - `docs/requirements/TRACEABILITY_MATRIX.md` — updated FR-041 evidence and verification status.
+  - `docs/workflow/SESSION_LOG.md` — this entry.
+
+### Validation
+
+- `npm ci --prefix apps/web` — passed (≈ 9 s). The install reported 21 known dependency vulnerabilities on the baseline; no new vulnerabilities introduced by this pass (tracked in `docs/technical/KNOWN_ISSUES.md`).
+- `npm run verify:is-minor` — passed; 7/7 canonical cases pass.
+- `npm run verify:interviews-privacy-rls` — passed; all required invariants found in the new migration.
+- `npm run typecheck` — passed; `tsc --noEmit` clean.
+- `npm run lint` — passed; no ESLint warnings or errors.
+- `npm run build` — passed; Next.js production build compiled successfully. `.env.local` was detected by Next.js but no values were read or displayed.
+- `git diff --check` — passed; no trailing whitespace / conflict-marker issues.
+
+### Risks / Follow-up
+
+- Runtime Supabase smoke test for `supabase/migrations/20260705000002_interviews_privacy_rls.sql` is **still pending**: verify that a company can still propose an interview for its own application, and that direct inserts with swapped `student_id`, wrong `company_id`, non-'proposed' status, or applications from another company are rejected. No remote Supabase instance was exercised during this pass.
+- `respondInterview` / `cancelInterview` still use the admin client and remain out of PR 1 / PR 1B scope; a follow-up admin-client review is still tracked.
+- Broader `schema.sql` / `full_reset.sql` / older-migration drift remains outside the PR 1B touched sections.
+
+### Next Session
+
+- Run the runtime RLS / trigger smoke test on a Supabase staging instance when available.
+- User reviews the prepared changes and decides whether to amend PR #2 with these changes; this documentation pass prepares them as authorized in Phase 1C.

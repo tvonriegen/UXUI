@@ -1,9 +1,9 @@
 # TalentHub Next Actions
 ## Immediate (PR 1 — `fix/privacy-contact-routing` → PR #2 against `caro-maturana`)
 
-Architecture-auditor verdict (2026-07-05): **Aprobar con observaciones**. Security follow-up verdict after the B1 / M1 fixes (2026-07-05): **APROBAR, sin BLOCKER / HIGH**. PR 1 implementation is **committed and pushed** to `origin/fix/privacy-contact-routing` (HEAD `7a881f6`), and PR **#2** is opened against `caro-maturana` at `https://github.com/tvonriegen/UXUI/pull/2`. The user must explicitly ask before any further commit / push.
+Architecture-auditor verdict (2026-07-05): **Aprobar con observaciones**. Security follow-up verdict after the B1 / M1 fixes (2026-07-05): **APROBAR, sin BLOCKER / HIGH**. PR 1 implementation is **committed and pushed** to `origin/fix/privacy-contact-routing` (HEAD `7a881f6`), and PR **#2** is opened against `caro-maturana` at `https://github.com/tvonriegen/UXUI/pull/2`. PR 1B interview privacy RLS hardening changes are prepared for the PR #2 update / included in this branch once committed as authorized in Phase 1C.
 
-**Current implementation status.** PR 1 code is committed, pushed, and local validation passed: `npm run verify:is-minor` (7/7 canonical cases), `npm run typecheck`, `npm run lint`, and `npm run build` (no dummy env) all green. Security review approved after the B1 (`trg_profiles_guard_role_age` trigger + tightened `profiles_update` policy) and M1 (`email` removed from the talent directory client select) fixes. Runtime Supabase migration / RLS / trigger verification on a live instance is still recommended before merge / deploy, not a blocker.
+**Current implementation status.** PR 1 code is committed, pushed, and local validation passed. PR 1B code is prepared for the PR #2 update and has passed local validation: `npm ci --prefix apps/web` (21 baseline vulnerabilities), `npm run verify:is-minor` (7/7 canonical cases), `npm run verify:interviews-privacy-rls`, `npm run typecheck`, `npm run lint`, `npm run build` (`.env.local` detected but no values read/displayed), and `git diff --check` all green. Security review approved after the B1 (`trg_profiles_guard_role_age` trigger + tightened `profiles_update` policy) and M1 (`email` removed from the talent directory client select) fixes. Runtime Supabase migration / RLS / trigger verification on a live instance is still recommended before merge / deploy, not a blocker; no remote Supabase instance was exercised in this pass.
 
 **GitHub checks on PR #2.** `Vercel` **failed**, `Vercel Preview Comments` **passed**. The user cannot inspect / fix the Vercel failure from this workspace because the Vercel project is owned by a teammate / partner's GitHub account (`npx vercel inspect <deployment> --logs` reports `No existing credentials found`). The failure is an **external** deployment / access blocker, not a local code validation problem.
 
@@ -21,13 +21,14 @@ Architecture-auditor verdict (2026-07-05): **Aprobar con observaciones**. Securi
 
 **Push / remote.** The push of `fix/privacy-contact-routing` (up to `7a881f6`) succeeded earlier in this session. Future pushes are still blocked by SSH credentials (`Permission denied (publickey)`); restore credentials before any further push.
 
-**Runtime Supabase migration smoke test (recommended follow-up, not a blocker).** Apply `supabase/migrations/20260705000001_contact_requests.sql` to a Supabase instance and exercise, at minimum:
+**Runtime Supabase migration smoke test (recommended follow-up, not a blocker).** Apply `supabase/migrations/20260705000001_contact_requests.sql` and `supabase/migrations/20260705000002_interviews_privacy_rls.sql` to a Supabase instance and exercise, at minimum:
 
 - Company minor contact request insert (RLS accepts) and direct non-minor contact path.
 - `profiles.role` / `profiles.age` direct update from a non-service role is rejected (B1 fix); update from a service role succeeds.
 - School approve path opens / reuses the company↔student conversation and unlocks message inserts.
 - School reject path closes the request and the `contact_request` notification is emitted by the trigger (not the server action).
 - Message soft-lock holds before approval: `messages INSERT` between a company and a minor student without an approved `contact_request` is denied.
+- PR 1B: a company can still propose an interview for its own application; direct inserts with swapped `student_id`, wrong `company_id`, non-`proposed` status, or applications from another company are rejected; immutable columns on `interviews` cannot be mutated by an UPDATE.
 
 **Guardrails baked into PR 1 (from ADR-002).**
 
@@ -44,12 +45,15 @@ Architecture-auditor verdict (2026-07-05): **Aprobar con observaciones**. Securi
 
 **Validation criteria (this implementation pass, 2026-07-05).**
 
+- `npm ci --prefix apps/web` ✓ (21 baseline vulnerabilities, no new ones introduced).
 - `npm run verify:is-minor` ✓ (7/7 canonical cases).
+- `npm run verify:interviews-privacy-rls` ✓.
 - `npm run typecheck` ✓.
 - `npm run lint` ✓.
-- `npm run build` ✓ (no dummy env values required).
+- `npm run build` ✓ (`.env.local` detected but no values read/displayed).
+- `git diff --check` ✓.
 - Security review (post B1 / M1 fixes): **APROBAR, sin BLOCKER / HIGH**.
-- Runtime Supabase migration / RLS / trigger verification: recommended follow-up before merge / deploy, not a blocker.
+- Runtime Supabase migration / RLS / trigger verification: recommended follow-up before merge / deploy, not a blocker; no remote Supabase instance was exercised in this pass.
 
 ## After Current PR
 
