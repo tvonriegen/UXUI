@@ -5,6 +5,7 @@
 
 import { cookies } from "next/headers";
 import { createAdminClient, createServerSupabaseClient } from "@/lib/supabase-server";
+import { isMinorProfile } from "@/lib/utils/is-minor";
 
 export type InterviewModality = "video" | "presencial" | "telefono";
 export type InterviewStatus   =
@@ -27,13 +28,13 @@ interface ProposeArgs {
 
 // ── Helper: get or create 1-to-1 conversation between two users ──
 async function ensureConversation(
-  admin: ReturnType<typeof createAdminClient>,
+  supabase: ReturnType<typeof createServerSupabaseClient>,
   a: string,
   b: string,
 ): Promise<string | null> {
   const [user1_id, user2_id] = a < b ? [a, b] : [b, a];
 
-  const { data: existing } = await admin
+  const { data: existing } = await supabase
     .from("conversations")
     .select("id")
     .or(`and(user1_id.eq.${user1_id},user2_id.eq.${user2_id}),and(user1_id.eq.${user2_id},user2_id.eq.${user1_id})`)
@@ -41,14 +42,21 @@ async function ensureConversation(
 
   if (existing?.id) return existing.id as string;
 
-  const { data: created, error } = await admin
+  const { data: created, error } = await supabase
     .from("conversations")
     .insert({ user1_id, user2_id, last_message_at: new Date().toISOString() })
     .select("id")
     .single();
 
-  if (error || !created) return null;
-  return created.id as string;
+  if (!error && created) return created.id as string;
+
+  const { data: raced } = await supabase
+    .from("conversations")
+    .select("id")
+    .or(`and(user1_id.eq.${user1_id},user2_id.eq.${user2_id}),and(user1_id.eq.${user2_id},user2_id.eq.${user1_id})`)
+    .maybeSingle();
+
+  return raced?.id as string | null;
 }
 
 // ── Propose an interview (company only) ──────────────────
@@ -75,10 +83,67 @@ export async function proposeInterview(args: ProposeArgs) {
     return { error: "Acceso denegado." };
   }
 
-  const admin = createAdminClient();
+  const { data: applicant } = await supabase
+    .from("profiles")
+    .select("id, role, age, school_id")
+    .eq("id", app.applicant_id)
+    .single();
+
+  if (!applicant) return { error: "Perfil del postulante no encontrado." };
+
+  if (isMinorProfile(applicant.role, applicant.age)) {
+    if (!applicant.school_id) {
+      return { error: "El postulante requiere mediación escolar, pero no tiene colegio asignado." };
+    }
+
+    const { data: existingRequest } = await supabase
+      .from("contact_requests")
+      .select("id, status")
+      .eq("company_id", caller.id)
+      .eq("student_id", app.applicant_id)
+      .in("status", ["pending", "approved"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (existingRequest?.status !== "approved") {
+      if (existingRequest?.id) {
+        return {
+          success: true,
+          requiresSchoolApproval: true,
+          contactRequestId: existingRequest.id as string,
+        };
+      }
+
+      const { data: createdRequest, error: requestErr } = await supabase
+        .from("contact_requests")
+        .insert({
+          company_id: caller.id,
+          student_id: app.applicant_id,
+          school_id: applicant.school_id,
+          message: `Solicitud para proponer entrevista por "${jobPosting?.title ?? "la vacante"}".`,
+        })
+        .select("id")
+        .single();
+
+      if (requestErr || !createdRequest) {
+        return { error: requestErr?.message ?? "No se pudo crear la solicitud de contacto." };
+      }
+
+      return {
+        success: true,
+        requiresSchoolApproval: true,
+        contactRequestId: createdRequest.id as string,
+      };
+    }
+  }
+
+  // Ensure a conversation exists between company and student using RLS.
+  const convoId = await ensureConversation(supabase, caller.id, app.applicant_id);
+  if (!convoId) return { error: "No se pudo abrir la conversación con el postulante." };
 
   // Insert the interview row
-  const { data: interview, error: iErr } = await admin
+  const { data: interview, error: iErr } = await supabase
     .from("interviews")
     .insert({
       application_id: args.applicationId,
@@ -97,36 +162,33 @@ export async function proposeInterview(args: ProposeArgs) {
 
   if (iErr || !interview) return { error: iErr?.message ?? "No se pudo crear la entrevista." };
 
-  // Ensure a conversation exists between company and student
-  const convoId = await ensureConversation(admin, caller.id, app.applicant_id);
+  const { error: msgErr } = await supabase.from("messages").insert({
+    conversation_id: convoId,
+    sender_id:       caller.id,
+    content:         `Propuesta de entrevista para "${jobPosting?.title ?? "la vacante"}".`,
+    kind:            "interview_proposal",
+    metadata: {
+      interview_id:   interview.id,
+      application_id: args.applicationId,
+      proposed_at:    args.proposedAt,
+      duration_mins:  args.durationMins ?? 30,
+      modality:       args.modality,
+      location:       args.location ?? "",
+      meeting_link:   args.meetingLink ?? "",
+    },
+    read: false,
+  });
 
-  if (convoId) {
-    await admin.from("messages").insert({
-      conversation_id: convoId,
-      sender_id:       caller.id,
-      content:         `Propuesta de entrevista para "${jobPosting?.title ?? "la vacante"}".`,
-      kind:            "interview_proposal",
-      metadata: {
-        interview_id:   interview.id,
-        application_id: args.applicationId,
-        proposed_at:    args.proposedAt,
-        duration_mins:  args.durationMins ?? 30,
-        modality:       args.modality,
-        location:       args.location ?? "",
-        meeting_link:   args.meetingLink ?? "",
-      },
-      read: false,
-    });
-  }
+  if (msgErr) return { error: msgErr.message };
 
   // Also move the application to "interviewing" if not further along
-  await admin
+  await supabase
     .from("job_applications")
     .update({ status: "interviewing", updated_at: new Date().toISOString() })
     .eq("id", args.applicationId)
     .in("status", ["pending", "reviewing"]);
 
-  return { success: true, interviewId: interview.id, conversationId: convoId };
+  return { success: true, interviewId: interview.id, conversationId: convoId, requiresSchoolApproval: false };
 }
 
 // ── Student: respond to a proposal (accept / decline) ────

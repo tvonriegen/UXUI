@@ -9,6 +9,8 @@
     "start": "npm --prefix apps/web run start",
     "lint": "npm --prefix apps/web run lint",
     "typecheck": "npm --prefix apps/web run typecheck",
+    "verify:is-minor": "node scripts/verify-is-minor.mjs",
+    "verify:interviews-privacy-rls": "node scripts/verify-interviews-privacy-rls.mjs",
     "install:web": "npm --prefix apps/web install",
     "clean": "rm -rf apps/web/.next apps/web/out apps/web/coverage"
   },
