@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import Modal from "@/components/ui/Modal";
 import { useAuth } from "@/lib/auth-context";
@@ -21,6 +21,11 @@ import {
   getMatchColor,
 } from "@/lib/utils/matching";
 import MatchExplanationPanel from "@/app/empleos/_components/MatchExplanationPanel";
+import ApplicationReadinessPanel from "@/app/empleos/_components/ApplicationReadinessPanel";
+import {
+  computeApplicationReadiness,
+  type ApplicationReadinessInput,
+} from "@/lib/utils/application-readiness";
 import { useToast } from "@/components/ui/Toast";
 import { useConfirm } from "@/components/ui/ConfirmDialog";
 import { useQuestProgress } from "@/lib/hooks/useQuestProgress";
@@ -149,6 +154,21 @@ export default function EmpleosPage() {
   const [mySkills,    setMySkills]    = useState<string[]>([]);
   const [mySpecialty, setMySpecialty] = useState("");
 
+  // Application readiness state
+  const [preparingJobId, setPreparingJobId] = useState<string | null>(null);
+  const [profileForReadiness, setProfileForReadiness] = useState<ApplicationReadinessInput["profile"]>({
+    status: "loading", specialty: null, bio: null, availability: null,
+  });
+  const [skillsForReadiness, setSkillsForReadiness] = useState<ApplicationReadinessInput["skills"]>({
+    status: "loading", names: [],
+  });
+  const [evidenceForReadiness, setEvidenceForReadiness] = useState<ApplicationReadinessInput["evidence"]>({
+    status: "loading", portfolioCount: 0, certificationCount: 0,
+  });
+
+  // Ref to return focus from the readiness panel back to the apply button.
+  const lastApplyButtonRef = useRef<HTMLButtonElement | null>(null);
+
   // ── Data fetchers ────────────────────────────────────────
 
   const fetchJobs = useCallback(async () => {
@@ -196,12 +216,52 @@ export default function EmpleosPage() {
 
   const fetchMyProfile = useCallback(async () => {
     if (!user?.id || isCompany) return;
-    const [{ data: prof }, { data: skillsData }] = await Promise.all([
-      supabase.from("profiles").select("specialty").eq("id", user.id).single(),
+
+    setProfileForReadiness((p) => ({ ...p, status: "loading" }));
+    setSkillsForReadiness((s) => ({ ...s, status: "loading" }));
+    setEvidenceForReadiness((e) => ({ ...e, status: "loading" }));
+
+    const [
+      { data: prof, error: profError },
+      { data: skillsData, error: skillsError },
+      { count: portfolioCount, error: portfolioError },
+      { count: certificationCount, error: certificationError },
+    ] = await Promise.all([
+      supabase.from("profiles").select("specialty,bio,availability").eq("id", user.id).single(),
       supabase.from("user_skills").select("skills(name)").eq("user_id", user.id),
+      supabase.from("portfolio_items").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase.from("certifications").select("id", { count: "exact", head: true }).eq("user_id", user.id),
     ]);
-    if (prof) setMySpecialty((prof as { specialty?: string | null }).specialty ?? "");
-    if (skillsData) setMySkills((skillsData as { skills?: { name?: string } | null }[]).map((s) => s.skills?.name ?? ""));
+
+    if (profError || !prof) {
+      setProfileForReadiness({ status: "error", specialty: null, bio: null, availability: null });
+    } else {
+      const specialty = (prof as { specialty?: string | null }).specialty ?? null;
+      const bio = (prof as { bio?: string | null }).bio ?? null;
+      const availability = (prof as { availability?: string | null }).availability ?? null;
+      setProfileForReadiness({ status: "loaded", specialty, bio, availability });
+      setMySpecialty(specialty ?? "");
+    }
+
+    if (skillsError || !skillsData) {
+      setSkillsForReadiness({ status: skillsError ? "error" : "loaded", names: [] });
+    } else {
+      const names = (skillsData as { skills?: { name?: string } | null }[])
+        .map((s) => s.skills?.name ?? "")
+        .filter(Boolean);
+      setSkillsForReadiness({ status: "loaded", names });
+      setMySkills(names);
+    }
+
+    if (portfolioError || certificationError) {
+      setEvidenceForReadiness({ status: "error", portfolioCount: 0, certificationCount: 0 });
+    } else {
+      setEvidenceForReadiness({
+        status: "loaded",
+        portfolioCount: portfolioCount ?? 0,
+        certificationCount: certificationCount ?? 0,
+      });
+    }
   }, [user?.id, isCompany]);
 
   const fetchCompanyStats = useCallback(async () => {
@@ -428,14 +488,18 @@ export default function EmpleosPage() {
     setLoadingApps(false);
   }, [user?.id, isCompany]);
 
-  const handleApply = async (jobId: string) => {
-    if (!user?.id) return;
+  const handleApply = async (jobId: string): Promise<boolean> => {
+    if (!user?.id) return false;
+    if (applying === jobId || appliedIds.has(jobId)) return false;
     setApplying(jobId);
     const { error: err } = await supabase
       .from("job_applications")
       .insert({ job_id: jobId, applicant_id: user.id, student_id: user.id, status: "pending" });
+
+    let success = false;
     if (!err) {
       setAppliedIds((prev) => new Set(prev).add(jobId));
+      setPreparingJobId(null);
       // XP reward for applying
       fetch("/api/xp", {
         method: "POST",
@@ -445,11 +509,66 @@ export default function EmpleosPage() {
       // Quest progress: apply_job
       trackQuest("apply_job");
       toast({ type: "success", title: "¡Postulación enviada!", description: "+50 XP" });
+      success = true;
     } else {
-      toast({ type: "error", title: "No se pudo postular", description: err.message });
+      const isDuplicate = err.code === "23505";
+      if (isDuplicate) {
+        setAppliedIds((prev) => new Set(prev).add(jobId));
+        setPreparingJobId(null);
+      }
+      toast({
+        type: "error",
+        title: "No se pudo postular",
+        description: isDuplicate
+          ? "Ya postulaste a esta oportunidad; la hemos marcado como enviada."
+          : "No pudimos enviar la postulación. Inténtalo nuevamente.",
+      });
+      success = false;
     }
     setApplying(null);
+    return success;
   };
+
+  const openAssistedApply = useCallback((jobId: string, opener: HTMLButtonElement | null) => {
+    lastApplyButtonRef.current = opener;
+    setPreparingJobId(jobId);
+    // On mobile the panel renders inside the expanded card.
+    setExpandedId(jobId);
+  }, []);
+
+  const closeAssistedApply = useCallback(() => {
+    setPreparingJobId(null);
+    // Return focus to the apply button that opened the panel.
+    window.setTimeout(() => {
+      lastApplyButtonRef.current?.focus();
+    }, 0);
+  }, []);
+
+  const getJobReadiness = useCallback((job: JobPosting) => {
+    const score = computeMatchScore(mySkills, mySpecialty, {
+      id: job.id,
+      title: job.title,
+      description: job.description,
+      specialty: job.specialty ?? "",
+      requirements: "",
+    });
+    return computeApplicationReadiness({
+      isAuthenticated: !!user?.id,
+      profile: profileForReadiness,
+      skills: skillsForReadiness,
+      evidence: evidenceForReadiness,
+      opportunity: {
+        id: job.id,
+        active: job.active,
+        title: job.title,
+      },
+      application: {
+        hasApplied: appliedIds.has(job.id),
+        isApplying: applying === job.id,
+      },
+      match: { score, label: getMatchLabel(score) },
+    });
+  }, [user?.id, profileForReadiness, skillsForReadiness, evidenceForReadiness, appliedIds, applying, mySkills, mySpecialty]);
 
   const toggleFollow = async (companyId: string) => {
     if (!user?.id || isCompany) return;
@@ -640,20 +759,32 @@ export default function EmpleosPage() {
                     {/* Mobile expanded detail (non-company only) */}
                     {isExpanded && !isCompany && (
                       <div className="xl:hidden mt-4 pt-4 border-t border-slate-100 animate-fade-in-up motion-reduce:animate-none space-y-4">
-                        <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">{job.description}</p>
-                        <MatchExplanationPanel
-                          explanation={computeExplainableMatch(
-                            {
-                              id: job.id,
-                              title: job.title,
-                              description: job.description,
-                              specialty: job.specialty ?? "",
-                              requirements: "",
-                            },
-                            mySpecialty,
-                            mySkills
-                          )}
-                        />
+                        {preparingJobId === job.id ? (
+                          <ApplicationReadinessPanel
+                            readiness={getJobReadiness(job)}
+                            isApplying={applying === job.id}
+                            onSubmit={() => handleApply(job.id)}
+                            onBack={closeAssistedApply}
+                            autoFocusHeading
+                          />
+                        ) : (
+                          <>
+                            <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">{job.description}</p>
+                            <MatchExplanationPanel
+                              explanation={computeExplainableMatch(
+                                {
+                                  id: job.id,
+                                  title: job.title,
+                                  description: job.description,
+                                  specialty: job.specialty ?? "",
+                                  requirements: "",
+                                },
+                                mySpecialty,
+                                mySkills
+                              )}
+                            />
+                          </>
+                        )}
                       </div>
                     )}
 
@@ -869,9 +1000,9 @@ export default function EmpleosPage() {
                               </button>
                             )}
                             <button
-                              onClick={() => handleApply(job.id)}
+                              onClick={(e) => openAssistedApply(job.id, e.currentTarget)}
                               disabled={hasApplied || applying === job.id || !job.active}
-                              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white transition-all btn-press disabled:opacity-50 ${
+                              className={`min-h-[44px] flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white transition-all btn-press disabled:opacity-50 ${
                                 hasApplied ? "bg-emerald-500" : "bg-cyan-600 hover:bg-cyan-700"
                               }`}
                             >
@@ -916,63 +1047,79 @@ export default function EmpleosPage() {
                           <span className="text-xs bg-cyan-50 text-cyan-700 px-2 py-0.5 rounded-lg font-semibold">{selectedJob.specialty}</span>
                         )}
                       </div>
-                      <div className="mt-4">
-                        <MatchExplanationPanel
-                          explanation={computeExplainableMatch(
-                            {
-                              id: selectedJob.id,
-                              title: selectedJob.title,
-                              description: selectedJob.description,
-                              specialty: selectedJob.specialty ?? "",
-                              requirements: "",
-                            },
-                            mySpecialty,
-                            mySkills
-                          )}
-                        />
-                      </div>
+                      {preparingJobId !== selectedJob.id && (
+                        <div className="mt-4">
+                          <MatchExplanationPanel
+                            explanation={computeExplainableMatch(
+                              {
+                                id: selectedJob.id,
+                                title: selectedJob.title,
+                                description: selectedJob.description,
+                                specialty: selectedJob.specialty ?? "",
+                                requirements: "",
+                              },
+                              mySpecialty,
+                              mySkills
+                            )}
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                <div className="px-6 py-4 flex gap-3 border-b border-slate-100">
-                  <button
-                    onClick={() => handleApply(selectedJob.id)}
-                    disabled={appliedIds.has(selectedJob.id) || applying === selectedJob.id || !selectedJob.active}
-                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all btn-press disabled:opacity-50 ${
-                      appliedIds.has(selectedJob.id) ? "bg-emerald-500" : "bg-cyan-600 hover:bg-cyan-700"
-                    }`}
-                  >
-                    {applying === selectedJob.id ? <Loader2 size={14} className="animate-spin" /> :
-                     appliedIds.has(selectedJob.id) ? <><CheckCircle size={14} /> Postulado</> :
-                     <><Send size={14} /> Postularse</>}
-                  </button>
-                  {selectedJob.company_id && (
-                    <button
-                      onClick={() => toggleFollow(selectedJob.company_id)}
-                      disabled={followingId === selectedJob.company_id}
-                      className={`px-3.5 py-2.5 rounded-xl text-sm font-semibold border transition-all btn-press ${
-                        followedIds.has(selectedJob.company_id)
-                          ? "bg-slate-100 text-slate-600 border-slate-200"
-                          : "bg-white text-slate-500 border-slate-200 hover:border-violet-300 hover:text-violet-600"
-                      }`}
-                    >
-                      {followedIds.has(selectedJob.company_id) ? <UserCheck size={16} /> : <UserPlus size={16} />}
-                    </button>
-                  )}
-                </div>
+                {preparingJobId === selectedJob.id ? (
+                  <div className="p-6">
+                    <ApplicationReadinessPanel
+                      readiness={getJobReadiness(selectedJob)}
+                      isApplying={applying === selectedJob.id}
+                      onSubmit={() => handleApply(selectedJob.id)}
+                      onBack={closeAssistedApply}
+                      autoFocusHeading
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <div className="px-6 py-4 flex gap-3 border-b border-slate-100">
+                      <button
+                        onClick={(e) => openAssistedApply(selectedJob.id, e.currentTarget)}
+                        disabled={appliedIds.has(selectedJob.id) || applying === selectedJob.id || !selectedJob.active}
+                        className={`min-h-[44px] flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all btn-press disabled:opacity-50 ${
+                          appliedIds.has(selectedJob.id) ? "bg-emerald-500" : "bg-cyan-600 hover:bg-cyan-700"
+                        }`}
+                      >
+                        {applying === selectedJob.id ? <Loader2 size={14} className="animate-spin" /> :
+                         appliedIds.has(selectedJob.id) ? <><CheckCircle size={14} /> Postulado</> :
+                         <><Send size={14} /> Postularse</>}
+                      </button>
+                      {selectedJob.company_id && (
+                        <button
+                          onClick={() => toggleFollow(selectedJob.company_id)}
+                          disabled={followingId === selectedJob.company_id}
+                          className={`px-3.5 py-2.5 rounded-xl text-sm font-semibold border transition-all btn-press ${
+                            followedIds.has(selectedJob.company_id)
+                              ? "bg-slate-100 text-slate-600 border-slate-200"
+                              : "bg-white text-slate-500 border-slate-200 hover:border-violet-300 hover:text-violet-600"
+                          }`}
+                        >
+                          {followedIds.has(selectedJob.company_id) ? <UserCheck size={16} /> : <UserPlus size={16} />}
+                        </button>
+                      )}
+                    </div>
 
-                <div className="p-6 max-h-[60vh] overflow-y-auto thin-scrollbar">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Sobre la oportunidad</p>
-                  <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
-                    {selectedJob.description || "Sin descripción disponible."}
-                  </p>
-                  {selectedJob.created_at && (
-                    <p className="text-xs text-slate-400 mt-4">
-                      Publicado el {new Date(selectedJob.created_at).toLocaleDateString("es-CR")}
-                    </p>
-                  )}
-                </div>
+                    <div className="p-6 max-h-[60vh] overflow-y-auto thin-scrollbar">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Sobre la oportunidad</p>
+                      <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
+                        {selectedJob.description || "Sin descripción disponible."}
+                      </p>
+                      {selectedJob.created_at && (
+                        <p className="text-xs text-slate-400 mt-4">
+                          Publicado el {new Date(selectedJob.created_at).toLocaleDateString("es-CR")}
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}
