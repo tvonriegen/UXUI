@@ -14,7 +14,13 @@ import {
   Users, ArrowUp, ArrowDown, Sparkles, UserPlus, UserCheck,
   BarChart2, Eye, CalendarClock, ListChecks,
 } from "lucide-react";
-import { computeMatchScore, getMatchLabel, getMatchColor } from "@/lib/utils/matching";
+import {
+  computeMatchScore,
+  computeExplainableMatch,
+  getMatchLabel,
+  getMatchColor,
+} from "@/lib/utils/matching";
+import MatchExplanationPanel from "@/app/empleos/_components/MatchExplanationPanel";
 import { useToast } from "@/components/ui/Toast";
 import { useConfirm } from "@/components/ui/ConfirmDialog";
 import { useQuestProgress } from "@/lib/hooks/useQuestProgress";
@@ -73,6 +79,20 @@ const STATUS_ROW_BG: Record<AtsStatus, string> = {
   accepted:     "border-emerald-200 bg-emerald-50/20",
   rejected:     "border-red-100 bg-red-50/10 opacity-60",
   hired:        "border-violet-200 bg-violet-50/30",
+};
+
+const MATCH_BADGE_CLASSES: Record<ReturnType<typeof getMatchColor>, string> = {
+  emerald: "text-emerald-600 bg-emerald-50 border-emerald-100",
+  cyan:    "text-cyan-600 bg-cyan-50 border-cyan-100",
+  amber:   "text-amber-600 bg-amber-50 border-amber-100",
+  slate:   "text-slate-600 bg-slate-50 border-slate-100",
+};
+
+const MATCH_TEXT_CLASSES: Record<ReturnType<typeof getMatchColor>, string> = {
+  emerald: "text-emerald-600",
+  cyan:    "text-cyan-600",
+  amber:   "text-amber-600",
+  slate:   "text-slate-600",
 };
 
 // ── Main component ────────────────────────────────────────
@@ -599,7 +619,7 @@ export default function EmpleosPage() {
                             </span>
                           )}
                           {!job.active && <span className="bg-red-50 text-red-500 px-2 py-0.5 rounded-md font-semibold">Cerrada</span>}
-                          {/* Smart match score — student/egresado only */}
+                          {/* Smart match score — student/egresado only, hidden when profile lacks skills/specialty */}
                           {!isCompany && (mySkills.length > 0 || mySpecialty) && (() => {
                             const score = computeMatchScore(mySkills, mySpecialty, {
                               id: job.id, title: job.title,
@@ -608,8 +628,8 @@ export default function EmpleosPage() {
                             });
                             const color = getMatchColor(score);
                             return (
-                              <span className={`flex items-center gap-1 text-${color}-600 bg-${color}-50 border border-${color}-100 px-2 py-0.5 rounded-md font-bold`}>
-                                <Sparkles size={10} /> {score}% · {getMatchLabel(score)}
+                              <span className={`flex items-center gap-1 ${MATCH_BADGE_CLASSES[color]} px-2 py-0.5 rounded-md font-bold`}>
+                                <Sparkles size={10} aria-hidden="true" /> {score}% · {getMatchLabel(score)}
                               </span>
                             );
                           })()}
@@ -617,10 +637,23 @@ export default function EmpleosPage() {
                       </div>
                     </div>
 
-                    {/* Description (non-company, mobile only) */}
+                    {/* Mobile expanded detail (non-company only) */}
                     {isExpanded && !isCompany && (
-                      <div className="xl:hidden mt-4 pt-4 border-t border-slate-100 animate-fade-in-up">
+                      <div className="xl:hidden mt-4 pt-4 border-t border-slate-100 animate-fade-in-up motion-reduce:animate-none space-y-4">
                         <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">{job.description}</p>
+                        <MatchExplanationPanel
+                          explanation={computeExplainableMatch(
+                            {
+                              id: job.id,
+                              title: job.title,
+                              description: job.description,
+                              specialty: job.specialty ?? "",
+                              requirements: "",
+                            },
+                            mySpecialty,
+                            mySkills
+                          )}
+                        />
                       </div>
                     )}
 
@@ -712,7 +745,7 @@ export default function EmpleosPage() {
                                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                         <p className="text-[11px] text-slate-400">{app.profile?.specialty ?? "Sin especialidad"}</p>
                                         {app.matchScore !== undefined && (
-                                          <span className={`text-[10px] font-bold text-${matchColor}-600`}>
+                                          <span className={`text-[10px] font-bold ${MATCH_TEXT_CLASSES[matchColor]}`}>
                                             {app.matchScore}% match
                                           </span>
                                         )}
@@ -859,7 +892,7 @@ export default function EmpleosPage() {
           {/* ── Desktop detail panel (student/egresado only) ── */}
           {!isCompany && selectedJob && (
             <div className="hidden xl:block">
-              <div className="sticky top-20 bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden animate-fade-in-up">
+              <div className="sticky top-20 bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden animate-fade-in-up motion-reduce:animate-none">
                 <div className="p-6 border-b border-slate-100">
                   <div className="flex gap-4 items-start">
                     {selectedJob.company?.avatar ? (
@@ -882,19 +915,21 @@ export default function EmpleosPage() {
                         {selectedJob.specialty && (
                           <span className="text-xs bg-cyan-50 text-cyan-700 px-2 py-0.5 rounded-lg font-semibold">{selectedJob.specialty}</span>
                         )}
-                        {(mySkills.length > 0 || mySpecialty) && (() => {
-                          const score = computeMatchScore(mySkills, mySpecialty, {
-                            id: selectedJob.id, title: selectedJob.title,
-                            description: selectedJob.description, specialty: selectedJob.specialty ?? "",
-                            requirements: "",
-                          });
-                          const color = getMatchColor(score);
-                          return (
-                            <span className={`flex items-center gap-1 text-${color}-600 bg-${color}-50 border border-${color}-100 px-2 py-0.5 rounded-lg text-xs font-bold`}>
-                              <Sparkles size={10} /> {score}% match
-                            </span>
-                          );
-                        })()}
+                      </div>
+                      <div className="mt-4">
+                        <MatchExplanationPanel
+                          explanation={computeExplainableMatch(
+                            {
+                              id: selectedJob.id,
+                              title: selectedJob.title,
+                              description: selectedJob.description,
+                              specialty: selectedJob.specialty ?? "",
+                              requirements: "",
+                            },
+                            mySpecialty,
+                            mySkills
+                          )}
+                        />
                       </div>
                     </div>
                   </div>

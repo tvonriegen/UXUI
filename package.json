@@ -12,6 +12,7 @@
     "verify:is-minor": "node scripts/verify-is-minor.mjs",
     "verify:contact-policy": "node scripts/verify-contact-policy.mjs",
     "verify:interviews-privacy-rls": "node scripts/verify-interviews-privacy-rls.mjs",
+    "verify:explainable-match": "node scripts/verify-explainable-match.mjs",
     "install:web": "npm --prefix apps/web install",
     "clean": "rm -rf apps/web/.next apps/web/out apps/web/coverage"
   },
