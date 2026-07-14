@@ -88,14 +88,14 @@ const STATUS_ROW_BG: Record<AtsStatus, string> = {
 
 const MATCH_BADGE_CLASSES: Record<ReturnType<typeof getMatchColor>, string> = {
   emerald: "text-emerald-600 bg-emerald-50 border-emerald-100",
-  cyan:    "text-cyan-600 bg-cyan-50 border-cyan-100",
+  cyan:    "text-sky-600 bg-sky-50 border-sky-100",
   amber:   "text-amber-600 bg-amber-50 border-amber-100",
   slate:   "text-slate-600 bg-slate-50 border-slate-100",
 };
 
 const MATCH_TEXT_CLASSES: Record<ReturnType<typeof getMatchColor>, string> = {
   emerald: "text-emerald-600",
-  cyan:    "text-cyan-600",
+  cyan:    "text-sky-600",
   amber:   "text-amber-600",
   slate:   "text-slate-600",
 };
@@ -595,7 +595,7 @@ export default function EmpleosPage() {
         {/* ── Page Header ── */}
         <div className="flex items-start justify-between animate-fade-in-up">
           <div>
-            <p className="text-sm text-cyan-600 font-semibold mb-1">Oportunidades</p>
+            <p className="text-sm text-sky-600 font-semibold mb-1">Oportunidades</p>
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
               {isCompany ? "Mis Vacantes" : "Empleos y Pasantías"}
             </h1>
@@ -612,8 +612,8 @@ export default function EmpleosPage() {
                 }}
                 className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors btn-press ${
                   showApplications
-                    ? "bg-cyan-600 text-white"
-                    : "bg-white border border-slate-200 text-slate-600 hover:border-cyan-300"
+                    ? "bg-sky-600 text-white"
+                    : "bg-white border border-slate-200 text-slate-600 hover:border-sky-300"
                 }`}
               >
                 <ListChecks size={16} />
@@ -635,7 +635,7 @@ export default function EmpleosPage() {
         {!isCompany && showApplications && (
           <div className="bg-white rounded-2xl border border-slate-200/60 p-5 space-y-4 animate-fade-in-up">
             <h3 className="font-bold text-base">Mis postulaciones</h3>
-            {loadingApps && <div className="flex justify-center py-6"><Loader2 size={20} className="animate-spin text-cyan-400" /></div>}
+            {loadingApps && <div className="flex justify-center py-6"><Loader2 size={20} className="animate-spin text-sky-400" /></div>}
             {!loadingApps && myApplications.length === 0 && (
               <p className="text-sm text-slate-400 text-center py-4">Aún no tienes postulaciones.</p>
             )}
@@ -663,7 +663,7 @@ export default function EmpleosPage() {
           <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">{error}</div>
         )}
         {loading && (
-          <div className="flex justify-center py-20"><Loader2 size={32} className="animate-spin text-cyan-400" /></div>
+          <div className="flex justify-center py-20"><Loader2 size={32} className="animate-spin text-sky-400" /></div>
         )}
 
         {!loading && jobs.length === 0 && (
@@ -708,7 +708,7 @@ export default function EmpleosPage() {
                   className={`bg-white rounded-2xl border overflow-hidden hover:shadow-md transition-all animate-fade-in-up stagger-${Math.min(i + 1, 6)} ${
                     !isCompany ? "cursor-pointer" : ""
                   } ${
-                    isSelectedDesktop ? "border-cyan-400 shadow-md xl:border-2" : "border-slate-200/60"
+                    isSelectedDesktop ? "border-sky-400 shadow-md xl:border-2" : "border-slate-200/60"
                   }`}
                 >
                   <div className="p-5">
@@ -726,7 +726,7 @@ export default function EmpleosPage() {
                         <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-slate-400">
                           {job.location && <span className="flex items-center gap-1"><MapPin size={11} />{job.location}</span>}
                           <span className="bg-violet-50 text-violet-700 px-2 py-0.5 rounded-md font-semibold capitalize">{job.type}</span>
-                          {job.specialty && <span className="bg-cyan-50 text-cyan-700 px-2 py-0.5 rounded-md font-semibold">{job.specialty}</span>}
+                          {job.specialty && <span className="bg-sky-50 text-sky-700 px-2 py-0.5 rounded-md font-semibold">{job.specialty}</span>}
                           {isCompany && job.max_candidates != null && (
                             <span className={`px-2 py-0.5 rounded-md font-semibold ${maxReached ? "bg-red-50 text-red-500" : "bg-emerald-50 text-emerald-600"}`}>
                               {acceptedCount}/{job.max_candidates} cupos
@@ -1003,7 +1003,7 @@ export default function EmpleosPage() {
                               onClick={(e) => openAssistedApply(job.id, e.currentTarget)}
                               disabled={hasApplied || applying === job.id || !job.active}
                               className={`min-h-[44px] flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white transition-all btn-press disabled:opacity-50 ${
-                                hasApplied ? "bg-emerald-500" : "bg-cyan-600 hover:bg-cyan-700"
+                                hasApplied ? "bg-emerald-500" : "bg-sky-600 hover:bg-sky-700"
                               }`}
                             >
                               {applying === job.id ? <Loader2 size={12} className="animate-spin" /> :
@@ -1034,7 +1034,7 @@ export default function EmpleosPage() {
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-cyan-600 mb-1">{selectedJob.company?.name ?? "Empresa"}</p>
+                      <p className="text-xs font-bold text-sky-600 mb-1">{selectedJob.company?.name ?? "Empresa"}</p>
                       <h2 className="text-xl font-extrabold tracking-tight leading-snug">{selectedJob.title}</h2>
                       <div className="flex flex-wrap gap-2 mt-2">
                         {selectedJob.location && (
@@ -1044,7 +1044,7 @@ export default function EmpleosPage() {
                         )}
                         <span className="text-xs bg-violet-50 text-violet-700 px-2 py-0.5 rounded-lg font-semibold capitalize">{selectedJob.type}</span>
                         {selectedJob.specialty && (
-                          <span className="text-xs bg-cyan-50 text-cyan-700 px-2 py-0.5 rounded-lg font-semibold">{selectedJob.specialty}</span>
+                          <span className="text-xs bg-sky-50 text-sky-700 px-2 py-0.5 rounded-lg font-semibold">{selectedJob.specialty}</span>
                         )}
                       </div>
                       {preparingJobId !== selectedJob.id && (
@@ -1085,7 +1085,7 @@ export default function EmpleosPage() {
                         onClick={(e) => openAssistedApply(selectedJob.id, e.currentTarget)}
                         disabled={appliedIds.has(selectedJob.id) || applying === selectedJob.id || !selectedJob.active}
                         className={`min-h-[44px] flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all btn-press disabled:opacity-50 ${
-                          appliedIds.has(selectedJob.id) ? "bg-emerald-500" : "bg-cyan-600 hover:bg-cyan-700"
+                          appliedIds.has(selectedJob.id) ? "bg-emerald-500" : "bg-sky-600 hover:bg-sky-700"
                         }`}
                       >
                         {applying === selectedJob.id ? <Loader2 size={14} className="animate-spin" /> :
@@ -1133,16 +1133,16 @@ export default function EmpleosPage() {
           {saveError && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">{saveError}</div>}
           <div>
             <label className="text-xs font-semibold text-slate-500 mb-1.5 block">Título del puesto</label>
-            <input value={fTitle} onChange={(e) => setFTitle(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none" placeholder="Ej: Técnico en Mecatrónica" />
+            <input value={fTitle} onChange={(e) => setFTitle(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none" placeholder="Ej: Técnico en Mecatrónica" />
           </div>
           <div>
             <label className="text-xs font-semibold text-slate-500 mb-1.5 block">Descripción</label>
-            <textarea value={fDesc} onChange={(e) => setFDesc(e.target.value)} rows={4} className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none resize-none" placeholder="Describe el puesto, requisitos y beneficios..." />
+            <textarea value={fDesc} onChange={(e) => setFDesc(e.target.value)} rows={4} className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none resize-none" placeholder="Describe el puesto, requisitos y beneficios..." />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-semibold text-slate-500 mb-1.5 block">Tipo</label>
-              <select value={fType} onChange={(e) => setFType(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 outline-none bg-white">
+              <select value={fType} onChange={(e) => setFType(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 outline-none bg-white">
                 <option value="full-time">Tiempo completo</option>
                 <option value="part-time">Medio tiempo</option>
                 <option value="pasantia">Pasantía</option>
@@ -1151,7 +1151,7 @@ export default function EmpleosPage() {
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-500 mb-1.5 block">Especialidad</label>
-              <select value={fSpecialty} onChange={(e) => setFSpecialty(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 outline-none bg-white">
+              <select value={fSpecialty} onChange={(e) => setFSpecialty(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 outline-none bg-white">
                 <option value="">Todas</option>
                 {TP_SPECIALTIES.map((sp) => <option key={sp} value={sp}>{sp}</option>)}
               </select>
@@ -1159,7 +1159,7 @@ export default function EmpleosPage() {
           </div>
           <div>
             <label className="text-xs font-semibold text-slate-500 mb-1.5 block">Ubicación</label>
-            <input value={fLocation} onChange={(e) => setFLocation(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none" placeholder="Ej: San José, Costa Rica" />
+            <input value={fLocation} onChange={(e) => setFLocation(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none" placeholder="Ej: San José, Costa Rica" />
           </div>
           <div>
             <label className="text-xs font-semibold text-slate-500 mb-1.5 block">Límite máximo de candidatos aceptados</label>
@@ -1167,7 +1167,7 @@ export default function EmpleosPage() {
               type="number" min={1} max={999}
               value={fMaxCandidates}
               onChange={(e) => setFMaxCandidates(e.target.value === "" ? "" : Number(e.target.value))}
-              className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none"
+              className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none"
               placeholder="Ej: 5"
             />
             <p className="text-[11px] text-slate-400 mt-1">El sistema bloqueará aceptar más candidatos cuando se alcance este límite.</p>

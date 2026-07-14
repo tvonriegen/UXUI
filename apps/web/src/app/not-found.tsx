@@ -14,7 +14,7 @@ export default function NotFound() {
         </p>
         <div className="flex items-center justify-center gap-3">
           <Link href="/"
-            className="flex items-center gap-2 bg-cyan-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-cyan-700 transition-colors btn-press"
+            className="flex items-center gap-2 bg-sky-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-sky-700 transition-colors btn-press"
           >
             <Home size={16} /> Ir al inicio
           </Link>

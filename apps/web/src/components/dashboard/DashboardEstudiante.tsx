@@ -191,7 +191,7 @@ export default function DashboardEstudiante() {
     <div className="p-4 md:p-6 lg:p-8 max-w-6xl mx-auto w-full space-y-6">
 
       {/* ── Hero Banner ── */}
-      <div className="bg-gradient-to-br from-cyan-500 via-teal-500 to-cyan-700 rounded-2xl p-6 md:p-8 text-white relative overflow-hidden animate-fade-in-up">
+      <div className="bg-gradient-to-br from-sky-500 via-indigo-500 to-sky-700 rounded-2xl p-6 md:p-8 text-white relative overflow-hidden animate-fade-in-up">
         <div className="absolute inset-0 opacity-10 hero-pattern" />
 
         <div className="relative flex flex-col md:flex-row md:items-center gap-5">
@@ -212,7 +212,7 @@ export default function DashboardEstudiante() {
           )}
 
           <div className="flex-1">
-            <p className="text-cyan-100 text-sm font-medium mb-1">Bienvenido/a</p>
+            <p className="text-sky-100 text-sm font-medium mb-1">Bienvenido/a</p>
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
               {displayName.split(" ")[0]}
             </h1>
@@ -236,7 +236,7 @@ export default function DashboardEstudiante() {
               />
               <div className="text-left">
                 <p className="text-2xl font-extrabold leading-none">{streak}</p>
-                <p className="text-[10px] text-cyan-100 uppercase tracking-wide font-semibold">
+                <p className="text-[10px] text-sky-100 uppercase tracking-wide font-semibold">
                   racha
                 </p>
               </div>
@@ -244,7 +244,7 @@ export default function DashboardEstudiante() {
             <div className="w-px h-10 bg-white/20 hidden md:block" />
             <div className="text-center hidden md:block">
               <p className="text-3xl font-extrabold">{earnedBadges.length}</p>
-              <p className="text-xs text-cyan-100">insignias</p>
+              <p className="text-xs text-sky-100">insignias</p>
             </div>
           </div>
         </div>
@@ -255,8 +255,8 @@ export default function DashboardEstudiante() {
         <StatCard
           label="Nivel Actual"
           value={profile.level ?? 1}
-          icon={<Star size={20} className="text-cyan-500" />}
-          bg="bg-cyan-50"
+          icon={<Star size={20} className="text-sky-500" />}
+          bg="bg-sky-50"
           delay={1}
         />
         <StatCard
@@ -295,7 +295,7 @@ export default function DashboardEstudiante() {
           <div className="bg-white rounded-2xl p-6 border border-slate-200/60 animate-fade-in-up stagger-2">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <Zap size={18} className="text-cyan-600" />
+                <Zap size={18} className="text-sky-600" />
                 <span className="font-bold">Puntos de Experiencia</span>
               </div>
               <TierBadge tier={tier} size="md" />
@@ -310,7 +310,7 @@ export default function DashboardEstudiante() {
               <span>{profile.xp.toLocaleString()} XP</span>
               <span>
                 {tierInfo.next
-                  ? <>Faltan <span className="font-bold text-cyan-600">{tierInfo.remaining.toLocaleString()} XP</span> para <span className="font-bold">{tierInfo.next}</span></>
+                  ? <>Faltan <span className="font-bold text-sky-600">{tierInfo.remaining.toLocaleString()} XP</span> para <span className="font-bold">{tierInfo.next}</span></>
                   : "¡Rango máximo alcanzado!"
                 }
               </span>
@@ -327,7 +327,7 @@ export default function DashboardEstudiante() {
                 <h3 className="font-bold text-base">Insignias Verificadas</h3>
                 <Link
                   href="/profile"
-                  className="text-xs text-cyan-600 font-semibold hover:underline flex items-center gap-1"
+                  className="text-xs text-sky-600 font-semibold hover:underline flex items-center gap-1"
                 >
                   Ver todas <ChevronRight size={12} />
                 </Link>
@@ -372,7 +372,7 @@ export default function DashboardEstudiante() {
                 <h3 className="font-bold text-base">Actividad Reciente</h3>
                 <Link
                   href="/muro"
-                  className="text-xs text-cyan-600 font-semibold hover:underline flex items-center gap-1"
+                  className="text-xs text-sky-600 font-semibold hover:underline flex items-center gap-1"
                 >
                   Ver El Muro <ChevronRight size={12} />
                 </Link>
@@ -429,7 +429,7 @@ export default function DashboardEstudiante() {
                   <div
                     key={n.id}
                     className={`p-3 rounded-lg text-xs ${
-                      n.read ? "bg-slate-50/50" : "bg-cyan-50/50 border border-cyan-100/50"
+                      n.read ? "bg-slate-50/50" : "bg-sky-50/50 border border-sky-100/50"
                     }`}
                   >
                     <p className="font-semibold text-slate-700 mb-0.5">{n.title}</p>
@@ -462,7 +462,7 @@ export default function DashboardEstudiante() {
             <h3 className="font-bold text-sm mb-4">Acciones Rápidas</h3>
             <div className="space-y-1">
               {[
-                { href: "/profile",  icon: <BookOpen     size={16} className="text-cyan-500" />,    bg: "bg-cyan-50",    label: "Mi Perfil",   sub: "Portafolio y logros" },
+                { href: "/profile",  icon: <BookOpen     size={16} className="text-sky-500" />,    bg: "bg-sky-50",    label: "Mi Perfil",   sub: "Portafolio y logros" },
                 { href: "/muro",     icon: <Flame        size={16} className="text-amber-500" />,   bg: "bg-amber-50",   label: "El Muro",     sub: "Proyectos y eventos" },
                 { href: "/talent",   icon: <Briefcase    size={16} className="text-violet-500" />,  bg: "bg-violet-50",  label: "Talento",     sub: "Conecta y aprende" },
                 { href: "/messages", icon: <MessageSquare size={16} className="text-emerald-500" />, bg: "bg-emerald-50", label: "Mensajes",    sub: "Conversaciones" },
@@ -479,7 +479,7 @@ export default function DashboardEstudiante() {
                     <p className="text-sm font-semibold">{a.label}</p>
                     <p className="text-[11px] text-slate-400">{a.sub}</p>
                   </div>
-                  <ArrowRight size={14} className="text-slate-300 group-hover:text-cyan-500 group-hover:translate-x-0.5 transition-all" />
+                  <ArrowRight size={14} className="text-slate-300 group-hover:text-sky-500 group-hover:translate-x-0.5 transition-all" />
                 </Link>
               ))}
             </div>

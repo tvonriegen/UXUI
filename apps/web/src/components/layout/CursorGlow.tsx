@@ -14,7 +14,7 @@
 //     "goo" trailing effect (the gradient catches up, not snaps).
 //
 // Design choices:
-//  - Uses cl-primary (#00687a) and cl-primary-light (#06b6d4)
+//  - Uses cl-primary (#4f46e5) and cl-primary-light (#60a5fa)
 //    at 5–8% opacity so it's ambient, never distracting.
 //  - pointer-events: none ensures it never blocks clicks.
 //  - Only activates on devices that have a hover-capable pointer

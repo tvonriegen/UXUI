@@ -115,12 +115,12 @@ export default function SideNavBar() {
 
       {/* ── Brand strip ── */}
       <div className="px-5 py-3.5 border-b border-slate-100 flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center shadow-sm shrink-0">
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center shadow-sm shrink-0">
           <span className="text-white font-black text-xs">TH</span>
         </div>
         <div>
           <span className="text-[15px] font-extrabold tracking-tight text-slate-900">
-            Class<span className="text-cyan-600">Link</span>
+            Talent<span className="text-indigo-600">Hub</span>
           </span>
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[.08em] -mt-0.5">
             {ROLE_SUB[role]}
@@ -143,7 +143,7 @@ export default function SideNavBar() {
                 transition-all duration-200 text-[13px] font-medium
                 animate-slide-in-left stagger-${Math.min(idx + 1, 6)}
                 ${isActive
-                  ? "text-cyan-700 bg-cyan-50/80 font-semibold border-l-2 border-cyan-500 pl-[10px]"
+                  ? "text-sky-700 bg-sky-50/80 font-semibold border-l-2 border-sky-500 pl-[10px]"
                   : "text-slate-500 hover:text-slate-800 hover:bg-slate-50 border-l-2 border-transparent"
                 }
               `}
@@ -152,7 +152,7 @@ export default function SideNavBar() {
                 <IconComp
                   size={20}
                   strokeWidth={isActive ? 2.25 : 1.5}
-                  className={isActive ? "text-cyan-600" : ""}
+                  className={isActive ? "text-sky-600" : ""}
                 />
                 {/* Unread badge dot */}
                 {(link.path === "/messages" || link.path === "/notifications") && unreadCount > 0 && (
@@ -180,7 +180,7 @@ export default function SideNavBar() {
             w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
             transition-all duration-200 text-[13px] font-medium
             ${pathname === "/settings"
-              ? "text-cyan-700 bg-cyan-50/80 font-semibold"
+              ? "text-sky-700 bg-sky-50/80 font-semibold"
               : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
             }
           `}
@@ -198,7 +198,7 @@ export default function SideNavBar() {
               className="w-8 h-8 rounded-full object-cover shrink-0 ring-2 ring-white"
             />
           ) : (
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center text-white text-xs font-bold shrink-0 ring-2 ring-white">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center text-white text-xs font-bold shrink-0 ring-2 ring-white">
               {initials}
             </div>
           )}
@@ -208,7 +208,7 @@ export default function SideNavBar() {
             </p>
             {level !== null && (
               <p className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
-                <Zap size={9} className="text-cyan-500" />
+                <Zap size={9} className="text-sky-500" />
                 Niv.&nbsp;{level} · {(xp ?? 0).toLocaleString()} XP
               </p>
             )}

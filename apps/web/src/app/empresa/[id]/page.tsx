@@ -86,7 +86,7 @@ function ChipListEditor({
         }
         <button
           onClick={() => setEditing(true)}
-          className="ml-1 p-1 text-slate-300 hover:text-cyan-500 transition-colors"
+          className="ml-1 p-1 text-slate-300 hover:text-sky-500 transition-colors"
           title="Editar"
         >
           <Pencil size={12} />
@@ -113,7 +113,7 @@ function ChipListEditor({
           onChange={(e) => setNewItem(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addItem())}
           placeholder={placeholder}
-          className="flex-1 text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 outline-none focus:ring-1 focus:ring-cyan-300"
+          className="flex-1 text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 outline-none focus:ring-1 focus:ring-sky-300"
         />
         <button onClick={addItem} className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors">
           <Plus size={12} />
@@ -123,7 +123,7 @@ function ChipListEditor({
         <button
           onClick={commit}
           disabled={saving}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-bold transition-colors disabled:opacity-50"
+          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold transition-colors disabled:opacity-50"
         >
           {saving ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />} Guardar
         </button>
@@ -425,7 +425,7 @@ export default function EmpresaProfilePage() {
             {(techStack.length > 0 || isOwner) && (
               <div className="bg-white rounded-2xl p-5 border border-slate-200/60 animate-fade-in-up stagger-3">
                 <h3 className="font-bold text-sm text-slate-700 mb-3 flex items-center gap-1.5">
-                  <Code2 size={14} className="text-cyan-500" /> Stack Tecnológico
+                  <Code2 size={14} className="text-sky-500" /> Stack Tecnológico
                 </h3>
                 {isOwner ? (
                   <ChipListEditor
@@ -436,7 +436,7 @@ export default function EmpresaProfilePage() {
                 ) : (
                   <div className="flex flex-wrap gap-1.5">
                     {techStack.map((t) => (
-                      <span key={t} className="text-xs font-semibold bg-cyan-50 text-cyan-700 px-2.5 py-1 rounded-full">{t}</span>
+                      <span key={t} className="text-xs font-semibold bg-sky-50 text-sky-700 px-2.5 py-1 rounded-full">{t}</span>
                     ))}
                   </div>
                 )}

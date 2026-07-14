@@ -218,7 +218,7 @@ export default function CareerMatchActivity({ userId, onClose, onXPEarned }: Pro
       <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
 
         {/* Header */}
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 pt-5 pb-4 text-white">
+        <div className="bg-gradient-to-r from-emerald-600 to-indigo-600 px-6 pt-5 pb-4 text-white">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
               <Compass size={18} />

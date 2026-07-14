@@ -616,7 +616,7 @@ export default function MuroPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar publicaciones..."
-              className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none transition-shadow"
+              className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none transition-shadow"
             />
           </div>
 
@@ -627,7 +627,7 @@ export default function MuroPage() {
                 onClick={() => setTab(t)}
                 className={`pb-2.5 text-sm font-semibold transition-colors border-b-2 whitespace-nowrap flex items-center gap-1.5 ${
                   tab === t
-                    ? "border-cyan-500 text-cyan-700"
+                    ? "border-sky-500 text-sky-700"
                     : "border-transparent text-slate-400 hover:text-slate-600"
                 }`}
               >
@@ -657,8 +657,8 @@ export default function MuroPage() {
                   aria-pressed={active}
                   className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all border ${
                     active
-                      ? "bg-teal-600 text-white border-teal-600 shadow-sm"
-                      : "bg-white text-slate-500 border-slate-200 hover:border-teal-400 hover:text-teal-600"
+                      ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
+                      : "bg-white text-slate-500 border-slate-200 hover:border-indigo-400 hover:text-indigo-600"
                   }`}
                 >
                   {skill}
@@ -862,7 +862,7 @@ export default function MuroPage() {
                         />
                       )}
                       <div className="absolute top-3 right-3">
-                        <span className="bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full text-[10px] font-bold text-cyan-700">
+                        <span className="bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full text-[10px] font-bold text-sky-700">
                           {post.tag}
                         </span>
                       </div>
@@ -918,12 +918,12 @@ export default function MuroPage() {
                         onClick={() => toggleComments(post.id)}
                         disabled={!user}
                         className={`flex items-center gap-1.5 text-sm font-medium transition-all active:scale-90 disabled:opacity-40 ${
-                          expandedPostId === post.id ? "text-cyan-600" : "text-slate-400 hover:text-cyan-500"
+                          expandedPostId === post.id ? "text-sky-600" : "text-slate-400 hover:text-sky-500"
                         }`}
                       >
                         <MessageCircle
                           size={18}
-                          className={`transition-all ${expandedPostId === post.id ? "fill-cyan-100" : ""}`}
+                          className={`transition-all ${expandedPostId === post.id ? "fill-sky-100" : ""}`}
                         />
                         {post.comments}
                       </button>
@@ -1008,7 +1008,7 @@ export default function MuroPage() {
                               className="w-7 h-7 rounded-lg object-cover flex-shrink-0"
                             />
                           ) : (
-                            <div className="w-7 h-7 rounded-lg bg-cyan-100 flex items-center justify-center text-[11px] font-bold text-cyan-600 flex-shrink-0">
+                            <div className="w-7 h-7 rounded-lg bg-sky-100 flex items-center justify-center text-[11px] font-bold text-sky-600 flex-shrink-0">
                               {user.name.charAt(0).toUpperCase()}
                             </div>
                           )}
@@ -1023,12 +1023,12 @@ export default function MuroPage() {
                               }
                             }}
                             placeholder="Escribe un comentario..."
-                            className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none transition-shadow"
+                            className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none transition-shadow"
                           />
                           <button
                             onClick={() => submitComment(post.id)}
                             disabled={!commentDraft.trim() || submittingComment}
-                            className="w-8 h-8 bg-cyan-600 rounded-xl flex items-center justify-center hover:bg-cyan-700 active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex-shrink-0"
+                            className="w-8 h-8 bg-sky-600 rounded-xl flex items-center justify-center hover:bg-sky-700 active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex-shrink-0"
                           >
                             {submittingComment ? (
                               <Loader2 size={13} className="animate-spin text-white" />
@@ -1052,7 +1052,7 @@ export default function MuroPage() {
                 </p>
                 <button
                   onClick={() => { setSearch(""); setTagFilter("Todos"); setTab("Todos"); }}
-                  className="mt-3 text-sm text-cyan-600 font-semibold hover:underline"
+                  className="mt-3 text-sm text-sky-600 font-semibold hover:underline"
                 >
                   Limpiar filtros
                 </button>
@@ -1082,7 +1082,7 @@ export default function MuroPage() {
 
             <div className="bg-white rounded-2xl p-5 border border-slate-200/60 animate-fade-in-up stagger-1">
               <div className="flex items-center gap-2 mb-4">
-                <TrendingUp size={16} className="text-cyan-500" />
+                <TrendingUp size={16} className="text-sky-500" />
                 <span className="font-bold text-sm">Tendencias</span>
               </div>
               <div className="space-y-1">
@@ -1096,7 +1096,7 @@ export default function MuroPage() {
                     >
                       <span className="text-xs font-bold text-slate-300 w-5">#{i + 1}</span>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold group-hover:text-cyan-700 transition-colors">
+                        <p className="text-sm font-semibold group-hover:text-sky-700 transition-colors">
                           {tag}
                         </p>
                         <p className="text-[10px] text-slate-400">{count} publicaciones</p>
@@ -1123,7 +1123,7 @@ export default function MuroPage() {
                       {m.avatar ? (
                         <img src={m.avatar} alt={m.name} className="w-8 h-8 rounded-lg object-cover" />
                       ) : (
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center text-white text-xs font-bold">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center text-white text-xs font-bold">
                           {m.name?.charAt(0).toUpperCase()}
                         </div>
                       )}
@@ -1137,7 +1137,7 @@ export default function MuroPage() {
               </div>
             )}
 
-            <div className="bg-gradient-to-br from-cyan-500 to-teal-600 rounded-2xl p-5 text-white animate-fade-in-up stagger-3">
+            <div className="bg-gradient-to-br from-sky-500 to-indigo-600 rounded-2xl p-5 text-white animate-fade-in-up stagger-3">
               <Flame size={24} className="mb-2 opacity-80" />
               <p className="text-2xl font-extrabold">{posts.length}</p>
               <p className="text-sm opacity-90 mt-1">Publicaciones</p>
@@ -1165,7 +1165,7 @@ export default function MuroPage() {
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               placeholder="Título del proyecto..."
-              className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none transition-shadow"
+              className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none transition-shadow"
             />
           </div>
 
@@ -1177,7 +1177,7 @@ export default function MuroPage() {
               onChange={(e) => setNewDesc(e.target.value)}
               rows={3}
               placeholder="Describe tu proyecto..."
-              className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none resize-none transition-shadow"
+              className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none resize-none transition-shadow"
             />
           </div>
 
@@ -1242,7 +1242,7 @@ export default function MuroPage() {
               <select
                 value={newCategory}
                 onChange={(e) => setNewCategory(e.target.value as "publicacion" | "portafolio" | "oferta")}
-                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 outline-none bg-white"
+                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 outline-none bg-white"
               >
                 {role === "Empresa" ? (
                   <>
@@ -1262,7 +1262,7 @@ export default function MuroPage() {
               <select
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
-                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 outline-none bg-white"
+                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 outline-none bg-white"
               >
                 {TAG_FILTERS.filter((t) => t !== "Todos").map((t) => (
                   <option key={t} value={t}>{t}</option>
@@ -1339,7 +1339,7 @@ export default function MuroPage() {
           <button
             onClick={handleCreate}
             disabled={!newTitle.trim() || isPosting}
-            className="w-full bg-cyan-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-cyan-700 active:bg-cyan-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors btn-press flex items-center justify-center gap-2"
+            className="w-full bg-sky-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-sky-700 active:bg-sky-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors btn-press flex items-center justify-center gap-2"
           >
             {isPosting ? (
               <><Loader2 size={16} className="animate-spin" /> Publicando…</>

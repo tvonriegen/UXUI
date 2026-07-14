@@ -546,7 +546,7 @@ export default function AdministracionPage() {
                             {/* Edit mandatory fields (Epic 2) */}
                             <button
                               onClick={() => openEditModal(s)}
-                              className="text-[10px] font-bold px-2.5 py-1 bg-cyan-50 text-cyan-600 hover:bg-cyan-100 rounded-lg transition-colors"
+                              className="text-[10px] font-bold px-2.5 py-1 bg-sky-50 text-sky-600 hover:bg-sky-100 rounded-lg transition-colors"
                             >
                               Editar datos
                             </button>
@@ -627,7 +627,7 @@ export default function AdministracionPage() {
                             {mgmtSkillsStr.trim() && (
                               <div className="flex flex-wrap gap-1.5 mt-2">
                                 {mgmtSkillsStr.split(",").map((sk) => sk.trim()).filter(Boolean).map((sk) => (
-                                  <span key={sk} className="px-2.5 py-1 bg-teal-50 text-teal-700 border border-teal-100 rounded-full text-[11px] font-semibold">
+                                  <span key={sk} className="px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full text-[11px] font-semibold">
                                     {sk}
                                   </span>
                                 ))}
@@ -636,7 +636,7 @@ export default function AdministracionPage() {
                             <button
                               onClick={handleSaveSkills}
                               disabled={mgmtSaving === "skills"}
-                              className="mt-3 px-4 py-2 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5"
+                              className="mt-3 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5"
                             >
                               {mgmtSaving === "skills"
                                 ? <><Loader2 size={12} className="animate-spin" /> Guardando…</>
@@ -850,7 +850,7 @@ export default function AdministracionPage() {
                     });
                     const specs = Object.entries(specMap).sort((a, b) => b[1] - a[1]);
                     const maxCount = Math.max(...specs.map(([, c]) => c), 1);
-                    const specColors = ["#7c3aed", "#0891b2", "#059669", "#d97706", "#dc2626", "#9333ea"];
+                    const specColors = ["#7c3aed", "#2563eb", "#059669", "#d97706", "#dc2626", "#9333ea"];
                     return specs.length === 0 ? (
                       <p className="text-sm text-slate-400">Sin datos de especialidad.</p>
                     ) : (
@@ -890,8 +890,8 @@ export default function AdministracionPage() {
                     ) : (
                       <div className="flex flex-wrap gap-2">
                         {skills.map(([sk, count]) => (
-                          <span key={sk} className="px-3 py-1.5 bg-teal-50 text-teal-700 border border-teal-100 rounded-full text-xs font-semibold">
-                            {sk} <span className="text-teal-500 font-bold">×{count}</span>
+                          <span key={sk} className="px-3 py-1.5 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full text-xs font-semibold">
+                            {sk} <span className="text-indigo-500 font-bold">×{count}</span>
                           </span>
                         ))}
                       </div>
@@ -968,7 +968,7 @@ export default function AdministracionPage() {
                             )}
                             <div className="flex flex-wrap gap-2 mt-2">
                               {req.specialty && (
-                                <span className="text-[10px] font-semibold bg-cyan-50 text-cyan-700 px-2 py-0.5 rounded-full">
+                                <span className="text-[10px] font-semibold bg-sky-50 text-sky-700 px-2 py-0.5 rounded-full">
                                   {req.specialty}
                                 </span>
                               )}
@@ -1197,7 +1197,7 @@ export default function AdministracionPage() {
               <input
                 value={editRut}
                 onChange={(e) => setEditRut(e.target.value)}
-                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 outline-none"
+                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 outline-none"
                 placeholder="Ej: 12.345.678-9"
               />
             </div>
@@ -1206,7 +1206,7 @@ export default function AdministracionPage() {
               <select
                 value={editGender}
                 onChange={(e) => setEditGender(e.target.value)}
-                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 outline-none bg-white"
+                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 outline-none bg-white"
               >
                 <option value="">Seleccionar…</option>
                 <option value="Masculino">Masculino</option>
@@ -1223,7 +1223,7 @@ export default function AdministracionPage() {
               <input
                 value={editCellphone}
                 onChange={(e) => setEditCellphone(e.target.value)}
-                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 outline-none"
+                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 outline-none"
                 placeholder="Ej: +56912345678"
               />
             </div>
@@ -1234,7 +1234,7 @@ export default function AdministracionPage() {
                 min={10} max={100}
                 value={editAge}
                 onChange={(e) => setEditAge(e.target.value === "" ? "" : Number(e.target.value))}
-                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 outline-none"
+                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 outline-none"
                 placeholder="Ej: 17"
               />
             </div>
@@ -1245,7 +1245,7 @@ export default function AdministracionPage() {
             <input
               value={editClassName}
               onChange={(e) => setEditClassName(e.target.value)}
-              className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 outline-none"
+              className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 outline-none"
               placeholder="Ej: 3°A Mecatrónica"
             />
           </div>
@@ -1256,7 +1256,7 @@ export default function AdministracionPage() {
               <select
                 value={editSpecialty}
                 onChange={(e) => setEditSpecialty(e.target.value)}
-                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 outline-none bg-white"
+                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 outline-none bg-white"
               >
                 <option value="">Sin cambios</option>
                 {TP_SPECIALTIES.map((sp) => (
@@ -1269,7 +1269,7 @@ export default function AdministracionPage() {
               <input
                 value={editGrade}
                 onChange={(e) => setEditGrade(e.target.value)}
-                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 outline-none"
+                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 outline-none"
                 placeholder="Ej: 3er año"
               />
             </div>
@@ -1278,7 +1278,7 @@ export default function AdministracionPage() {
           <button
             onClick={handleSaveEdit}
             disabled={editSaving}
-            className="w-full bg-cyan-600 hover:bg-cyan-700 disabled:opacity-40 text-white py-3 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2"
+            className="w-full bg-sky-600 hover:bg-sky-700 disabled:opacity-40 text-white py-3 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2"
           >
             {editSaving ? <><Loader2 size={16} className="animate-spin" /> Guardando…</> : "Guardar cambios"}
           </button>

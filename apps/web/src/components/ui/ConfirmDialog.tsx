@@ -80,7 +80,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
               onClick={() => finish(true)}
               disabled={busy}
               className={`px-4 py-2.5 rounded-xl text-sm font-bold text-white btn-press disabled:opacity-40 flex items-center gap-1.5 ${
-                opts?.danger ? "bg-red-600 hover:bg-red-700" : "bg-cyan-600 hover:bg-cyan-700"
+                opts?.danger ? "bg-red-600 hover:bg-red-700" : "bg-sky-600 hover:bg-sky-700"
               }`}
             >
               {busy && <Loader2 size={14} className="animate-spin" />}

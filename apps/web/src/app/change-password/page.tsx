@@ -100,7 +100,7 @@ export default function ChangePasswordPage() {
             <h1 className="text-2xl font-extrabold text-white tracking-tight">
               Establece tu contraseña
             </h1>
-            <p className="text-cyan-100 text-sm mt-1">
+            <p className="text-sky-100 text-sm mt-1">
               Por seguridad, debes crear una nueva contraseña antes de continuar.
             </p>
           </div>
@@ -136,7 +136,7 @@ export default function ChangePasswordPage() {
                 value={newPassword}
                 onChange={(e) => { setNewPassword(e.target.value); setError(""); }}
                 placeholder={`Mín. ${MIN_LENGTH} caracteres`}
-                className="w-full px-4 py-3 pr-11 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none transition-all"
+                className="w-full px-4 py-3 pr-11 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none transition-all"
               />
               <button
                 type="button"
@@ -176,7 +176,7 @@ export default function ChangePasswordPage() {
               value={confirm}
               onChange={(e) => { setConfirm(e.target.value); setError(""); }}
               placeholder="Repite tu contraseña"
-              className={`w-full px-4 py-3 bg-slate-50 border rounded-xl text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none transition-all ${
+              className={`w-full px-4 py-3 bg-slate-50 border rounded-xl text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none transition-all ${
                 mismatch ? "border-red-300 bg-red-50" : "border-slate-200"
               }`}
             />
@@ -188,7 +188,7 @@ export default function ChangePasswordPage() {
           <button
             type="submit"
             disabled={isSubmitting || success || !newPassword || !confirm || mismatch}
-            className="w-full primary-gradient text-white py-3.5 rounded-xl font-bold text-sm hover:opacity-90 active:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md shadow-cyan-200/40 flex items-center justify-center gap-2"
+            className="w-full primary-gradient text-white py-3.5 rounded-xl font-bold text-sm hover:opacity-90 active:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md shadow-sky-200/40 flex items-center justify-center gap-2"
           >
             {isSubmitting ? (
               <>

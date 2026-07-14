@@ -130,5 +130,5 @@ const STYLES: Record<ToastType, { wrapper: string; iconColor: string; icon: type
   success: { wrapper: "bg-emerald-50/95 border-emerald-200 text-emerald-900", iconColor: "text-emerald-600", icon: CheckCircle2 },
   error:   { wrapper: "bg-red-50/95 border-red-200 text-red-900",             iconColor: "text-red-600",     icon: AlertCircle  },
   warning: { wrapper: "bg-amber-50/95 border-amber-200 text-amber-900",       iconColor: "text-amber-600",   icon: AlertCircle  },
-  info:    { wrapper: "bg-white/95 border-slate-200 text-slate-800",          iconColor: "text-cyan-600",    icon: Info         },
+  info:    { wrapper: "bg-white/95 border-slate-200 text-slate-800",          iconColor: "text-sky-600",    icon: Info         },
 };

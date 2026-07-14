@@ -125,8 +125,8 @@ export default function DashboardEmpresa() {
         <StatCard
           label="Empleados"
           value={profile.employee_count ?? "—"}
-          icon={<Users size={20} className="text-cyan-500" />}
-          bg="bg-cyan-50"
+          icon={<Users size={20} className="text-sky-500" />}
+          bg="bg-sky-50"
           delay={2}
         />
         <StatCard
@@ -283,7 +283,7 @@ export default function DashboardEmpresa() {
             <div className="space-y-1">
               {[
                 { href: "/talent",   icon: <Search        size={16} className="text-violet-500" />, bg: "bg-violet-50",  label: "Buscar Talento" },
-                { href: "/profile",  icon: <Building2     size={16} className="text-cyan-500" />,   bg: "bg-cyan-50",    label: "Editar Perfil"  },
+                { href: "/profile",  icon: <Building2     size={16} className="text-sky-500" />,   bg: "bg-sky-50",    label: "Editar Perfil"  },
                 { href: "/messages", icon: <MessageSquare size={16} className="text-emerald-500" />, bg: "bg-emerald-50", label: "Mensajes"       },
                 { href: "/muro",     icon: <Star          size={16} className="text-amber-500" />,   bg: "bg-amber-50",   label: "El Muro"        },
               ].map((a) => (

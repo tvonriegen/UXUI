@@ -406,10 +406,10 @@ export default function SmartImporter({ onClose, onSuccess }: Props) {
           <div className="flex items-center gap-1">
             {STEPS.map((s, i) => (
               <div key={s.key} className="flex items-center gap-1 flex-1">
-                <div className={`flex items-center gap-1.5 flex-1 ${i <= stepIndex ? "text-cyan-600" : "text-slate-300"}`}>
+                <div className={`flex items-center gap-1.5 flex-1 ${i <= stepIndex ? "text-sky-600" : "text-slate-300"}`}>
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-colors ${
                     i < stepIndex ? "bg-emerald-500 text-white" :
-                    i === stepIndex ? "bg-cyan-600 text-white" : "bg-slate-100 text-slate-400"
+                    i === stepIndex ? "bg-sky-600 text-white" : "bg-slate-100 text-slate-400"
                   }`}>
                     {i < stepIndex ? <CheckCircle2 size={12} /> : i + 1}
                   </div>
@@ -435,10 +435,10 @@ export default function SmartImporter({ onClose, onSuccess }: Props) {
                 onDragLeave={() => setDragging(false)}
                 onClick={() => fileRef.current?.click()}
                 className={`flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-2xl py-16 cursor-pointer transition-all ${
-                  dragging ? "border-cyan-400 bg-cyan-50" : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                  dragging ? "border-sky-400 bg-sky-50" : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
                 }`}
               >
-                <Upload size={32} className={dragging ? "text-cyan-500" : "text-slate-300"} />
+                <Upload size={32} className={dragging ? "text-sky-500" : "text-slate-300"} />
                 <div className="text-center">
                   <p className="font-semibold text-slate-700 text-sm">Arrastra tu archivo aquí</p>
                   <p className="text-xs text-slate-400 mt-1">o haz clic para seleccionar</p>
@@ -571,7 +571,7 @@ export default function SmartImporter({ onClose, onSuccess }: Props) {
                                     className={`w-full min-w-[80px] px-2 py-1 rounded-lg text-[11px] border outline-none bg-transparent ${
                                       err
                                         ? "border-red-300 text-red-700 placeholder-red-300"
-                                        : "border-transparent focus:border-cyan-300 focus:bg-white"
+                                        : "border-transparent focus:border-sky-300 focus:bg-white"
                                     } ${!col ? "opacity-30 cursor-not-allowed" : ""}`}
                                   />
                                   {err && <p className="text-[9px] text-red-500 mt-0.5 px-1">{err}</p>}
@@ -598,10 +598,10 @@ export default function SmartImporter({ onClose, onSuccess }: Props) {
             <div className="space-y-5 py-4">
               {importing && (
                 <div className="text-center space-y-4">
-                  <Loader2 size={40} className="animate-spin text-cyan-500 mx-auto" />
+                  <Loader2 size={40} className="animate-spin text-sky-500 mx-auto" />
                   <p className="text-sm font-semibold text-slate-600">Creando cuentas de estudiantes…</p>
                   <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-cyan-400 to-teal-500 rounded-full transition-all duration-300" style={{ width: `${importProgress}%` }} />
+                    <div className="h-full bg-gradient-to-r from-sky-400 to-indigo-500 rounded-full transition-all duration-300" style={{ width: `${importProgress}%` }} />
                   </div>
                   <p className="text-xs text-slate-400">{importProgress}% completado</p>
                 </div>
@@ -664,7 +664,7 @@ export default function SmartImporter({ onClose, onSuccess }: Props) {
               <button
                 onClick={buildStudents}
                 disabled={REQUIRED_FIELDS.some((f) => !mapping[f])}
-                className="flex items-center gap-1.5 bg-cyan-600 hover:bg-cyan-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-colors"
+                className="flex items-center gap-1.5 bg-sky-600 hover:bg-sky-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-colors"
               >
                 Validar datos <ChevronRight size={16} />
               </button>

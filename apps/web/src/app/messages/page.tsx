@@ -410,7 +410,7 @@ export default function MessagesPage() {
             <div className="flex items-center gap-2 mb-3">
               <h2 className="text-lg font-bold flex-1">Mensajes</h2>
               {totalUnread > 0 && (
-                <span className="bg-cyan-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center">
+                <span className="bg-sky-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center">
                   {totalUnread > 99 ? "99+" : totalUnread}
                 </span>
               )}
@@ -446,14 +446,14 @@ export default function MessagesPage() {
                   type="text" value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Buscar conversación..."
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-cyan-200 outline-none"
+                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-200 outline-none"
                 />
               ) : (
                 <input
                   type="text" value={studentSearch}
                   onChange={(e) => setStudentSearch(e.target.value)}
                   placeholder="Buscar estudiante..."
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-cyan-200 outline-none"
+                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-200 outline-none"
                 />
               )}
             </div>
@@ -463,7 +463,7 @@ export default function MessagesPage() {
           {leftTab === "students" && role === "Colegio" && (
             <div className="flex-1 overflow-y-auto thin-scrollbar divide-y divide-slate-100">
               {loadingStudents && (
-                <div className="flex justify-center py-10"><Loader2 size={24} className="animate-spin text-cyan-400" /></div>
+                <div className="flex justify-center py-10"><Loader2 size={24} className="animate-spin text-sky-400" /></div>
               )}
               {!loadingStudents && students.filter((s) =>
                 s.name.toLowerCase().includes(studentSearch.toLowerCase())
@@ -479,7 +479,7 @@ export default function MessagesPage() {
                     disabled={startingConvo === s.id}
                     className="w-full flex items-center gap-3 p-4 hover:bg-slate-50/80 transition-colors text-left disabled:opacity-60"
                   >
-                    <div className="w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center text-sm font-bold text-cyan-700 shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center text-sm font-bold text-sky-700 shrink-0">
                       {s.avatar
                         ? <img src={s.avatar} alt={s.name} className="w-10 h-10 rounded-full object-cover" />
                         : s.name.charAt(0).toUpperCase()}
@@ -490,7 +490,7 @@ export default function MessagesPage() {
                         {[s.class_name, s.specialty].filter(Boolean).join(" · ") || "Estudiante"}
                       </p>
                     </div>
-                    {startingConvo === s.id && <Loader2 size={14} className="animate-spin text-cyan-500 shrink-0" />}
+                    {startingConvo === s.id && <Loader2 size={14} className="animate-spin text-sky-500 shrink-0" />}
                   </button>
                 ))}
             </div>
@@ -500,7 +500,7 @@ export default function MessagesPage() {
           {leftTab === "convos" && (
           <div className="flex-1 overflow-y-auto thin-scrollbar divide-y divide-slate-100">
             {loadingConvos && (
-              <div className="flex justify-center py-10"><Loader2 size={24} className="animate-spin text-cyan-400" /></div>
+              <div className="flex justify-center py-10"><Loader2 size={24} className="animate-spin text-sky-400" /></div>
             )}
             {!loadingConvos && filtered.length === 0 && (
               <div className="text-center py-10 text-sm text-slate-400">No hay conversaciones aún.</div>
@@ -509,7 +509,7 @@ export default function MessagesPage() {
               <button key={c.id} onClick={() => openConvo(c)}
                 className={`w-full flex items-center gap-3 p-4 transition-colors text-left ${
                   activeConvo?.id === c.id
-                    ? "bg-cyan-50/60"
+                    ? "bg-sky-50/60"
                     : c.unread > 0
                     ? "bg-white hover:bg-slate-50/80"
                     : "hover:bg-slate-50/80"
@@ -520,7 +520,7 @@ export default function MessagesPage() {
                   {c.other.avatar ? (
                     <img src={c.other.avatar} alt={c.other.name} className="w-11 h-11 rounded-full object-cover" />
                   ) : (
-                    <div className="w-11 h-11 rounded-full bg-cyan-100 flex items-center justify-center text-sm font-bold text-cyan-700">
+                    <div className="w-11 h-11 rounded-full bg-sky-100 flex items-center justify-center text-sm font-bold text-sky-700">
                       {c.other.name.charAt(0).toUpperCase()}
                     </div>
                   )}
@@ -540,13 +540,13 @@ export default function MessagesPage() {
                     <p className={`text-xs truncate ${c.unread > 0 ? "text-slate-700 font-medium" : "text-slate-400"}`}>
                       {c.lastSenderId === user?.id && (
                         <span className="mr-0.5 inline-flex items-center">
-                          <CheckCheck size={11} className="text-cyan-500" />
+                          <CheckCheck size={11} className="text-sky-500" />
                         </span>
                       )}
                       {c.lastPreview || <span className="italic">Sin mensajes</span>}
                     </p>
                     {c.unread > 0 && (
-                      <span className="bg-cyan-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shrink-0">
+                      <span className="bg-sky-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shrink-0">
                         {c.unread > 99 ? "99+" : c.unread}
                       </span>
                     )}
@@ -570,7 +570,7 @@ export default function MessagesPage() {
                 {activeConvo.other.avatar ? (
                   <img src={activeConvo.other.avatar} alt={activeConvo.other.name} className="w-9 h-9 rounded-full object-cover" />
                 ) : (
-                  <div className="w-9 h-9 rounded-full bg-cyan-100 flex items-center justify-center text-sm font-bold text-cyan-700">
+                  <div className="w-9 h-9 rounded-full bg-sky-100 flex items-center justify-center text-sm font-bold text-sky-700">
                     {activeConvo.other.name.charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -587,7 +587,7 @@ export default function MessagesPage() {
 
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-3 thin-scrollbar">
-                {loadingMsgs && <div className="flex justify-center py-10"><Loader2 size={24} className="animate-spin text-cyan-400" /></div>}
+                {loadingMsgs && <div className="flex justify-center py-10"><Loader2 size={24} className="animate-spin text-sky-400" /></div>}
                 {!loadingMsgs && messages.length === 0 && (
                   <div className="text-center py-10 text-sm text-slate-400">No hay mensajes aún. ¡Envía el primero!</div>
                 )}
@@ -617,11 +617,11 @@ export default function MessagesPage() {
                     <div key={m.id} className={`flex ${isMe ? "justify-end" : "justify-start"} group`}>
                       <div className={`max-w-[75%] px-3.5 py-2.5 rounded-2xl text-sm relative ${
                         isMe
-                          ? "bg-cyan-600 text-white rounded-br-sm shadow-sm"
+                          ? "bg-sky-600 text-white rounded-br-sm shadow-sm"
                           : "bg-white border border-slate-200/80 text-slate-700 rounded-bl-sm shadow-sm"
                       }`}>
                         {m.content}
-                        <div className={`flex items-center justify-end gap-1 mt-1 ${isMe ? "text-cyan-200" : "text-slate-400"}`}>
+                        <div className={`flex items-center justify-end gap-1 mt-1 ${isMe ? "text-sky-200" : "text-slate-400"}`}>
                           <span className="text-[10px]">{fmtTime(m.created_at)}</span>
                           {isMe && (
                             isOptimistic
@@ -653,10 +653,10 @@ export default function MessagesPage() {
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
                   placeholder="Escribe un mensaje..."
-                  className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 outline-none"
+                  className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 outline-none"
                 />
                 <button onClick={send} disabled={!input.trim() || sending}
-                  className="bg-cyan-600 text-white p-2.5 rounded-full hover:bg-cyan-700 active:bg-cyan-800 disabled:opacity-40 transition-colors btn-press"
+                  className="bg-sky-600 text-white p-2.5 rounded-full hover:bg-sky-700 active:bg-sky-800 disabled:opacity-40 transition-colors btn-press"
                 >
                   {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                 </button>

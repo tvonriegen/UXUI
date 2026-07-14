@@ -47,4 +47,4 @@ The web app runs at `http://localhost:3000` by default.
 
 ## Current Status
 
-MVP in active restructuring. Some legacy ClassLink naming can remain in historical migrations until it is safe to remove without losing traceability.
+MVP in active restructuring. Active product surfaces and documentation are standardized on the TalentHub brand.

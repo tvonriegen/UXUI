@@ -33,7 +33,7 @@ export default function TrustTriangle({
 
   // Three axes at 120° apart, starting at top
   const axes = [
-    { key: "academica"   as const, label: "Académica",   angle: -Math.PI / 2,                     color: "#06b6d4" },
+    { key: "academica"   as const, label: "Académica",   angle: -Math.PI / 2,                     color: "#60a5fa" },
     { key: "profesional" as const, label: "Profesional", angle: -Math.PI / 2 + (2 * Math.PI / 3), color: "#f59e0b" },
     { key: "social"      as const, label: "Social",      angle: -Math.PI / 2 + (4 * Math.PI / 3), color: "#8b5cf6" },
   ];
@@ -95,8 +95,8 @@ export default function TrustTriangle({
       {/* Data polygon */}
       <polygon
         points={dataPts}
-        fill="rgba(6,182,212,.2)"
-        stroke="#06b6d4"
+        fill="rgba(96,165,250,.2)"
+        stroke="#60a5fa"
         strokeWidth={2}
         style={{ transition: "all 800ms cubic-bezier(.2,.7,.2,1)" }}
       />

@@ -100,8 +100,8 @@ function Toggle({
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className={`relative inline-flex w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-300 focus:ring-offset-2 ${
-        checked ? "bg-cyan-600" : "bg-slate-200"
+      className={`relative inline-flex w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:ring-offset-2 ${
+        checked ? "bg-sky-600" : "bg-slate-200"
       }`}
     >
       <span
@@ -266,14 +266,14 @@ export default function ConfigModal({ open, onClose }: ConfigModalProps) {
           <SectionHeader label="Idioma" />
 
           <SettingRow
-            icon={<Globe size={16} className="text-cyan-500" />}
+            icon={<Globe size={16} className="text-sky-500" />}
             label="Idioma de la app"
             sub="Español / English"
             right={
               <select
                 value={config.language}
                 onChange={(e) => update("language", e.target.value as "es" | "en")}
-                className="text-sm border border-slate-200 rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-cyan-200 bg-white"
+                className="text-sm border border-slate-200 rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-sky-200 bg-white"
               >
                 <option value="es">Español</option>
                 <option value="en">English</option>
@@ -330,14 +330,14 @@ export default function ConfigModal({ open, onClose }: ConfigModalProps) {
               {user.avatar ? (
                 <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-xl object-cover" />
               ) : (
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center text-white font-bold">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center text-white font-bold">
                   {user.name?.charAt(0).toUpperCase()}
                 </div>
               )}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800 truncate">{user.name}</p>
                 <p className="text-[11px] text-slate-400 truncate">{user.email}</p>
-                <span className="text-[10px] bg-cyan-50 text-cyan-700 px-1.5 py-0.5 rounded font-medium">
+                <span className="text-[10px] bg-sky-50 text-sky-700 px-1.5 py-0.5 rounded font-medium">
                   {user.role}
                 </span>
               </div>

@@ -203,8 +203,8 @@ export default function DashboardColegio() {
         <StatCard
           label="Estudiantes"
           value={profile.student_count ?? "—"}
-          icon={<GraduationCap size={20} className="text-cyan-500" />}
-          bg="bg-cyan-50"
+          icon={<GraduationCap size={20} className="text-sky-500" />}
+          bg="bg-sky-50"
           delay={2}
         />
         <StatCard
@@ -328,7 +328,7 @@ export default function DashboardColegio() {
 
         {/* Right sidebar */}
         <div className="space-y-5">
-          <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 text-white animate-fade-in-up stagger-1">
+          <div className="bg-gradient-to-br from-emerald-500 to-indigo-600 rounded-2xl p-5 text-white animate-fade-in-up stagger-1">
             <TrendingUp size={28} className="mb-2 opacity-80" />
             <p className="text-3xl font-extrabold">
               {profile.employability_rate != null ? `${profile.employability_rate}%` : "—"}
@@ -369,7 +369,7 @@ export default function DashboardColegio() {
             <div className="space-y-1">
               {[
                 { href: "/talent",   icon: <Search        size={16} className="text-amber-500" />,   bg: "bg-amber-50",   label: "Explorar Talento"  },
-                { href: "/profile",  icon: <Building2     size={16} className="text-cyan-500" />,     bg: "bg-cyan-50",    label: "Perfil del Centro" },
+                { href: "/profile",  icon: <Building2     size={16} className="text-sky-500" />,     bg: "bg-sky-50",    label: "Perfil del Centro" },
                 { href: "/messages", icon: <MessageSquare size={16} className="text-emerald-500" />,  bg: "bg-emerald-50", label: "Mensajes"           },
                 { href: "/muro",     icon: <GraduationCap size={16} className="text-violet-500" />,   bg: "bg-violet-50",  label: "El Muro"            },
               ].map((a) => (

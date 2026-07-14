@@ -60,11 +60,11 @@ const scoreColorMap: Record<
     bar: "bg-emerald-500",
   },
   cyan: {
-    border: "border-cyan-100",
-    bg: "bg-cyan-50/40",
-    iconBg: "bg-cyan-100",
-    text: "text-cyan-700",
-    bar: "bg-cyan-500",
+    border: "border-sky-100",
+    bg: "bg-sky-50/40",
+    iconBg: "bg-sky-100",
+    text: "text-sky-700",
+    bar: "bg-sky-500",
   },
   amber: {
     border: "border-amber-100",

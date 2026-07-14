@@ -8,7 +8,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
-const COLORS = ["#f59e0b", "#10b981", "#06b6d4", "#8b5cf6", "#ec4899", "#3b82f6", "#f43f5e"];
+const COLORS = ["#f59e0b", "#10b981", "#60a5fa", "#8b5cf6", "#ec4899", "#3b82f6", "#f43f5e"];
 
 export default function Confetti({ show, pieces = 80 }: { show: boolean; pieces?: number }) {
   const [mounted, setMounted] = useState(false);

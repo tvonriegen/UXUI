@@ -94,7 +94,7 @@ function ReadinessListItem({ item }: { item: ReadinessItem }) {
         {item.actionLabel && item.type !== "blocking" && (
           <Link
             href="/profile"
-            className="inline-flex mt-2 h-12 min-w-12 items-center justify-center px-3 text-xs font-bold text-cyan-700 hover:text-cyan-800 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 rounded"
+            className="inline-flex mt-2 h-12 min-w-12 items-center justify-center px-3 text-xs font-bold text-sky-700 hover:text-sky-800 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 rounded"
           >
             {item.actionLabel}
           </Link>
@@ -137,7 +137,7 @@ export default function ApplicationReadinessPanel({
     >
       {/* Header */}
       <div className="flex items-start gap-3">
-        <div className="shrink-0 w-11 h-11 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center">
+        <div className="shrink-0 w-11 h-11 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
           <UserCircle size={22} aria-hidden="true" />
         </div>
         <div className="flex-1 min-w-0">
@@ -145,7 +145,7 @@ export default function ApplicationReadinessPanel({
             id={headingId}
             ref={headingRef}
             tabIndex={-1}
-            className="text-lg font-extrabold text-slate-800 leading-snug outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 rounded"
+            className="text-lg font-extrabold text-slate-800 leading-snug outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 rounded"
           >
             Prepara tu postulación
           </h2>
@@ -187,7 +187,7 @@ export default function ApplicationReadinessPanel({
       {/* Optional match score */}
       {score !== undefined && label !== undefined && (
         <div className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/40 p-3">
-          <div className="shrink-0 w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-cyan-600">
+          <div className="shrink-0 w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-sky-600">
             <Sparkles size={18} aria-hidden="true" />
           </div>
           <div>
@@ -237,7 +237,7 @@ export default function ApplicationReadinessPanel({
 
         <Link
           href="/profile"
-          className="h-12 px-4 py-2.5 rounded-xl text-sm font-bold text-cyan-700 bg-cyan-50 border border-cyan-100 hover:bg-cyan-100 hover:text-cyan-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 transition-colors flex items-center justify-center gap-2"
+          className="h-12 px-4 py-2.5 rounded-xl text-sm font-bold text-sky-700 bg-sky-50 border border-sky-100 hover:bg-sky-100 hover:text-sky-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 transition-colors flex items-center justify-center gap-2"
         >
           <UserCog size={16} aria-hidden="true" />
           Mejorar mi perfil
@@ -249,7 +249,7 @@ export default function ApplicationReadinessPanel({
             onClick={onSubmit}
             disabled={isApplying || !readiness.canApply}
             aria-busy={isApplying}
-            className="h-12 flex-1 px-4 py-3 rounded-xl text-sm font-bold text-white bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 transition-colors flex items-center justify-center gap-2"
+            className="h-12 flex-1 px-4 py-3 rounded-xl text-sm font-bold text-white bg-sky-600 hover:bg-sky-700 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 transition-colors flex items-center justify-center gap-2"
           >
             {isApplying ? (
               <>

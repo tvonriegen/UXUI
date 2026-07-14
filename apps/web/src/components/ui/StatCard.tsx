@@ -9,7 +9,7 @@
 //  label   – Descriptive text shown below the value (e.g. "Nivel Actual")
 //  value   – The metric to display (number or string)
 //  icon    – A Lucide icon element pre-sized and coloured by the caller
-//  bg      – Tailwind background class for the icon pill (e.g. "bg-cyan-50")
+//  bg      – Tailwind background class for the icon pill (e.g. "bg-sky-50")
 //  delay   – Stagger index (1–6) for sequential entrance animations in grids
 //  className – Additional Tailwind classes if needed
 // ──────────────────────────────────────────────────────────
