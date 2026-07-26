@@ -19,7 +19,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Bell, X, LogOut, User as UserIcon, Search, Plus } from "lucide-react";
 
 export default function TopNavBar() {
-  const { notifications, unreadCount, markRead, markAllRead } = useRole();
+  const { role, notifications, unreadCount, markRead, markAllRead } = useRole();
   const { user, logout } = useAuth();
   const router = useRouter();
 
@@ -60,7 +60,8 @@ export default function TopNavBar() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQ.trim()) {
-      router.push(`/talent?q=${encodeURIComponent(searchQ.trim())}`);
+      const target = role === "Estudiante" || role === "Egresado" ? "/empleos" : "/talent";
+      router.push(`${target}?q=${encodeURIComponent(searchQ.trim())}`);
       setSearchQ("");
     }
   };
@@ -96,7 +97,9 @@ export default function TopNavBar() {
             id="global-search"
             value={searchQ}
             onChange={(e) => setSearchQ(e.target.value)}
-            placeholder="Buscar personas, empleos, empresas…"
+            placeholder={role === "Estudiante" || role === "Egresado"
+              ? "Buscar oportunidades…"
+              : "Buscar talento por nombre o especialidad…"}
             className="flex-1 bg-transparent border-none outline-none text-[13.5px] text-slate-700 placeholder-slate-400"
           />
           <span className="text-[10px] text-slate-400 font-semibold px-1.5 py-0.5 border border-slate-300/60 rounded bg-white shrink-0 hidden xl:block">

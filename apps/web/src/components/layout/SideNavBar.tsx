@@ -160,7 +160,7 @@ export default function SideNavBar() {
                 )}
               </span>
 
-              <span>{link.label}</span>
+              <span>{link.path === "/talent" && role === "Estudiante" ? "Actividades" : link.label}</span>
 
               {link.path === "/messages" && unreadCount > 0 && (
                 <span className="ml-auto text-[10px] font-bold bg-red-500 text-white px-1.5 py-0.5 rounded-full min-w-[18px] text-center">

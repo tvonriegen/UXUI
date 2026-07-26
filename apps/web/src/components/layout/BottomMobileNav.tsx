@@ -75,7 +75,7 @@ export default function BottomMobileNav() {
 
             {/* Label text */}
             <span className={`text-[9px] ${isActive ? "font-bold" : "font-medium"}`}>
-              {link.label}
+              {link.path === "/talent" && role === "Estudiante" ? "Actividades" : link.label}
             </span>
           </Link>
         );

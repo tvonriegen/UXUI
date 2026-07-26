@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import { useRole } from "@/lib/role-context";
 import { useAuth } from "@/lib/auth-context";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { TP_SPECIALTIES } from "@/lib/specialties";
 import ContactTalentButton from "@/components/contact-routing/ContactTalentButton";
@@ -369,6 +370,7 @@ const PAGE_SIZE = 20;
 export default function TalentPage() {
   const { role: viewerRole } = useRole();
   const { user } = useAuth();
+  const searchParams = useSearchParams();
 
   // All hooks must come before any conditional return
   const [profiles, setProfiles] = useState<TalentProfile[]>([]);
@@ -385,7 +387,7 @@ export default function TalentPage() {
     requestContact,
   } = useContactTalent();
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(() => searchParams.get("q") ?? "");
   const [specialty, setSpecialty] = useState("Todas");
   const [roleFilter, setRoleFilter] = useState<string>("Todos");
   const [availability, setAvailability] = useState<string>("Todos");
@@ -407,7 +409,12 @@ export default function TalentPage() {
     if (specialty !== "Todas") query = query.eq("specialty", specialty);
     if (roleFilter !== "Todos") query = query.eq("role", roleFilter);
     if (availability !== "Todos") query = query.eq("availability", availability);
-    if (search.trim()) query = query.ilike("name", `%${search.trim()}%`);
+    const safeSearch = search.trim().replace(/[(),%]/g, " ").slice(0, 80);
+    if (safeSearch) {
+      query = query.or(
+        `name.ilike.%${safeSearch}%,specialty.ilike.%${safeSearch}%,title.ilike.%${safeSearch}%`
+      );
+    }
 
     switch (sortBy) {
       case "level": query = query.order("level", { ascending: false }); break;
@@ -425,6 +432,11 @@ export default function TalentPage() {
     setLoading(false);
     setLoadingMore(false);
   }, [specialty, roleFilter, availability, search, sortBy]);
+
+  useEffect(() => {
+    const query = searchParams.get("q") ?? "";
+    setSearch((current) => current === query ? current : query);
+  }, [searchParams]);
 
   useEffect(() => { setPage(0); fetchProfiles(0, false); }, [fetchProfiles]);
 
