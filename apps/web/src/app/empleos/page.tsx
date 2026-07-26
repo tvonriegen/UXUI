@@ -494,10 +494,39 @@ export default function EmpleosPage() {
   const handleApply = async (jobId: string): Promise<boolean> => {
     if (!user?.id) return false;
     if (applying === jobId || appliedIds.has(jobId)) return false;
+
+    const job = jobs.find((item) => item.id === jobId);
+    if (!job) return false;
+
+    const readiness = getJobReadiness(job);
+    if (!readiness.canApply) {
+      toast({ type: "error", title: "No se puede enviar la postulación", description: readiness.summary });
+      return false;
+    }
+
+    const readinessSnapshot = {
+      modelVersion: readiness.modelVersion,
+      overallState: readiness.overallState,
+      summary: readiness.summary,
+      canApply: readiness.canApply,
+      blockingIssueIds: readiness.blockingIssues.map((item) => item.id),
+      recommendationIds: readiness.recommendations.map((item) => item.id),
+      completedItemIds: readiness.completedItems.map((item) => item.id),
+    };
+    const readinessCheckedAt = new Date().toISOString();
+
     setApplying(jobId);
     const { error: err } = await supabase
       .from("job_applications")
-      .insert({ job_id: jobId, applicant_id: user.id, student_id: user.id, status: "pending" });
+      .insert({
+        job_id: jobId,
+        applicant_id: user.id,
+        student_id: user.id,
+        status: "pending",
+        readiness_snapshot: readinessSnapshot,
+        readiness_model_version: readiness.modelVersion,
+        readiness_checked_at: readinessCheckedAt,
+      });
 
     let success = false;
     if (!err) {

@@ -14,6 +14,7 @@
     "verify:interviews-privacy-rls": "node scripts/verify-interviews-privacy-rls.mjs",
     "verify:explainable-match": "node scripts/verify-explainable-match.mjs",
     "verify:application-readiness": "node scripts/verify-application-readiness.mjs",
+    "verify:readiness-timeline": "node scripts/verify-readiness-timeline.mjs",
     "install:web": "npm --prefix apps/web install",
     "clean": "rm -rf apps/web/.next apps/web/out apps/web/coverage"
   },

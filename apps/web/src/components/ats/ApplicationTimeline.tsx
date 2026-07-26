@@ -6,11 +6,11 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import {
-  Send, Eye, ClipboardList, Mic, Trophy, XCircle, CheckCircle2, Clock, Loader2,
+  Send, Eye, ClipboardList, ClipboardCheck, Mic, Trophy, XCircle, CheckCircle2, Clock, Loader2,
 } from "lucide-react";
 
 export type AtsEventType =
-  | "applied" | "viewed" | "reviewing" | "interviewing"
+  | "readiness_checked" | "applied" | "viewed" | "reviewing" | "interviewing"
   | "accepted" | "rejected" | "hired" | "note";
 
 interface TimelineProps {
@@ -23,6 +23,7 @@ interface EventRow {
   event_type: AtsEventType;
   created_at: string;
   note:       string;
+  metadata?:  Record<string, unknown> | null;
 }
 
 // Static classes so Tailwind JIT always includes them
@@ -49,6 +50,7 @@ const STEP_LINE_ACTIVE: Record<string, string> = {
 };
 
 const STEPS: { type: AtsEventType; label: string; icon: typeof Send; tint: string }[] = [
+  { type: "readiness_checked", label: "Perfil revisado", icon: ClipboardCheck, tint: "sky" },
   { type: "applied",      label: "Postulado",    icon: Send,          tint: "cyan"    },
   { type: "viewed",       label: "Visto",        icon: Eye,           tint: "sky"     },
   { type: "reviewing",    label: "En revisión",  icon: ClipboardList, tint: "sky"     },
@@ -96,6 +98,7 @@ export default function ApplicationTimeline({ applicationId, compact = false }: 
 
   const rejected = events.some((e) => e.event_type === "rejected");
   const eventMap = new Map(events.map((e) => [e.event_type, e]));
+  const readinessEvent = eventMap.get("readiness_checked");
 
   if (loading) {
     return (
@@ -161,6 +164,13 @@ export default function ApplicationTimeline({ applicationId, compact = false }: 
           })}
         </div>
       </div>
+
+      {readinessEvent?.note && (
+        <div className="mt-3 flex items-start gap-2 rounded-xl border border-sky-100 bg-sky-50/60 px-3 py-2 text-xs text-sky-700">
+          <ClipboardCheck size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
+          <span>{readinessEvent.note}</span>
+        </div>
+      )}
 
       {rejected && (
         <div className="mt-3 bg-red-50 border border-red-200 text-red-700 rounded-xl px-3 py-2 text-xs flex items-center gap-2">

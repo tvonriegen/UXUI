@@ -34,6 +34,7 @@ jobs:
           npm run verify:interviews-privacy-rls
           npm run verify:explainable-match
           npm run verify:application-readiness
+          npm run verify:readiness-timeline
 
       - name: Lint
         run: npm run lint
