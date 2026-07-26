@@ -195,11 +195,14 @@ CREATE TABLE IF NOT EXISTS job_applications (
   student_id   UUID        NOT NULL REFERENCES profiles(id)     ON DELETE CASCADE,
   status       TEXT        NOT NULL DEFAULT 'pendiente'
                            CHECK (status IN ('pendiente','en_revision','aceptado','rechazado')),
-  cover_letter TEXT        NOT NULL DEFAULT '',
-  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE (job_id, student_id)
-);
+   cover_letter TEXT        NOT NULL DEFAULT '',
+   created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+   updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+   readiness_snapshot JSONB,
+   readiness_model_version TEXT,
+   readiness_checked_at TIMESTAMPTZ,
+   UNIQUE (job_id, student_id)
+ );
 
 -- Runtime canonical column for the applicant. Historical migrations use
 -- applicant_id, while the snapshot above still uses student_id as the alias.
@@ -216,6 +219,25 @@ ALTER TABLE job_applications
 
 CREATE INDEX IF NOT EXISTS idx_job_applications_applicant ON job_applications(applicant_id);
 CREATE INDEX IF NOT EXISTS idx_job_applications_student   ON job_applications(student_id);
+
+CREATE TABLE IF NOT EXISTS application_events (
+  id             UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  application_id UUID        NOT NULL REFERENCES job_applications(id) ON DELETE CASCADE,
+  event_type     TEXT        NOT NULL
+                             CHECK (event_type IN (
+                               'readiness_checked','applied','viewed','reviewing',
+                               'interviewing','accepted','rejected','hired','note'
+                             )),
+  actor_id       UUID        REFERENCES profiles(id) ON DELETE SET NULL,
+  note           TEXT        NOT NULL DEFAULT '',
+  metadata       JSONB,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE application_events ENABLE ROW LEVEL SECURITY;
+
+CREATE INDEX IF NOT EXISTS idx_app_events_app
+  ON application_events(application_id, created_at);
 
 
 -- ─────────────────────────────────────────────────────────────────
@@ -525,6 +547,21 @@ CREATE POLICY "applications_insert" ON job_applications FOR INSERT
 CREATE POLICY "applications_update" ON job_applications FOR UPDATE
   USING (auth.uid() = student_id OR
          EXISTS (SELECT 1 FROM job_postings WHERE id = job_id AND company_id = auth.uid()));
+
+-- application_events
+CREATE POLICY "app_events_select" ON application_events FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM job_applications a
+    WHERE a.id = application_id AND a.applicant_id = auth.uid()
+  )
+  OR EXISTS (
+    SELECT 1 FROM job_applications a
+    JOIN job_postings jp ON jp.id = a.job_id
+    WHERE a.id = application_id AND jp.company_id = auth.uid()
+  )
+);
+CREATE POLICY "app_events_insert" ON application_events FOR INSERT
+  WITH CHECK (auth.uid() = actor_id);
 
 -- internship_requests
 CREATE POLICY "internship_select" ON internship_requests FOR SELECT
