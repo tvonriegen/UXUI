@@ -22,7 +22,7 @@
 
 - [x] Add pre-application readiness checklist.
 - [x] Suggest improvements before applying.
-- [ ] Persist readiness state and connect it with the application timeline.
+- [x] Persist readiness state and connect it with the application timeline.
 
 ## Phase 4: Production Hardening
 
