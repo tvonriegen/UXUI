@@ -1,0 +1,580 @@
+/* ════════════════════════════════════════════════════════
+   TalentHub – Global Styles
+   ════════════════════════════════════════════════════════
+
+   Sections:
+   1. Tailwind directives
+   2. Font import
+   3. CSS design tokens (custom properties)
+   4. Base / reset overrides
+   5. Scrollbar utilities
+   6. Gradient & surface utilities
+   7. Interactive element helpers
+   8. Keyframe animation definitions
+   9. Animation helper classes
+   10. Stagger delay helpers
+   11. Skeleton loading
+   12. Modal animations
+   ════════════════════════════════════════════════════════ */
+
+/* ── 1. Tailwind Directives ──────────────────────────── */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── 2. Font Import ──────────────────────────────────── */
+/* Manrope: clean geometric sans-serif, weights 200–800   */
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap");
+
+/* ── 3. CSS Design Tokens ────────────────────────────── */
+:root {
+  /* Brand colours (mirrored from tailwind.config.ts for use in gradient utilities) */
+  --cl-primary:       #00687a;
+  --cl-primary-light: #06b6d4;
+
+  /* ── Aurora design system tokens ───────────────────── */
+  /* Surface palette */
+  --app-bg:        #f8fafc;
+  --surface:       #ffffff;
+  --surface-2:     #f1f5f9;
+  --surface-3:     #e2e8f0;
+
+  /* Ink / text scale */
+  --ink:           #0f172a;
+  --ink-2:         #1e293b;
+  --ink-3:         #475569;
+  --ink-4:         #94a3b8;
+
+  /* Borders */
+  --hairline:      rgba(203,213,225,.6);
+  --hairline-2:    #cbd5e1;
+
+  /* Accent – cyan/teal (mirrors live app) */
+  --accent:        #06b6d4;
+  --accent-2:      #0d9488;
+  --accent-deep:   #0e7490;
+  --accent-ink:    #ffffff;
+  --accent-soft:   #ecfeff;
+  --accent-soft-2: #cffafe;
+
+  /* Semantic colours */
+  --amber:         #f59e0b;
+  --amber-soft:    #fffbeb;
+  --emerald:       #10b981;
+  --emerald-soft:  #ecfdf5;
+  --violet:        #8b5cf6;
+  --violet-soft:   #f5f3ff;
+  --rose:          #ef4444;
+  --rose-soft:     #fef2f2;
+
+  /* Typography */
+  --font-display:  "Manrope", "Inter", system-ui, sans-serif;
+  --font-body:     "Manrope", system-ui, sans-serif;
+
+  /* Border radii */
+  --radius-sm:     8px;
+  --radius:        12px;
+  --radius-lg:     16px;
+  --radius-xl:     24px;
+
+  /* Shadows */
+  --shadow-1: 0 1px 2px rgba(15,23,42,.04);
+  --shadow-2: 0 2px 6px rgba(15,23,42,.05), 0 8px 24px rgba(15,23,42,.05);
+  --shadow-3: 0 12px 36px rgba(6,182,212,.18), 0 2px 8px rgba(15,23,42,.06);
+
+  /* Motion */
+  --dur-fast:    140ms;
+  --dur:         220ms;
+  --dur-slow:    400ms;
+  --ease:        cubic-bezier(.2,.7,.2,1);
+  --ease-spring: cubic-bezier(.34,1.6,.56,1);
+
+  /* Spacing */
+  --pad:    16px;
+  --gap:    12px;
+  --card-p: 22px;
+}
+
+/* ── 4. Base Overrides ───────────────────────────────── */
+body {
+  font-family: "Manrope", system-ui, sans-serif;
+  /* Smooth scrolling for anchor jumps and programmatic scrolls */
+  scroll-behavior: smooth;
+  /* Prevents layout shift caused by scrollbar appearing/disappearing */
+  scrollbar-gutter: stable;
+}
+
+/* ── 5. Scrollbar Utilities ──────────────────────────── */
+
+/* Hide scrollbar while keeping scroll functionality (used on tag strips, etc.) */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Thin decorative scrollbar for chat / overflow panels */
+.thin-scrollbar::-webkit-scrollbar        { width: 4px; }
+.thin-scrollbar::-webkit-scrollbar-track  { background: transparent; }
+.thin-scrollbar::-webkit-scrollbar-thumb  {
+  background: #bcc9cd;
+  border-radius: 99px;
+}
+
+/* ── 6. Gradient & Surface Utilities ─────────────────── */
+
+/* Primary brand gradient: deep teal → bright cyan */
+.primary-gradient {
+  background: linear-gradient(135deg, var(--cl-primary) 0%, var(--cl-primary-light) 100%);
+}
+
+/* Repeating cross-hatch SVG used in hero/banner backgrounds.
+   Applied as a semi-transparent overlay to add texture depth. */
+.hero-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23fff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+/* ── 7. Interactive Element Helpers ─────────────────── */
+
+/* Adds hover-lift + shadow for clickable cards.
+   Use on any <div> / <article> card that should feel interactive. */
+.card-interactive {
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+}
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 25px -5px  rgba(0, 104, 122, 0.10),
+    0 4px 10px  -6px rgba(0, 104, 122, 0.06);
+}
+
+/* Tactile press-down micro-interaction for buttons */
+.btn-press {
+  transition: transform 150ms ease;
+}
+.btn-press:active {
+  transform: scale(0.96);
+}
+
+/* ── 8. Keyframe Definitions ─────────────────────────── */
+
+/* Simple opacity fade – used for overlay backgrounds */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Fade + slide up – primary page/card entrance animation */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Fade + slide down – used for dropdowns opening from the top */
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Scale from slightly smaller – used for pop-up cards / tooltips */
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Slide from left – used for sidebar nav items on mount */
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-14px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Elastic bounce pop – badge awards, notification badges */
+@keyframes popIn {
+  0%   { transform: scale(0.72); opacity: 0; }
+  65%  { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
+/* Bell shake – plays on TopNavBar bell when unread count > 0 */
+@keyframes ringBell {
+  0%, 100% { transform: rotate(0deg);   }
+  15%       { transform: rotate(15deg);  }
+  35%       { transform: rotate(-12deg); }
+  55%       { transform: rotate(8deg);   }
+  75%       { transform: rotate(-5deg);  }
+}
+
+/* Pulsing dot – online/active status indicators */
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1);    }
+  50%       { transform: scale(1.18); }
+}
+
+/* Horizontal sweep for loading skeletons */
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position:  200% 0; }
+}
+
+/* Modal backdrop entrance */
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Modal card entrance – slides up and scales in */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(22px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)     scale(1);   }
+}
+
+/* ── 9. Animation Helper Classes ─────────────────────── */
+/* Use these on elements that should animate on mount.
+   All use `animation-fill-mode: both` so the element starts hidden. */
+
+.animate-fade-in        { animation: fadeIn       300ms ease both; }
+.animate-fade-in-up     { animation: fadeInUp     420ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-fade-in-down   { animation: fadeInDown   280ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-scale-in       { animation: scaleIn      320ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-slide-in-left  { animation: slideInLeft  360ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-pop-in         { animation: popIn        460ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.animate-ring           { animation: ringBell     600ms ease; }
+.animate-pulse-dot      { animation: pulse-dot      2s  infinite; }
+
+/* ── 10. Stagger Delay Helpers ───────────────────────── */
+/* Combine with any animate-* class to create sequenced grid entrances.
+   Example: <div className="animate-fade-in-up stagger-2"> */
+.stagger-1 { animation-delay:  80ms; }
+.stagger-2 { animation-delay: 160ms; }
+.stagger-3 { animation-delay: 240ms; }
+.stagger-4 { animation-delay: 320ms; }
+.stagger-5 { animation-delay: 400ms; }
+.stagger-6 { animation-delay: 480ms; }
+
+/* ── 11. Skeleton Loading ────────────────────────────── */
+/* Gradient sweep effect for placeholder content while data loads */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #f0f3ff 25%,
+    #e0e8f8 50%,
+    #f0f3ff 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+  border-radius: 0.5rem;
+}
+
+/* ── 12. Modal Animations ────────────────────────────── */
+/* Applied via className in Modal.tsx */
+.modal-overlay { animation: overlayIn 200ms ease; }
+.modal-content { animation: slideUp   360ms cubic-bezier(0.16, 1, 0.3, 1); }
+
+/* ── 13. Cursor Glow ─────────────────────────────────── */
+/*
+ * Ambient radial gradient that tracks the mouse cursor.
+ * CursorGlow.tsx updates --glow-x and --glow-y CSS custom
+ * properties on <html> via a mousemove listener.
+ *
+ * Design notes:
+ *  - Uses cl-primary (#00687a) and cl-primary-light (#06b6d4)
+ *    at very low opacity so it's ambient, never distracting.
+ *  - pointer-events: none so it never intercepts clicks.
+ *  - z-index: 0 sits behind all page content (which starts at z-10+).
+ *  - transition on background creates the "goo" trailing effect —
+ *    the gradient lags behind the cursor rather than snapping.
+ *  - @media (hover: hover) limits it to devices with a mouse pointer;
+ *    on touch screens the effect simply doesn't render.
+ */
+.cursor-glow {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    700px circle at var(--glow-x, 50%) var(--glow-y, 50%),
+    rgba(6, 182, 212, 0.07),   /* cl-primary-light / cyan-500 at 7% */
+    rgba(0, 104, 122, 0.04) 40%,  /* cl-primary / teal-700 at 4% */
+    transparent 70%
+  );
+  transition: background 0.15s ease;
+}
+
+/* Only show on devices with a hover-capable pointer (mouse/trackpad) */
+@media (hover: none) {
+  .cursor-glow { display: none; }
+}
+
+/* ════════════════════════════════════════════════════════
+   Dark Mode
+   Activated by adding class="dark" to <html>.
+   Uses CSS specificity (2 classes) to override Tailwind
+   utilities (1 class) without needing !important.
+   ════════════════════════════════════════════════════════ */
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+/* Cards / panels */
+html.dark .bg-white {
+  background-color: #1e293b;
+  color: #e2e8f0;
+}
+
+/* Subtle backgrounds */
+html.dark .bg-slate-50,
+html.dark .hover\:bg-slate-50:hover,
+html.dark .hover\:bg-slate-50\/80:hover {
+  background-color: #0f172a;
+}
+
+html.dark .bg-slate-100 {
+  background-color: #1e293b;
+}
+
+/* Borders */
+html.dark .border-slate-200,
+html.dark .border-slate-200\/60,
+html.dark .border-slate-100 {
+  border-color: rgba(51, 65, 85, 0.6);
+}
+
+/* Sidebar and top nav */
+html.dark aside {
+  background-color: #1e293b;
+  border-color: #334155;
+}
+html.dark header {
+  background-color: rgba(30, 41, 59, 0.9);
+  border-color: #334155;
+}
+
+/* Text */
+html.dark .text-slate-900,
+html.dark .text-slate-800,
+html.dark .text-slate-700 {
+  color: #e2e8f0;
+}
+html.dark .text-slate-600,
+html.dark .text-slate-500 {
+  color: #94a3b8;
+}
+html.dark .text-slate-400 {
+  color: #64748b;
+}
+
+/* Active nav item */
+html.dark .bg-cyan-50\/80 {
+  background-color: rgba(8, 145, 178, 0.15);
+}
+
+/* Form inputs */
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background-color: #1e293b;
+  color: #e2e8f0;
+  border-color: #334155;
+}
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #64748b;
+}
+
+/* Modal overlay card */
+html.dark .modal-content {
+  background-color: #1e293b;
+}
+html.dark .modal-content .border-slate-100 {
+  border-color: #334155;
+}
+
+/* Page layout main area */
+html.dark main {
+  background-color: #0f172a;
+}
+
+/* ── Compact View ──────────────────────────────────────── */
+html.compact body {
+  font-size: 0.875rem;
+}
+html.compact .p-6 {
+  padding: 1rem;
+}
+html.compact .p-5 {
+  padding: 0.875rem;
+}
+html.compact .gap-5 {
+  gap: 0.75rem;
+}
+html.compact .space-y-6 > * + * {
+  margin-top: 0.75rem;
+}
+
+/* ── 14. Design-system utility classes ───────────────── */
+/* Card base using design tokens */
+.ds-card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+}
+
+/* Hover-lift for interactive cards */
+.ds-hover-lift {
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.ds-hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-2);
+}
+
+/* Glassmorphism surface */
+.ds-glass {
+  background: rgba(255,255,255,.85);
+  backdrop-filter: blur(10px) saturate(1.2);
+}
+
+/* Pill chip */
+.ds-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--surface-2);
+  color: var(--ink-3);
+  border: 1px solid var(--hairline);
+}
+
+/* Active filter pill */
+.ds-chip-active {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: transparent;
+  box-shadow: var(--shadow-2);
+}
+
+/* Soft accent chip */
+.ds-chip-soft {
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+  border-color: transparent;
+}
+
+/* ── 15. Extra keyframes used by design tokens ─────── */
+@keyframes cl-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes cl-slide-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes cl-pop {
+  0%   { transform: scale(0.75); opacity: 0; }
+  65%  { transform: scale(1.07); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+@keyframes cl-pulse-dot {
+  0%, 100% { transform: scale(1);    }
+  50%       { transform: scale(1.2); }
+}
+@keyframes cl-blob {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33%     { transform: translate(12px,-18px) scale(1.06); }
+  66%     { transform: translate(-10px,12px) scale(.95); }
+}
+
+.cl-fade-in  { animation: cl-fade-in  var(--dur-slow) var(--ease) both; }
+.cl-slide-up { animation: cl-slide-up var(--dur-slow) var(--ease) both; }
+.cl-pop      { animation: cl-pop      var(--dur-slow) var(--ease-spring) both; }
+.cl-pulse    { animation: cl-pulse-dot 1.6s var(--ease) infinite; }
+
+/* Staggered children — wrap list in .cl-stagger */
+.cl-stagger > * {
+  opacity: 0;
+  animation: cl-slide-up var(--dur-slow) var(--ease) forwards;
+}
+.cl-stagger > *:nth-child(1) { animation-delay:  40ms; }
+.cl-stagger > *:nth-child(2) { animation-delay: 100ms; }
+.cl-stagger > *:nth-child(3) { animation-delay: 160ms; }
+.cl-stagger > *:nth-child(4) { animation-delay: 220ms; }
+.cl-stagger > *:nth-child(5) { animation-delay: 280ms; }
+.cl-stagger > *:nth-child(6) { animation-delay: 340ms; }
+.cl-stagger > *:nth-child(7) { animation-delay: 400ms; }
+.cl-stagger > *:nth-child(8) { animation-delay: 460ms; }
+
+/* ── 16. Gamification animations ─────────────────────── */
+
+/* Streak flame — flickering Duolingo-style glow */
+@keyframes flame-flicker {
+  0%, 100% { transform: scale(1)   rotate(-2deg); opacity: 0.95; filter: drop-shadow(0 0 8px rgba(251, 146, 60, 0.6)); }
+  25%       { transform: scale(1.05) rotate(1deg);  opacity: 1;    filter: drop-shadow(0 0 12px rgba(251, 146, 60, 0.8)); }
+  50%       { transform: scale(0.98) rotate(-1deg); opacity: 0.92; filter: drop-shadow(0 0 10px rgba(234,  88, 12, 0.7)); }
+  75%       { transform: scale(1.03) rotate(2deg);  opacity: 1;    filter: drop-shadow(0 0 14px rgba(251, 146, 60, 0.9)); }
+}
+.flame-flicker { animation: flame-flicker 1.6s ease-in-out infinite; transform-origin: 50% 85%; }
+
+/* Cold streak (not active today) */
+.flame-dim { filter: grayscale(0.4) opacity(0.55); }
+
+/* Quest completion pop */
+@keyframes quest-complete {
+  0%   { transform: scale(0.8); opacity: 0; }
+  45%  { transform: scale(1.15); opacity: 1; }
+  70%  { transform: scale(0.95); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-quest-complete { animation: quest-complete 640ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+/* Quest progress bar fill */
+@keyframes quest-fill {
+  from { width: var(--from-pct, 0%); }
+  to   { width: var(--to-pct, 100%); }
+}
+.animate-quest-fill { animation: quest-fill 700ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+/* Level-up glow for hero banner */
+@keyframes level-up-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0); }
+  50%      { box-shadow: 0 0 40px 10px rgba(6, 182, 212, 0.35); }
+}
+.animate-level-up-glow { animation: level-up-glow 1.8s ease-in-out 2; }
+
+/* Confetti piece falling — JS attaches random delay/left via inline style */
+@keyframes confetti-fall {
+  0%   { transform: translateY(-20vh) rotate(0deg);   opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+.confetti-piece {
+  position: fixed;
+  top: 0;
+  width: 10px;
+  height: 14px;
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 120;
+  animation: confetti-fall 2.6s cubic-bezier(0.37, 0, 0.63, 1) forwards;
+}
+
+/* Tier badge glow, per tier (uses box-shadow so it respects border-radius) */
+.tier-bronce   { background: linear-gradient(135deg, #b45309, #d97706); color: #fff; }
+.tier-plata    { background: linear-gradient(135deg, #64748b, #94a3b8); color: #fff; }
+.tier-oro      { background: linear-gradient(135deg, #ca8a04, #facc15); color: #422006; }
+.tier-platino  { background: linear-gradient(135deg, #0e7490, #06b6d4); color: #fff; }
+.tier-diamante { background: linear-gradient(135deg, #7c3aed, #ec4899); color: #fff; box-shadow: 0 0 18px rgba(124, 58, 237, 0.4); }
+
+/* Skeleton helpers used by dashboards */
+.skeleton-line { height: 12px; }
+.skeleton-card { height: 96px; }
+.skeleton-circle { border-radius: 9999px; }

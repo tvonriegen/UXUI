@@ -1,4 +1,41 @@
-# ── AI / Claude Code ──────────────────────────────────────────────────────────
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+.yarn/install-state.gz
+
+# Next.js and frontend outputs
+.next/
+out/
+build/
+dist/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# Package manager logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Vercel and local tooling
+.vercel/
+.turbo/
+.cache/
+
+# Supabase local state
+supabase/.branches/
+supabase/.temp/
+
+# AI, MCP and local assistant outputs
 .claude/
 .agents/
 .mcp.json
@@ -6,19 +43,19 @@ skills-lock.json
 CLAUDE.md
 bugs.md
 ideas.md
+.codebase-memory/
+graphify-out/
 
-# ── Environment & secrets ─────────────────────────────────────────────────────
-.env
-.env.*
-!.env.example
-
-# ── Test / sample data ────────────────────────────────────────────────────────
+# Private or heavy sample data
 Excel Tipo Real/
 Documentos/
+*.dump
+*.sql.gz
+*.bak
 
-# ── Generated / build artefacts ───────────────────────────────────────────────
+# Generated legacy artefacts
 Aplicacion/code.html
 
-# ── OS noise ──────────────────────────────────────────────────────────────────
+# OS noise
 .DS_Store
 Thumbs.db

@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /login
+Allow: /register
+Disallow: /api/
+Disallow: /profile
+Disallow: /messages
+Disallow: /muro
+Disallow: /talent
+Disallow: /empleos
+
+Sitemap: https://talenthub.vercel.app/sitemap.xml
