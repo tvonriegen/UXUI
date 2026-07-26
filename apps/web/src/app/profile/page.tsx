@@ -17,7 +17,7 @@ import { useConfirm }    from "@/components/ui/ConfirmDialog";
 import {
   MapPin, Mail, Edit, Loader2, Camera, Award, ExternalLink,
   GraduationCap, Lock, Globe, Building2, Users, TrendingUp,
-  Heart, Send, Circle, CheckCircle, FileText, User, Download,
+  Heart, Send, CheckCircle, FileText, User, Download,
   Clock, CheckCircle2, XCircle, ChevronDown, ChevronUp, Plus,
   Search, ChevronRight,
 } from "lucide-react";
@@ -707,26 +707,9 @@ export default function ProfilePage() {
     ? Math.min(100, Math.round(((profile.xp % 500) / 500) * 100))
     : 0;
 
-  // ── Profile Completion (student) ──────────────────────────
   const displayBio      = localBio      ?? profile.bio;
   const displayLocation = localLocation ?? profile.location;
   const displaySkills   = localSkills;
-
-  const completionItems = isStudent ? [
-    { label: "Foto de perfil",     done: !!profile.avatar,         weight: 0 },
-    { label: "Biografía",          done: !!displayBio,             weight: 15 },
-    { label: "Habilidades",        done: displaySkills.length > 0, weight: 15 },
-    { label: "Habilidades blandas",done: localSoftSkills.length > 0, weight: 15 },
-    { label: "Evidencia",           done: (portfolio.length > 0),   weight: 10 },
-    { label: "Portafolio",         done: portfolio.length > 0,     weight: 20 },
-    { label: "Asistencia",         done: true,                     weight: 10 },
-    { label: "Promedio GPA",       done: profile.gpa != null,      weight: 15 },
-  ] : [];
-  const completionPct = isStudent
-    ? completionItems.reduce((acc, item) => acc + (item.done ? item.weight : 0), 0)
-    : 0;
-  const completionCircumference = 2 * Math.PI * 40; // r=40
-  const completionOffset = completionCircumference - (completionPct / 100) * completionCircumference;
 
   // Inline edit helpers
   const startInlineEdit = () => {
@@ -1281,41 +1264,6 @@ export default function ProfilePage() {
                 ) : (
                   <p className="text-xs text-slate-400">Añade competencias para mejorar tu compatibilidad.</p>
                 )}
-              </div>
-            )}
-
-            {isStudent && (
-              <div className="bg-white rounded-2xl p-5 border border-slate-200/60">
-                <h3 className="text-sm font-bold mb-3 text-slate-700">Completitud del Perfil</h3>
-                <div className="flex justify-center mb-3">
-                  <svg width="100" height="100" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="40" fill="none" stroke="#e2e8f0" strokeWidth="10" />
-                    <circle
-                      cx="50" cy="50" r="40" fill="none"
-                      stroke={completionPct >= 80 ? "#10b981" : completionPct >= 50 ? "#f59e0b" : "#ef4444"}
-                      strokeWidth="10"
-                      strokeLinecap="round"
-                      strokeDasharray={completionCircumference}
-                      strokeDashoffset={completionOffset}
-                      transform="rotate(-90 50 50)"
-                      style={{ transition: "stroke-dashoffset 0.5s ease" }}
-                    />
-                    <text x="50" y="55" textAnchor="middle" className="text-lg font-bold" fontSize="18" fontWeight="800" fill="#1e293b">
-                      {completionPct}%
-                    </text>
-                  </svg>
-                </div>
-                <div className="space-y-1.5">
-                  {completionItems.slice(0, 5).map((item) => (
-                    <div key={item.label} className="flex items-center gap-2 text-xs">
-                      {item.done
-                        ? <CheckCircle size={13} className="text-emerald-500 shrink-0" />
-                        : <Circle size={13} className="text-slate-300 shrink-0" />
-                      }
-                      <span className={item.done ? "text-slate-600" : "text-slate-400"}>{item.label}</span>
-                    </div>
-                  ))}
-                </div>
               </div>
             )}
 
