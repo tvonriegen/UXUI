@@ -29,6 +29,17 @@ supabase db push
 # Name format: YYYYMMDDHHMMSS_description.sql
 ```
 
+## Authenticated Staging Smoke Test
+
+1. Apply the pending migrations to Supabase staging in chronological order.
+2. Create or select dedicated staging fixtures for Empresa, Colegio, Estudiante menor and Egresado.
+3. Create one pending `contact_requests` row and record its UUID as `RUNTIME_PENDING_CONTACT_REQUEST_ID`.
+4. Add the documented `RUNTIME_*` values as GitHub Actions secrets in the `staging` environment.
+5. Run the manual GitHub Actions workflow `Runtime Supabase Smoke`.
+6. Confirm the company and school can read the request while the minor student cannot see the pending row.
+
+The smoke test is intentionally read-only after fixture creation. Do not point it at production accounts or production data.
+
 ## Uptime Monitoring (UptimeRobot)
 
 **Setup steps:**

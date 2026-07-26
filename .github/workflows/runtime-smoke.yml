@@ -1,0 +1,43 @@
+name: Runtime Supabase Smoke
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  staging:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: staging
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install web dependencies
+        run: npm ci --prefix apps/web
+
+      - name: Run authenticated staging smoke test
+        run: npm run verify:runtime-supabase
+        env:
+          RUNTIME_APP_URL: ${{ secrets.RUNTIME_APP_URL }}
+          RUNTIME_SUPABASE_URL: ${{ secrets.RUNTIME_SUPABASE_URL }}
+          RUNTIME_SUPABASE_ANON_KEY: ${{ secrets.RUNTIME_SUPABASE_ANON_KEY }}
+          RUNTIME_PENDING_CONTACT_REQUEST_ID: ${{ secrets.RUNTIME_PENDING_CONTACT_REQUEST_ID }}
+          RUNTIME_COMPANY_EMAIL: ${{ secrets.RUNTIME_COMPANY_EMAIL }}
+          RUNTIME_COMPANY_PASSWORD: ${{ secrets.RUNTIME_COMPANY_PASSWORD }}
+          RUNTIME_SCHOOL_EMAIL: ${{ secrets.RUNTIME_SCHOOL_EMAIL }}
+          RUNTIME_SCHOOL_PASSWORD: ${{ secrets.RUNTIME_SCHOOL_PASSWORD }}
+          RUNTIME_MINOR_EMAIL: ${{ secrets.RUNTIME_MINOR_EMAIL }}
+          RUNTIME_MINOR_PASSWORD: ${{ secrets.RUNTIME_MINOR_PASSWORD }}
+          RUNTIME_GRADUATE_EMAIL: ${{ secrets.RUNTIME_GRADUATE_EMAIL }}
+          RUNTIME_GRADUATE_PASSWORD: ${{ secrets.RUNTIME_GRADUATE_PASSWORD }}

@@ -22,6 +22,7 @@
 - The dependency tree previously reported 21 vulnerabilities. They were not auto-fixed to avoid unplanned upgrades.
 - `apps/web/src/app/profile/page.tsx` remains a large role-aware route and needs a separate decomposition effort.
 - There is no disposable Supabase integration test suite yet; current scripts are hermetic structural/domain checks.
+- Runtime Supabase smoke testing is now available as an opt-in manual workflow, but staging fixtures and GitHub environment secrets still need to be configured.
 - The student profile route remains large despite the persistence and actionable-anchor improvements; keep its decomposition separate from product UX changes.
 
 ## Historical External Issue
