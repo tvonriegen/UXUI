@@ -123,6 +123,9 @@ export default function TopNavBar() {
               onClick={() => { setNotifOpen(!notifOpen); setUserDdOpen(false); }}
               className="relative p-2 hover:bg-slate-100 active:bg-slate-200 rounded-full transition-all duration-150"
               title="Notificaciones"
+              aria-label="Notificaciones"
+              aria-expanded={notifOpen}
+              aria-haspopup="menu"
             >
               <Bell
                 size={20}
@@ -153,7 +156,7 @@ export default function TopNavBar() {
                     >
                       Ver todas →
                     </Link>
-                    <button onClick={() => setNotifOpen(false)} className="p-1 hover:bg-slate-100 rounded-full transition-colors">
+                    <button onClick={() => setNotifOpen(false)} aria-label="Cerrar notificaciones" className="p-1 hover:bg-slate-100 rounded-full transition-colors">
                       <X size={13} className="text-slate-400" />
                     </button>
                   </div>
@@ -187,6 +190,9 @@ export default function TopNavBar() {
             <button
               onClick={() => { setUserDdOpen(!userDdOpen); setNotifOpen(false); }}
               className="flex items-center gap-2 group"
+              aria-label="Abrir menú de usuario"
+              aria-expanded={userDdOpen}
+              aria-haspopup="menu"
             >
               <div className="h-8 w-8 rounded-full bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center text-white font-bold text-xs ring-2 ring-white shadow-sm group-hover:ring-sky-200 transition-all overflow-hidden">
                 {user?.avatar ? (

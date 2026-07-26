@@ -37,8 +37,8 @@ export default function BottomMobileNav() {
 
   return (
     // Frosted-glass bar pinned to the bottom of the viewport.
-    // pb-5 accounts for iOS safe-area inset on notched devices.
-    <nav className="lg:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-1 pb-5 pt-2 bg-white/92 backdrop-blur-xl border-t border-slate-200/60 shadow-[0_-2px_12px_rgba(0,0,0,0.05)]">
+    // The bottom padding includes the iOS safe-area inset on notched devices.
+    <nav aria-label="Navegación principal" className="lg:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-1 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-2 bg-white/92 backdrop-blur-xl border-t border-slate-200/60 shadow-[0_-2px_12px_rgba(0,0,0,0.05)]">
       {LINKS.map((link) => {
         const isActive = pathname === link.path;
         const IconComp = link.icon;

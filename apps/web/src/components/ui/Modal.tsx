@@ -26,7 +26,7 @@
 // DOM entirely, which resets all internal form state automatically.
 // ──────────────────────────────────────────────────────────
 
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import { createPortal }      from "react-dom";
 import { X } from "lucide-react";
 
@@ -45,6 +45,7 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
   // Ref on the overlay div so we can detect clicks that land directly on it
   // (not on the modal card itself) to trigger close-on-backdrop-click.
   const overlayRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
 
   /**
    * Lock body scroll while the modal is open to prevent the page behind
@@ -66,6 +67,9 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
     <div
       ref={overlayRef}
       className="modal-overlay fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
       onClick={(e) => {
         // Only close if the click target is the overlay itself, not the card
         if (e.target === overlayRef.current) onClose();
@@ -76,7 +80,7 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
 
         {/* ── Header ── */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">
-          <h2 className="text-base font-bold text-slate-900">{title}</h2>
+          <h2 id={titleId} className="text-base font-bold text-slate-900">{title}</h2>
           <button
             onClick={onClose}
             className="p-1.5 hover:bg-slate-100 active:bg-slate-200 rounded-full transition-colors btn-press"

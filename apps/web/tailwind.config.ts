@@ -16,6 +16,15 @@ const config: Config = {
   // Enable dark mode via the `dark` class on <html>
   darkMode: "class",
 
+  // Several activity and dashboard surfaces select colors from controlled
+  // data. Keep those generated utilities in production CSS.
+  safelist: [
+    {
+      pattern: /^(bg|text|border)-(amber|blue|cyan|emerald|fuchsia|indigo|purple|red|rose|sky|slate|violet)-(50|100|200|400|500|600|700)$/,
+      variants: ["hover"],
+    },
+  ],
+
   // ── Content Paths ────────────────────────────────────
   // Tailwind scans these files to build its purge list.
   // Any class not found here will be stripped from the bundle.
