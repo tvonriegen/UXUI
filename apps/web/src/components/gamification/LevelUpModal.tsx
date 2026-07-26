@@ -39,7 +39,7 @@ export default function LevelUpModal({
 
           <div className="flex items-center justify-center gap-2 mt-5 flex-wrap">
             {xpGained !== undefined && xpGained > 0 && (
-              <span className="inline-flex items-center gap-1.5 bg-cyan-50 text-cyan-700 px-4 py-2 rounded-full font-extrabold text-base">
+              <span className="inline-flex items-center gap-1.5 bg-sky-50 text-sky-700 px-4 py-2 rounded-full font-extrabold text-base">
                 <Zap size={16} strokeWidth={2.5} /> +{xpGained} XP
               </span>
             )}
@@ -53,7 +53,7 @@ export default function LevelUpModal({
 
           <button
             onClick={onClose}
-            className="mt-6 w-full bg-cyan-600 text-white font-bold text-sm py-3 rounded-xl hover:bg-cyan-700 transition-colors btn-press"
+            className="mt-6 w-full bg-sky-600 text-white font-bold text-sm py-3 rounded-xl hover:bg-sky-700 transition-colors btn-press"
           >
             ¡Seguir!
           </button>

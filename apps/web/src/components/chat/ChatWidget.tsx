@@ -38,7 +38,7 @@ const ROLE_CONFIG: Record<string, {
     ],
   },
   Colegio: {
-    accent: "bg-cyan-600", hover: "hover:bg-cyan-700", bubble: "bg-cyan-600 text-white",
+    accent: "bg-sky-600", hover: "hover:bg-sky-700", bubble: "bg-sky-600 text-white",
     tagline: "Consulta estudiantes, solicitudes de práctica y datos del colegio.",
     tools: [
       "Listar y filtrar tus estudiantes activos",
@@ -311,7 +311,7 @@ export default function ChatWidget() {
               onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
               placeholder={aiEnabled ? "Escribe tu pregunta…" : "Prueba el asistente…"}
               disabled={streaming}
-              className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-cyan-200 outline-none disabled:opacity-50"
+              className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-sky-200 outline-none disabled:opacity-50"
             />
             <button
               onClick={sendMessage}

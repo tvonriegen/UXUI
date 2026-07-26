@@ -563,7 +563,7 @@ export default function ProfilePage() {
   body { font-family: 'Segoe UI', Arial, sans-serif; color:#1e293b; background:#f8fafc; padding:40px; }
   .card { background:#fff; border-radius:16px; padding:40px; max-width:720px; margin:0 auto; box-shadow:0 4px 24px rgba(0,0,0,.08); }
   .header { display:flex; align-items:center; gap:24px; border-bottom:2px solid #e2e8f0; padding-bottom:24px; margin-bottom:24px; }
-  .avatar { width:80px; height:80px; border-radius:12px; background:linear-gradient(135deg,#06b6d4,#0891b2); display:flex; align-items:center; justify-content:center; color:#fff; font-size:32px; font-weight:800; overflow:hidden; flex-shrink:0; }
+  .avatar { width:80px; height:80px; border-radius:12px; background:linear-gradient(135deg,#60a5fa,#2563eb); display:flex; align-items:center; justify-content:center; color:#fff; font-size:32px; font-weight:800; overflow:hidden; flex-shrink:0; }
   .avatar img { width:100%; height:100%; object-fit:cover; }
   h1 { font-size:26px; font-weight:800; }
   .subtitle { color:#64748b; font-size:14px; margin-top:4px; }
@@ -626,7 +626,7 @@ export default function ProfilePage() {
   ${portfolio.length > 0 ? `
   <div class="section">
     <h2>Portafolio (${portfolio.length} proyecto${portfolio.length !== 1 ? "s" : ""})</h2>
-    ${portfolio.map((p) => `<div style="margin-bottom:10px;"><strong style="font-size:14px;">${p.title}</strong>${p.description ? `<p style="font-size:13px;color:#64748b;margin-top:2px;">${p.description}</p>` : ""}${p.link ? `<a href="${p.link}" style="font-size:12px;color:#0891b2;">${p.link}</a>` : ""}</div>`).join("")}
+    ${portfolio.map((p) => `<div style="margin-bottom:10px;"><strong style="font-size:14px;">${p.title}</strong>${p.description ? `<p style="font-size:13px;color:#64748b;margin-top:2px;">${p.description}</p>` : ""}${p.link ? `<a href="${p.link}" style="font-size:12px;color:#2563eb;">${p.link}</a>` : ""}</div>`).join("")}
   </div>` : ""}
 
   <div class="footer">Generado por TalentHub · ${new Date().toLocaleDateString("es-CR")}</div>
@@ -645,7 +645,7 @@ export default function ProfilePage() {
   if (loading) return (
     <PageLayout>
       <div className="flex items-center justify-center min-h-64">
-        <Loader2 size={32} className="animate-spin text-cyan-400" />
+        <Loader2 size={32} className="animate-spin text-sky-400" />
       </div>
     </PageLayout>
   );
@@ -655,7 +655,7 @@ export default function ProfilePage() {
       <div className="flex items-center justify-center min-h-64">
         <div className="text-center">
           <p className="text-red-500 font-medium">{error ?? "Error al cargar el perfil."}</p>
-          <button onClick={fetchProfile} className="mt-3 text-sm text-cyan-600 hover:underline">Reintentar</button>
+          <button onClick={fetchProfile} className="mt-3 text-sm text-sky-600 hover:underline">Reintentar</button>
         </div>
       </div>
     </PageLayout>
@@ -673,7 +673,7 @@ export default function ProfilePage() {
   };
 
   const THEME_PALETTE: Record<string, { gradient: string; btn: string; active: string; text: string; swatch: string; label: string }> = {
-    cyan:    { gradient: "from-cyan-500 via-teal-500 to-cyan-700",         btn: "bg-cyan-600 hover:bg-cyan-700",         active: "bg-cyan-50 text-cyan-700 shadow-sm",         text: "text-cyan-600",    swatch: "bg-cyan-500",    label: "Cian" },
+    cyan:    { gradient: "from-sky-500 via-indigo-500 to-sky-700",         btn: "bg-sky-600 hover:bg-sky-700",         active: "bg-sky-50 text-sky-700 shadow-sm",         text: "text-sky-600",    swatch: "bg-sky-500",    label: "Celeste" },
     violet:  { gradient: "from-violet-500 via-purple-500 to-violet-700",   btn: "bg-violet-600 hover:bg-violet-700",     active: "bg-violet-50 text-violet-700 shadow-sm",   text: "text-violet-600",  swatch: "bg-violet-500",  label: "Violeta" },
     amber:   { gradient: "from-amber-500 via-orange-500 to-amber-700",     btn: "bg-amber-600 hover:bg-amber-700",       active: "bg-amber-50 text-amber-700 shadow-sm",     text: "text-amber-600",   swatch: "bg-amber-500",   label: "Ámbar" },
     rose:    { gradient: "from-rose-500 via-pink-500 to-rose-700",         btn: "bg-rose-600 hover:bg-rose-700",         active: "bg-rose-50 text-rose-700 shadow-sm",       text: "text-rose-600",    swatch: "bg-rose-500",    label: "Rosa" },
@@ -1082,7 +1082,7 @@ export default function ProfilePage() {
             {isStudent && (
               <button
                 onClick={handleDownloadCV}
-                className="mt-4 inline-flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-sm"
+                className="mt-4 inline-flex items-center gap-2 bg-sky-600 hover:bg-sky-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-sm"
               >
                 <Download size={15} /> Descargar CV
               </button>
@@ -1398,7 +1398,7 @@ export default function ProfilePage() {
                 </div>
                 <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-cyan-400 to-teal-500 rounded-full transition-all duration-700"
+                    className="h-full bg-gradient-to-r from-sky-400 to-indigo-500 rounded-full transition-all duration-700"
                     style={{ width: `${xpPct}%` }}
                   />
                 </div>
@@ -1431,8 +1431,8 @@ export default function ProfilePage() {
 
                 {/* ── Inline Edit Form (student only) ── */}
                 {isStudent && isEditing && (
-                  <div className="bg-white rounded-2xl p-5 border border-cyan-200 shadow-sm space-y-4">
-                    <h3 className="font-bold text-sm text-cyan-700 flex items-center gap-2"><Edit size={14} /> Editando Perfil</h3>
+                  <div className="bg-white rounded-2xl p-5 border border-sky-200 shadow-sm space-y-4">
+                    <h3 className="font-bold text-sm text-sky-700 flex items-center gap-2"><Edit size={14} /> Editando Perfil</h3>
                     <div>
                       <label className="text-xs font-semibold text-slate-500 mb-1.5 block">Biografía</label>
                       <textarea
@@ -1440,7 +1440,7 @@ export default function ProfilePage() {
                         onChange={(e) => setEditBioInline(e.target.value)}
                         rows={3}
                         maxLength={500}
-                        className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none resize-none"
+                        className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none resize-none"
                       />
                     </div>
                     <div>
@@ -1449,7 +1449,7 @@ export default function ProfilePage() {
                         value={editLocationInline}
                         onChange={(e) => setEditLocationInline(e.target.value)}
                         placeholder="Ej: Santiago, Chile"
-                        className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none"
+                        className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none"
                       />
                     </div>
                     <div>
@@ -1458,7 +1458,7 @@ export default function ProfilePage() {
                         value={editSkills}
                         onChange={(e) => setEditSkills(e.target.value)}
                         placeholder="Arduino, Python, Soldadura TIG..."
-                        className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none"
+                        className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none"
                       />
                     </div>
                     <div>
@@ -1467,7 +1467,7 @@ export default function ProfilePage() {
                         value={editSoftSkillsStr}
                         onChange={(e) => setEditSoftSkillsStr(e.target.value)}
                         placeholder="Trabajo en equipo, Puntualidad..."
-                        className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none"
+                        className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none"
                       />
                     </div>
                     <div className="flex gap-3 pt-1">
@@ -1497,11 +1497,11 @@ export default function ProfilePage() {
                         <div
                           key={b.id}
                           title={b.name}
-                          className={`p-2.5 rounded-xl text-center ${b.earned ? "bg-cyan-50 border border-cyan-100" : "bg-slate-50 opacity-40"}`}
+                          className={`p-2.5 rounded-xl text-center ${b.earned ? "bg-sky-50 border border-sky-100" : "bg-slate-50 opacity-40"}`}
                         >
-                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center mx-auto mb-1.5 ${b.earned ? "bg-cyan-100" : "bg-slate-200"}`}>
+                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center mx-auto mb-1.5 ${b.earned ? "bg-sky-100" : "bg-slate-200"}`}>
                             {b.earned
-                              ? <Award size={16} className="text-cyan-600" />
+                              ? <Award size={16} className="text-sky-600" />
                               : <Lock size={13} className="text-slate-400" />
                             }
                           </div>
@@ -1552,7 +1552,7 @@ export default function ProfilePage() {
                     {localSoftSkills.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {localSoftSkills.map((s) => (
-                          <span key={s} className="px-3 py-1.5 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-100">
+                          <span key={s} className="px-3 py-1.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
                             {s}
                           </span>
                         ))}
@@ -1637,13 +1637,13 @@ export default function ProfilePage() {
                 {isStudent && (
                   <div className="bg-white rounded-2xl p-5 border border-slate-200/60">
                     <div className="flex items-center gap-2 mb-4">
-                      <Send size={15} className="text-cyan-500" />
+                      <Send size={15} className="text-sky-500" />
                       <h3 className="font-bold text-sm">Solicitar Recomendación</h3>
                     </div>
                     <div className="flex gap-3 mb-4">
                       <button
                         onClick={() => setRecFormTarget(recFormTarget === "colegio" ? null : "colegio")}
-                        className={`flex-1 py-2.5 rounded-xl text-xs font-bold border-2 transition-colors ${recFormTarget === "colegio" ? "border-cyan-500 text-cyan-700 bg-cyan-50" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}
+                        className={`flex-1 py-2.5 rounded-xl text-xs font-bold border-2 transition-colors ${recFormTarget === "colegio" ? "border-sky-500 text-sky-700 bg-sky-50" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}
                       >
                         Pedir al Colegio
                       </button>
@@ -1661,11 +1661,11 @@ export default function ProfilePage() {
                           onChange={(e) => setRecMessage(e.target.value)}
                           rows={3}
                           placeholder={`Escribe tu mensaje para ${recFormTarget === "colegio" ? "el colegio" : "la empresa"}...`}
-                          className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none resize-none"
+                          className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none resize-none"
                         />
                         <button
                           onClick={() => { setRecMessage(""); setRecFormTarget(null); }}
-                          className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-2.5 rounded-xl text-sm font-bold transition-colors"
+                          className="w-full bg-sky-600 hover:bg-sky-700 text-white py-2.5 rounded-xl text-sm font-bold transition-colors"
                         >
                           Enviar Solicitud
                         </button>
@@ -2189,14 +2189,14 @@ export default function ProfilePage() {
                                 {mgmtSkillsStr.trim() && (
                                   <div className="flex flex-wrap gap-1.5 mt-2">
                                     {mgmtSkillsStr.split(",").map((sk) => sk.trim()).filter(Boolean).map((sk) => (
-                                      <span key={sk} className="px-2.5 py-1 bg-teal-50 text-teal-700 border border-teal-100 rounded-full text-[11px] font-semibold">{sk}</span>
+                                      <span key={sk} className="px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full text-[11px] font-semibold">{sk}</span>
                                     ))}
                                   </div>
                                 )}
                                 <button
                                   onClick={handleSaveSkills}
                                   disabled={mgmtSaving === "skills"}
-                                  className="mt-3 px-4 py-2 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5"
+                                  className="mt-3 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5"
                                 >
                                   {mgmtSaving === "skills" ? <><Loader2 size={12} className="animate-spin" /> Guardando…</> : "Guardar habilidades"}
                                 </button>
@@ -2344,7 +2344,7 @@ export default function ProfilePage() {
                         });
                         const specs = Object.entries(specMap).sort((a, b) => b[1] - a[1]);
                         const maxCount = Math.max(...specs.map(([, c]) => c), 1);
-                        const specColors = ["#7c3aed", "#0891b2", "#059669", "#d97706", "#dc2626", "#9333ea"];
+                        const specColors = ["#7c3aed", "#2563eb", "#059669", "#d97706", "#dc2626", "#9333ea"];
                         return specs.length === 0 ? (
                           <p className="text-sm text-slate-400">Sin datos de especialidad.</p>
                         ) : (
@@ -2549,7 +2549,7 @@ export default function ProfilePage() {
             <input
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
-              className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none"
+              className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none"
             />
           </div>
 
@@ -2560,7 +2560,7 @@ export default function ProfilePage() {
               onChange={(e) => setEditBio(e.target.value)}
               rows={3}
               maxLength={500}
-              className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none resize-none"
+              className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none resize-none"
             />
             <p className="text-[10px] text-slate-400 text-right mt-1">{editBio.length}/500</p>
           </div>
@@ -2571,7 +2571,7 @@ export default function ProfilePage() {
               value={editLocation}
               onChange={(e) => setEditLocation(e.target.value)}
               placeholder="Ej: Santiago, Chile"
-              className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none"
+              className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none"
             />
           </div>
 
@@ -2583,7 +2583,7 @@ export default function ProfilePage() {
                   value={editSpecialty}
                   onChange={(e) => setEditSpecialty(e.target.value)}
                   placeholder="Ej: Mecatrónica"
-                  className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none"
+                  className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none"
                 />
               </div>
               <div>
@@ -2592,7 +2592,7 @@ export default function ProfilePage() {
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
                   placeholder="Ej: Estudiante de Mecatrónica"
-                  className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none"
+                  className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none"
                 />
               </div>
               <div>
@@ -2600,7 +2600,7 @@ export default function ProfilePage() {
                 <select
                   value={editAvailability}
                   onChange={(e) => setEditAvailability(e.target.value)}
-                  className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 outline-none bg-white"
+                  className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 outline-none bg-white"
                 >
                   <option>Disponible</option>
                   <option>En prácticas</option>
@@ -2618,7 +2618,7 @@ export default function ProfilePage() {
                   value={editIndustry}
                   onChange={(e) => setEditIndustry(e.target.value)}
                   placeholder="Ej: Automatización Industrial"
-                  className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none"
+                  className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none"
                 />
               </div>
               <div>
@@ -2627,7 +2627,7 @@ export default function ProfilePage() {
                   value={editWebsite}
                   onChange={(e) => setEditWebsite(e.target.value)}
                   placeholder="ejemplo.com"
-                  className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none"
+                  className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none"
                 />
               </div>
             </>
@@ -2789,12 +2789,12 @@ export default function ProfilePage() {
           <div className="space-y-4">
             <div className="space-y-3">
               {[
-                { num: 1, label: "Completa tu perfil", icon: <User size={20} className="text-cyan-600" /> },
+                { num: 1, label: "Completa tu perfil", icon: <User size={20} className="text-sky-600" /> },
                 { num: 2, label: "Gana tu primera insignia", icon: <Award size={20} className="text-amber-500" /> },
                 { num: 3, label: "Descarga tu CV público", icon: <Download size={20} className="text-violet-600" /> },
               ].map((step) => (
                 <div key={step.num} className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                  <div className="w-8 h-8 rounded-full bg-cyan-100 flex items-center justify-center text-sm font-extrabold text-cyan-700 shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sm font-extrabold text-sky-700 shrink-0">
                     {step.num}
                   </div>
                   <div className="flex-1">
@@ -2811,7 +2811,7 @@ export default function ProfilePage() {
             </div>
             <button
               onClick={() => { localStorage.setItem("th_onboarded", "1"); setShowOnboarding(false); }}
-              className="w-full bg-cyan-600 hover:bg-cyan-700 text-white py-3 rounded-xl font-bold text-sm transition-colors"
+              className="w-full bg-sky-600 hover:bg-sky-700 text-white py-3 rounded-xl font-bold text-sm transition-colors"
             >
               Empezar
             </button>

@@ -21,13 +21,13 @@ import {
 
 // Map notification type → icon + colour
 const KIND_META: Record<string, { icon: React.ElementType; color: string; bg: string }> = {
-  match:   { icon: Briefcase,      color: "#0e7490", bg: "#ecfeff"  },
+  match:   { icon: Briefcase,      color: "#4f46e5", bg: "#eff6ff"  },
   message: { icon: MessageCircle,  color: "#8b5cf6", bg: "#f5f3ff"  },
   badge:   { icon: Trophy,         color: "#f59e0b", bg: "#fffbeb"  },
   system:  { icon: CheckCircle,    color: "#10b981", bg: "#ecfdf5"  },
   social:  { icon: Heart,          color: "#ef4444", bg: "#fef2f2"  },
-  event:   { icon: Calendar,       color: "#0e7490", bg: "#ecfeff"  },
-  job:     { icon: Briefcase,      color: "#0e7490", bg: "#ecfeff"  },
+  event:   { icon: Calendar,       color: "#4f46e5", bg: "#eff6ff"  },
+  job:     { icon: Briefcase,      color: "#4f46e5", bg: "#eff6ff"  },
 };
 
 const DEFAULT_META = { icon: Bell, color: "#94a3b8", bg: "#f1f5f9" };
@@ -46,7 +46,7 @@ export default function NotificationsPage() {
         {/* ── Header ── */}
         <div className="flex items-end justify-between gap-4 mb-6 flex-wrap animate-fade-in-up">
           <div>
-            <p className="text-xs font-bold text-cyan-600 uppercase tracking-widest mb-1">Actividad</p>
+            <p className="text-xs font-bold text-sky-600 uppercase tracking-widest mb-1">Actividad</p>
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">
               Notificaciones
             </h1>
@@ -57,7 +57,7 @@ export default function NotificationsPage() {
           {unreadCount > 0 && (
             <button
               onClick={markAllRead}
-              className="text-xs font-bold text-cyan-700 bg-cyan-50 hover:bg-cyan-100 px-3 py-1.5 rounded-lg transition-colors"
+              className="text-xs font-bold text-sky-700 bg-sky-50 hover:bg-sky-100 px-3 py-1.5 rounded-lg transition-colors"
             >
               Marcar todas como leídas
             </button>
@@ -73,7 +73,7 @@ export default function NotificationsPage() {
               className={`
                 px-4 py-2 rounded-full text-[13px] font-semibold border transition-all duration-200
                 ${tab === t
-                  ? "bg-cyan-500 text-white border-transparent shadow-md"
+                  ? "bg-sky-500 text-white border-transparent shadow-md"
                   : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
                 }
               `}
@@ -111,7 +111,7 @@ export default function NotificationsPage() {
                     {/* Unread dot on left edge */}
                     {!n.read && (
                       <span
-                        className="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-cyan-500"
+                        className="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-sky-500"
                       />
                     )}
 

@@ -27,21 +27,21 @@ interface EventRow {
 
 // Static classes so Tailwind JIT always includes them
 const STEP_DONE_STYLE: Record<string, string> = {
-  cyan:    "text-cyan-600 bg-cyan-50 border-cyan-200",
+  cyan:    "text-sky-600 bg-sky-50 border-sky-200",
   sky:     "text-sky-600 bg-sky-50 border-sky-200",
   violet:  "text-violet-600 bg-violet-50 border-violet-200",
   emerald: "text-emerald-600 bg-emerald-50 border-emerald-200",
   amber:   "text-amber-600 bg-amber-50 border-amber-200",
 };
 const STEP_DONE_LABEL: Record<string, string> = {
-  cyan:    "text-cyan-700",
+  cyan:    "text-sky-700",
   sky:     "text-sky-700",
   violet:  "text-violet-700",
   emerald: "text-emerald-700",
   amber:   "text-amber-700",
 };
 const STEP_LINE_ACTIVE: Record<string, string> = {
-  cyan:    "bg-cyan-300",
+  cyan:    "bg-sky-300",
   sky:     "bg-sky-300",
   violet:  "bg-violet-300",
   emerald: "bg-emerald-300",

@@ -106,7 +106,7 @@ export default function DashboardEgresado() {
     <div className="p-4 md:p-6 lg:p-8 max-w-6xl mx-auto w-full space-y-6">
 
       {/* ── Hero Banner ── */}
-      <div className="bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-700 rounded-2xl p-6 md:p-8 text-white relative overflow-hidden animate-fade-in-up">
+      <div className="bg-gradient-to-br from-emerald-500 via-indigo-500 to-emerald-700 rounded-2xl p-6 md:p-8 text-white relative overflow-hidden animate-fade-in-up">
         <div className="absolute inset-0 opacity-10 hero-pattern" />
 
         <div className="relative flex flex-col md:flex-row md:items-center gap-5">
@@ -143,7 +143,7 @@ export default function DashboardEgresado() {
       {/* ── KPI Cards ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard label="Nivel" value={profile.level ?? 1} icon={<Star size={20} className="text-emerald-500" />} bg="bg-emerald-50" delay={1} />
-        <StatCard label="Mensajes" value={notifications.filter((n) => !n.read).length} icon={<Mail size={20} className="text-cyan-500" />} bg="bg-cyan-50" delay={2} />
+        <StatCard label="Mensajes" value={notifications.filter((n) => !n.read).length} icon={<Mail size={20} className="text-sky-500" />} bg="bg-sky-50" delay={2} />
         <StatCard label="Experiencia" value={`${profile.years_experience ?? 0} años`} icon={<Award size={20} className="text-amber-500" />} bg="bg-amber-50" delay={3} />
         <StatCard label="Conexiones" value={peers.length} icon={<Users size={20} className="text-violet-500" />} bg="bg-violet-50" delay={4} />
       </div>
@@ -158,7 +158,7 @@ export default function DashboardEgresado() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[
                 { href: "/profile", icon: <Edit size={18} className="text-emerald-500" />, bg: "bg-emerald-50", border: "border-emerald-100", title: "Actualiza tu perfil", sub: "Agrega tu último proyecto" },
-                { href: "/muro",    icon: <Share2 size={18} className="text-cyan-500" />,    bg: "bg-cyan-50",    border: "border-cyan-100",    title: "Comparte experiencia",   sub: "Publica en El Muro" },
+                { href: "/muro",    icon: <Share2 size={18} className="text-sky-500" />,    bg: "bg-sky-50",    border: "border-sky-100",    title: "Comparte experiencia",   sub: "Publica en El Muro" },
                 { href: "/messages",icon: <MessageCircle size={18} className="text-violet-500" />, bg: "bg-violet-50", border: "border-violet-100", title: "Mensajes pendientes", sub: `${notifications.filter((n) => !n.read).length} sin leer` },
                 { href: "/talent",  icon: <Users size={18} className="text-amber-500" />,    bg: "bg-amber-50",   border: "border-amber-100",    title: "Red de contactos",       sub: "Conecta con la comunidad" },
               ].map((a, i) => (
@@ -223,7 +223,7 @@ export default function DashboardEgresado() {
                     {t.avatar ? (
                       <img src={t.avatar} alt={t.name} className="w-10 h-10 rounded-xl object-cover shrink-0" />
                     ) : (
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-bold shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-indigo-500 flex items-center justify-center text-white font-bold shrink-0">
                         {t.name.charAt(0).toUpperCase()}
                       </div>
                     )}
@@ -240,7 +240,7 @@ export default function DashboardEgresado() {
 
         {/* Right sidebar */}
         <div className="space-y-5">
-          <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 text-white animate-fade-in-up stagger-1">
+          <div className="bg-gradient-to-br from-emerald-500 to-indigo-600 rounded-2xl p-5 text-white animate-fade-in-up stagger-1">
             <Eye size={28} className="mb-2 opacity-80" />
             <p className="text-3xl font-extrabold">{profile.xp ?? 0}</p>
             <p className="text-sm opacity-90 mt-1">Puntos XP</p>

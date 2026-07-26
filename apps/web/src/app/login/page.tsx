@@ -77,12 +77,12 @@ export default function LoginPage() {
       <div
         aria-hidden="true"
         className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full opacity-20 blur-3xl"
-        style={{ background: "radial-gradient(circle, #06b6d4, transparent)" }}
+        style={{ background: "radial-gradient(circle, #60a5fa, transparent)" }}
       />
       <div
         aria-hidden="true"
         className="absolute -bottom-40 -right-40 w-[500px] h-[500px] rounded-full opacity-10 blur-3xl"
-        style={{ background: "radial-gradient(circle, #00687a, transparent)" }}
+        style={{ background: "radial-gradient(circle, #4f46e5, transparent)" }}
       />
 
       {/* Card */}
@@ -102,7 +102,7 @@ export default function LoginPage() {
               <h1 className="text-2xl font-extrabold text-white tracking-tight">
                 Bienvenido de vuelta
               </h1>
-              <p className="text-cyan-100 text-sm mt-1">
+              <p className="text-sky-100 text-sm mt-1">
                 Ingresa a tu cuenta para continuar
               </p>
             </div>
@@ -129,7 +129,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); setError(""); }}
                 placeholder="tu@correo.cr"
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none transition-all"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none transition-all"
               />
             </div>
 
@@ -145,7 +145,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => { setPassword(e.target.value); setError(""); }}
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 pr-11 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none transition-all"
+                  className="w-full px-4 py-3 pr-11 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none transition-all"
                 />
                 <button
                   type="button"
@@ -162,7 +162,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isSubmitting || !email || !password}
-              className="w-full primary-gradient text-white py-3.5 rounded-xl font-bold text-sm hover:opacity-90 active:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md shadow-cyan-200/40 flex items-center justify-center gap-2 btn-press"
+              className="w-full primary-gradient text-white py-3.5 rounded-xl font-bold text-sm hover:opacity-90 active:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md shadow-sky-200/40 flex items-center justify-center gap-2 btn-press"
             >
               {isSubmitting ? (
                 <>
@@ -184,7 +184,7 @@ export default function LoginPage() {
           <div className="px-8 pb-5 text-center">
             <p className="text-sm text-slate-500">
               ¿No tienes cuenta?{" "}
-              <Link href="/register" className="text-cyan-600 font-semibold hover:underline">
+              <Link href="/register" className="text-sky-600 font-semibold hover:underline">
                 Crear cuenta
               </Link>
             </p>
@@ -209,7 +209,7 @@ export default function LoginPage() {
                     className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {demoLoading === acc.email ? (
-                      <svg className="animate-spin w-3.5 h-3.5 text-cyan-500 shrink-0" viewBox="0 0 24 24" fill="none">
+                      <svg className="animate-spin w-3.5 h-3.5 text-sky-500 shrink-0" viewBox="0 0 24 24" fill="none">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                       </svg>

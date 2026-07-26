@@ -29,19 +29,19 @@ const config: Config = {
     extend: {
       // ── Brand Colour Palette ──────────────────────────
       // Based on Material Design 3 colour roles.
-      // Primary:   deep teal  (#00687a)
+      // Primary:   indigo      (#4f46e5)
       // Secondary: slate-blue (#545f73)
       // Tertiary:  rose       (#a93349)
       // Surface:   off-white  (#f9f9ff) variants
       colors: {
         /* Primary — main actions, active states, links */
-        "cl-primary":           "#00687a",
-        "cl-primary-light":     "#06b6d4",
-        "cl-primary-container": "#acedff",
+        "cl-primary":           "#4f46e5",
+        "cl-primary-light":     "#60a5fa",
+        "cl-primary-container": "#dbeafe",
 
         /* Secondary — supporting text, subtle backgrounds */
         "cl-secondary":           "#545f73",
-        "cl-secondary-container": "#d5e0f8",
+        "cl-secondary-container": "#e0e7ff",
 
         /* Tertiary — accents, alerts, highlights */
         "cl-tertiary":           "#a93349",

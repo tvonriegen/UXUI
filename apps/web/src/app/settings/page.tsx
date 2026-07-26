@@ -67,7 +67,7 @@ function Toggle({ label, sub, checked, onChange }: { label: string; sub?: string
       <button
         onClick={() => onChange(!checked)}
         className={`relative w-10 h-6 rounded-full transition-all duration-200 ${
-          checked ? "bg-cyan-500" : "bg-slate-200"
+          checked ? "bg-sky-500" : "bg-slate-200"
         }`}
         aria-checked={checked}
         role="switch"
@@ -146,7 +146,7 @@ export default function SettingsPage() {
 
         {/* ── Header ── */}
         <div className="mb-6 animate-fade-in-up">
-          <p className="text-xs font-bold text-cyan-600 uppercase tracking-widest mb-1">Configuración</p>
+          <p className="text-xs font-bold text-sky-600 uppercase tracking-widest mb-1">Configuración</p>
           <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">Ajustes</h1>
           <p className="text-sm text-slate-500 mt-1">Gestioná tu cuenta, privacidad y preferencias.</p>
         </div>
@@ -167,7 +167,7 @@ export default function SettingsPage() {
                     w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl
                     text-[13px] font-medium text-left transition-all duration-150
                     ${active
-                      ? "bg-cyan-50 text-cyan-700 font-semibold"
+                      ? "bg-sky-50 text-sky-700 font-semibold"
                       : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
                     }
                   `}
@@ -264,7 +264,7 @@ export default function SettingsPage() {
                           className={`
                             flex flex-col items-center gap-2 p-4 rounded-xl border transition-all
                             ${active
-                              ? "border-cyan-500 bg-cyan-50 text-cyan-700"
+                              ? "border-sky-500 bg-sky-50 text-sky-700"
                               : "border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300"
                             }
                           `}

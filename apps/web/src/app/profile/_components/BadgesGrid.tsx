@@ -51,7 +51,7 @@ function BadgeTier({ badge, showShare, profileName }: { badge: UserBadge; showSh
     <div
       className={`bg-white rounded-2xl p-5 border text-center transition-all relative group ${
         isVerified ? "border-amber-300 shadow-md shadow-amber-100/60"
-        : isEarned  ? "border-cyan-200 shadow-sm"
+        : isEarned  ? "border-sky-200 shadow-sm"
         :             "border-slate-200/60 opacity-50"
       }`}
     >
@@ -68,14 +68,14 @@ function BadgeTier({ badge, showShare, profileName }: { badge: UserBadge; showSh
       <div
         className={`w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-3 mt-1 ${
           isVerified ? "bg-gradient-to-br from-amber-400 to-orange-500 shadow-inner"
-          : isEarned  ? "bg-cyan-50"
+          : isEarned  ? "bg-sky-50"
           :             "bg-slate-100"
         }`}
       >
         {isVerified
           ? <ShieldCheck size={28} className="text-white" />
           : isEarned
-          ? <Award size={28} className="text-cyan-600" />
+          ? <Award size={28} className="text-sky-600" />
           : <Lock size={22} className="text-slate-300" />
         }
       </div>
@@ -93,7 +93,7 @@ function BadgeTier({ badge, showShare, profileName }: { badge: UserBadge; showSh
       <p className="text-[11px] text-slate-400 mt-1.5 line-clamp-2">{badge.description}</p>
 
       {badge.earned && badge.earned_at && (
-        <p className={`text-[10px] mt-2 font-medium ${isVerified ? "text-amber-500" : "text-cyan-500"}`}>
+        <p className={`text-[10px] mt-2 font-medium ${isVerified ? "text-amber-500" : "text-sky-500"}`}>
           {new Date(badge.earned_at).toLocaleDateString("es-CL")}
         </p>
       )}
@@ -148,8 +148,8 @@ export function BadgesGrid({ badges, showShare, profileName }: BadgesGridProps) 
       {earned.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-3">
-            <Award size={14} className="text-cyan-500" />
-            <h4 className="text-xs font-bold text-cyan-700 uppercase tracking-wider">
+            <Award size={14} className="text-sky-500" />
+            <h4 className="text-xs font-bold text-sky-700 uppercase tracking-wider">
               Logros obtenidos ({earned.length})
             </h4>
           </div>

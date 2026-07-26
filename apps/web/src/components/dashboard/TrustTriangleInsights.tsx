@@ -148,7 +148,7 @@ function CompanyView({ companyId }: { companyId: string }) {
         </p>
         <div className="flex items-center justify-between mt-4">
           {[
-            { icon: <GraduationCap size={18} className="text-cyan-600" />, label: "Estudiantes", color: "bg-cyan-50 border-cyan-200" },
+            { icon: <GraduationCap size={18} className="text-sky-600" />, label: "Estudiantes", color: "bg-sky-50 border-sky-200" },
             { icon: <Building2 size={18} className="text-amber-600" />,    label: "Colegios",    color: "bg-amber-50 border-amber-200" },
             { icon: <Briefcase size={18} className="text-violet-600" />,   label: "Empresas",    color: "bg-violet-50 border-violet-200" },
           ].map(({ icon, label, color }, i, arr) => (
@@ -182,8 +182,8 @@ function CompanyView({ companyId }: { companyId: string }) {
           label="Con habilidades validadas"
           value={`${validPct}%`}
           sub={`${data.skillValidated} perfiles verificados`}
-          icon={<Award size={18} className="text-cyan-600" />}
-          color="bg-cyan-50 border-cyan-100 text-cyan-900"
+          icon={<Award size={18} className="text-sky-600" />}
+          color="bg-sky-50 border-sky-100 text-sky-900"
         />
         <MetricTile
           label="Talento disponible"
@@ -251,7 +251,7 @@ function StudentView({ studentId }: { studentId: string }) {
   }, [studentId]);
 
   if (loading) return (
-    <div className="flex justify-center py-10"><Loader2 size={22} className="animate-spin text-cyan-400" /></div>
+    <div className="flex justify-center py-10"><Loader2 size={22} className="animate-spin text-sky-400" /></div>
   );
   if (!data) return null;
 
@@ -261,13 +261,13 @@ function StudentView({ studentId }: { studentId: string }) {
   return (
     <div className="space-y-5">
       {/* Score comparison */}
-      <div className="bg-gradient-to-br from-cyan-50 to-teal-50 border border-cyan-100 rounded-2xl p-4">
+      <div className="bg-gradient-to-br from-sky-50 to-indigo-50 border border-sky-100 rounded-2xl p-4">
         <div className="flex items-center gap-2 mb-3">
-          <TrendingUp size={15} className="text-cyan-600" />
-          <p className="text-sm font-bold text-cyan-800">Tu Reputación vs. la Plataforma</p>
+          <TrendingUp size={15} className="text-sky-600" />
+          <p className="text-sm font-bold text-sky-800">Tu Reputación vs. la Plataforma</p>
         </div>
         <div className="space-y-3">
-          <BarRow label="Tu puntuación" count={data.reputationScore} max={maxScore} color="bg-cyan-500" />
+          <BarRow label="Tu puntuación" count={data.reputationScore} max={maxScore} color="bg-sky-500" />
           <BarRow label="Promedio plataforma" count={data.platformAvgScore} max={maxScore} color="bg-slate-300" />
         </div>
         {scoreDiff !== 0 && (
@@ -293,8 +293,8 @@ function StudentView({ studentId }: { studentId: string }) {
           label="Insignias ganadas"
           value={data.earnedBadges}
           sub="en TalentHub"
-          icon={<Award size={18} className="text-cyan-600" />}
-          color="bg-cyan-50 border-cyan-100 text-cyan-900"
+          icon={<Award size={18} className="text-sky-600" />}
+          color="bg-sky-50 border-sky-100 text-sky-900"
         />
         <MetricTile
           label="Vistas de empresas"
@@ -342,8 +342,8 @@ export default function TrustTriangleInsights({ role, companyId, studentId }: Pr
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden">
-      <div className={`px-5 py-3.5 border-b border-slate-100 flex items-center gap-2 ${isCompany ? "bg-violet-50/60" : "bg-cyan-50/60"}`}>
-        <ShieldCheck size={15} className={isCompany ? "text-violet-600" : "text-cyan-600"} />
+      <div className={`px-5 py-3.5 border-b border-slate-100 flex items-center gap-2 ${isCompany ? "bg-violet-50/60" : "bg-sky-50/60"}`}>
+        <ShieldCheck size={15} className={isCompany ? "text-violet-600" : "text-sky-600"} />
         <p className="text-sm font-bold text-slate-700">
           {isCompany ? "Insights del Ecosistema TalentHub" : "Tu Posicionamiento en TalentHub"}
         </p>

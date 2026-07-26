@@ -33,7 +33,7 @@ export default function GlobalError({ error, reset }: ErrorProps) {
         )}
         <button
           onClick={reset}
-          className="flex items-center gap-2 mx-auto bg-cyan-600 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-cyan-700 transition-colors btn-press"
+          className="flex items-center gap-2 mx-auto bg-sky-600 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-sky-700 transition-colors btn-press"
         >
           <RefreshCw size={16} /> Intentar de nuevo
         </button>

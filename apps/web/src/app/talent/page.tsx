@@ -94,14 +94,14 @@ function ActivitiesPlayground() {
 
       {/* Header */}
       <div className="animate-fade-in-up">
-        <p className="text-sm text-cyan-600 font-semibold mb-1">Tu Espacio</p>
+        <p className="text-sm text-sky-600 font-semibold mb-1">Tu Espacio</p>
         <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Actividades & Logros</h1>
         <p className="text-slate-500 text-sm mt-1">Completa misiones, gana XP y mejora tu perfil.</p>
       </div>
 
       {/* Player stats */}
       {loading ? (
-        <div className="flex justify-center py-10"><Loader2 size={28} className="animate-spin text-cyan-400" /></div>
+        <div className="flex justify-center py-10"><Loader2 size={28} className="animate-spin text-sky-400" /></div>
       ) : profile && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in-up stagger-1">
           {[
@@ -124,11 +124,11 @@ function ActivitiesPlayground() {
         <div className="bg-white rounded-2xl p-5 border border-slate-200/60 animate-fade-in-up stagger-2">
           <div className="flex justify-between text-sm mb-2">
             <span className="font-bold text-slate-700">Progreso de actividades</span>
-            <span className="font-bold text-cyan-600">{earnedXP} / {totalXPAvailable} XP</span>
+            <span className="font-bold text-sky-600">{earnedXP} / {totalXPAvailable} XP</span>
           </div>
           <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-cyan-400 to-teal-500 rounded-full transition-all duration-700"
+              className="h-full bg-gradient-to-r from-sky-400 to-indigo-500 rounded-full transition-all duration-700"
               style={{ width: `${Math.min(100, (earnedXP / totalXPAvailable) * 100)}%` }}
             />
           </div>
@@ -140,7 +140,7 @@ function ActivitiesPlayground() {
       <div className="flex gap-2 flex-wrap animate-fade-in-up stagger-2">
         <button
           onClick={() => setCatFilter("all")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${catFilter === "all" ? "bg-cyan-600 text-white" : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"}`}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${catFilter === "all" ? "bg-sky-600 text-white" : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-50"}`}
         >
           Todas
         </button>
@@ -190,16 +190,16 @@ function ActivitiesPlayground() {
 
         {/* ── Tech Quiz card ──────────────────────────────── */}
         {(catFilter === "all" || catFilter === "tech") && (
-          <div className="bg-gradient-to-br from-cyan-50 to-teal-50 rounded-2xl border border-cyan-200/60 overflow-hidden hover:shadow-md transition-all animate-fade-in-up stagger-1">
+          <div className="bg-gradient-to-br from-sky-50 to-indigo-50 rounded-2xl border border-sky-200/60 overflow-hidden hover:shadow-md transition-all animate-fade-in-up stagger-1">
             <div className="p-5">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-cyan-100">
-                  <Cpu size={22} className="text-cyan-600" />
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-sky-100">
+                  <Cpu size={22} className="text-sky-600" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <h3 className="font-bold text-sm leading-tight">Quiz Técnico Cronometrado</h3>
-                    <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700">+60 XP</span>
+                    <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-700">+60 XP</span>
                   </div>
                   <p className="text-xs text-slate-400 leading-relaxed">
                     8 preguntas técnicas con 20 segundos por respuesta. Feedback inmediato en cada una.
@@ -207,7 +207,7 @@ function ActivitiesPlayground() {
                   <div className="mt-3">
                     <button
                       onClick={() => setShowTechQuiz(true)}
-                      className="text-xs font-bold px-3 py-1.5 rounded-lg transition-all bg-cyan-600 hover:bg-cyan-700 text-white"
+                      className="text-xs font-bold px-3 py-1.5 rounded-lg transition-all bg-sky-600 hover:bg-sky-700 text-white"
                     >
                       Iniciar quiz
                     </button>
@@ -302,12 +302,12 @@ function ActivitiesPlayground() {
       </div>
 
       {/* Info box */}
-      <div className="bg-gradient-to-br from-cyan-50 to-teal-50 border border-cyan-200/60 rounded-2xl p-5 animate-fade-in-up">
+      <div className="bg-gradient-to-br from-sky-50 to-indigo-50 border border-sky-200/60 rounded-2xl p-5 animate-fade-in-up">
         <div className="flex items-start gap-3">
-          <Shield size={20} className="text-cyan-600 shrink-0 mt-0.5" />
+          <Shield size={20} className="text-sky-600 shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-bold text-cyan-800 mb-1">¿Cómo funciona?</p>
-            <p className="text-xs text-cyan-700 leading-relaxed">
+            <p className="text-sm font-bold text-sky-800 mb-1">¿Cómo funciona?</p>
+            <p className="text-xs text-sky-700 leading-relaxed">
               Cada actividad que completes suma XP a tu perfil y mejora tu visibilidad ante empresas.
               Las insignias se otorgan automáticamente al cumplir requisitos desde el servidor.
               Tu racha diaria aumenta cada vez que accedes a la plataforma.
@@ -453,7 +453,7 @@ export default function TalentPage() {
                  : "Contactar";
   const ctaClass = viewerRole === "Empresa" ? "bg-violet-600 hover:bg-violet-700"
                  : viewerRole === "Colegio" ? "bg-amber-600 hover:bg-amber-700"
-                 : "bg-cyan-600 hover:bg-cyan-700";
+                 : "bg-sky-600 hover:bg-sky-700";
   const visibleError = error ?? contactError;
 
   // Students get the Activities Playground instead of the talent directory
@@ -470,7 +470,7 @@ export default function TalentPage() {
     <PageLayout>
       <div className="p-4 md:p-6 lg:p-8 max-w-6xl mx-auto w-full space-y-5">
         <div className="animate-fade-in-up">
-          <p className="text-sm text-cyan-600 font-semibold mb-1">Directorio Académico</p>
+          <p className="text-sm text-sky-600 font-semibold mb-1">Directorio Académico</p>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Buscador de Talento</h1>
           <p className="text-slate-500 text-sm mt-1">{total} perfiles en el sistema</p>
         </div>
@@ -482,22 +482,22 @@ export default function TalentPage() {
             <input
               type="text" value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar por nombre, habilidad, especialidad..."
-              className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none transition-shadow"
+              className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none transition-shadow"
             />
           </div>
           <button onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-4 py-3 rounded-xl border text-sm font-semibold transition-all ${showFilters || activeFilterCount > 0 ? "bg-cyan-600 text-white border-cyan-600" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"}`}
+            className={`flex items-center gap-2 px-4 py-3 rounded-xl border text-sm font-semibold transition-all ${showFilters || activeFilterCount > 0 ? "bg-sky-600 text-white border-sky-600" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"}`}
           >
             <SlidersHorizontal size={16} />
             Filtros
             {activeFilterCount > 0 && (
-              <span className={`text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center ${showFilters ? "bg-white text-cyan-600" : "bg-cyan-600 text-white"}`}>
+              <span className={`text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center ${showFilters ? "bg-white text-sky-600" : "bg-sky-600 text-white"}`}>
                 {activeFilterCount}
               </span>
             )}
           </button>
           <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}
-            className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-cyan-200 outline-none cursor-pointer"
+            className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-600 focus:ring-2 focus:ring-sky-200 outline-none cursor-pointer"
           >
             {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
@@ -508,7 +508,7 @@ export default function TalentPage() {
             <div>
               <label className="text-xs font-bold text-slate-500 mb-2 block">Especialidad</label>
               <select value={specialty} onChange={(e) => setSpecialty(e.target.value)}
-                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 outline-none bg-white"
+                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 outline-none bg-white"
               >
                 {SPECIALTIES.map((s) => <option key={s}>{s}</option>)}
               </select>
@@ -516,7 +516,7 @@ export default function TalentPage() {
             <div>
               <label className="text-xs font-bold text-slate-500 mb-2 block">Tipo</label>
               <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}
-                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 outline-none bg-white"
+                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 outline-none bg-white"
               >
                 {ROLE_FILTERS.map((r) => <option key={r}>{r}</option>)}
               </select>
@@ -524,7 +524,7 @@ export default function TalentPage() {
             <div>
               <label className="text-xs font-bold text-slate-500 mb-2 block">Disponibilidad</label>
               <select value={availability} onChange={(e) => setAvailability(e.target.value)}
-                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-cyan-200 outline-none bg-white"
+                className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 outline-none bg-white"
               >
                 {AVAILABILITY_FILTERS.map((a) => <option key={a}>{a}</option>)}
               </select>
@@ -547,7 +547,7 @@ export default function TalentPage() {
 
         {loading && (
           <div className="flex justify-center py-20">
-            <Loader2 size={32} className="animate-spin text-cyan-400" />
+            <Loader2 size={32} className="animate-spin text-sky-400" />
           </div>
         )}
 
@@ -555,7 +555,7 @@ export default function TalentPage() {
           <div className="text-center py-20 bg-white rounded-2xl border border-slate-200/60">
             <Search size={48} className="mx-auto mb-4 text-slate-200" />
             <p className="text-slate-400 text-base font-medium">No se encontraron perfiles.</p>
-            <button onClick={clearFilters} className="mt-3 text-sm text-cyan-600 font-semibold hover:underline">Limpiar filtros</button>
+            <button onClick={clearFilters} className="mt-3 text-sm text-sky-600 font-semibold hover:underline">Limpiar filtros</button>
           </div>
         )}
 
@@ -576,7 +576,7 @@ export default function TalentPage() {
                     {t.avatar ? (
                       <img src={t.avatar} alt={t.name} className="w-14 h-14 rounded-xl object-cover shrink-0" />
                     ) : (
-                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center shrink-0">
+                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center shrink-0">
                         <span className="text-white font-black text-xl">{t.name.charAt(0)}</span>
                       </div>
                     )}
@@ -602,7 +602,7 @@ export default function TalentPage() {
                     <div className="mt-4 pt-4 border-t border-slate-100 space-y-2.5 animate-fade-in-up">
                       {t.bio && <p className="text-sm text-slate-600 leading-relaxed">{t.bio}</p>}
                       <div className="flex flex-wrap gap-2 text-xs">
-                        {t.specialty && <span className="bg-cyan-50 text-cyan-700 px-2.5 py-1 rounded-lg font-semibold">{t.specialty}</span>}
+                        {t.specialty && <span className="bg-sky-50 text-sky-700 px-2.5 py-1 rounded-lg font-semibold">{t.specialty}</span>}
                         {t.years_experience > 0 && <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg">{t.years_experience} {t.years_experience === 1 ? "año exp." : "años exp."}</span>}
                         {t.gpa && <span className="bg-amber-50 text-amber-700 px-2.5 py-1 rounded-lg font-semibold">Promedio {t.gpa.toFixed(1)}</span>}
                       </div>

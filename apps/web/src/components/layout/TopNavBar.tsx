@@ -78,11 +78,11 @@ export default function TopNavBar() {
 
         {/* ── Logo ── */}
         <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center shadow-sm transition-transform group-hover:scale-105">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center shadow-sm transition-transform group-hover:scale-105">
             <span className="text-white font-black text-sm">TH</span>
           </div>
           <span className="text-lg font-bold tracking-tight text-slate-900 hidden sm:block">
-            Class<span className="text-cyan-600">Link</span>
+            Talent<span className="text-indigo-600">Hub</span>
           </span>
         </Link>
 
@@ -110,7 +110,7 @@ export default function TopNavBar() {
           {/* Publicar button (desktop only) */}
           <Link
             href="/muro?compose=1"
-            className="hidden lg:flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-600 active:bg-cyan-700 text-white text-[13px] font-semibold shadow-sm transition-all duration-150"
+            className="hidden lg:flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white text-[13px] font-semibold shadow-sm transition-all duration-150"
           >
             <Plus size={15} strokeWidth={2.5} />
             Publicar
@@ -142,14 +142,14 @@ export default function TopNavBar() {
                   <p className="text-xs font-bold text-slate-700 tracking-wide">Notificaciones</p>
                   <div className="flex items-center gap-2">
                     {unreadCount > 0 && (
-                      <button onClick={markAllRead} className="text-[10px] font-bold text-cyan-600 hover:underline">
+                      <button onClick={markAllRead} className="text-[10px] font-bold text-sky-600 hover:underline">
                         Marcar todo leído
                       </button>
                     )}
                     <Link
                       href="/notifications"
                       onClick={() => setNotifOpen(false)}
-                      className="text-[10px] font-bold text-slate-400 hover:text-cyan-600"
+                      className="text-[10px] font-bold text-slate-400 hover:text-sky-600"
                     >
                       Ver todas →
                     </Link>
@@ -188,7 +188,7 @@ export default function TopNavBar() {
               onClick={() => { setUserDdOpen(!userDdOpen); setNotifOpen(false); }}
               className="flex items-center gap-2 group"
             >
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center text-white font-bold text-xs ring-2 ring-white shadow-sm group-hover:ring-cyan-200 transition-all overflow-hidden">
+              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center text-white font-bold text-xs ring-2 ring-white shadow-sm group-hover:ring-sky-200 transition-all overflow-hidden">
                 {user?.avatar ? (
                   <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
                 ) : (

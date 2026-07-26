@@ -102,8 +102,8 @@ export default function DailyQuestsCard({ userId }: DailyQuestsCardProps) {
     <div className="bg-white rounded-2xl p-6 border border-slate-200/60 animate-fade-in-up">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-cyan-50 flex items-center justify-center">
-            <Target size={16} className="text-cyan-600" />
+          <div className="w-8 h-8 rounded-lg bg-sky-50 flex items-center justify-center">
+            <Target size={16} className="text-sky-600" />
           </div>
           <div>
             <p className="font-bold text-base leading-tight">Misiones de hoy</p>
@@ -155,12 +155,12 @@ export default function DailyQuestsCard({ userId }: DailyQuestsCardProps) {
                 className={`p-4 rounded-xl border transition-all ${
                   done
                     ? "border-emerald-200 bg-emerald-50/50"
-                    : "border-slate-200/70 bg-white hover:border-cyan-200 hover:bg-cyan-50/20"
+                    : "border-slate-200/70 bg-white hover:border-sky-200 hover:bg-sky-50/20"
                 }`}
               >
                 <div className="flex items-start gap-3">
                   <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
-                    done ? "bg-emerald-100 text-emerald-600" : "bg-cyan-50 text-cyan-600"
+                    done ? "bg-emerald-100 text-emerald-600" : "bg-sky-50 text-sky-600"
                   }`}>
                     {done ? <CheckCircle2 size={20} strokeWidth={2.25} /> : <Icon name={q.icon} size={20} />}
                   </div>
@@ -172,7 +172,7 @@ export default function DailyQuestsCard({ userId }: DailyQuestsCardProps) {
                         <p className="text-xs text-slate-500 mt-0.5">{q.description}</p>
                       </div>
                       <span className={`text-[10px] font-extrabold shrink-0 px-2 py-0.5 rounded-full ${
-                        done ? "bg-emerald-100 text-emerald-700" : "bg-cyan-100 text-cyan-700"
+                        done ? "bg-emerald-100 text-emerald-700" : "bg-sky-100 text-sky-700"
                       }`}>
                         +{q.xp_reward} XP
                       </span>
@@ -194,7 +194,7 @@ export default function DailyQuestsCard({ userId }: DailyQuestsCardProps) {
                         {!done && (
                           <Link
                             href={hint.href}
-                            className="text-[11px] font-bold text-cyan-600 hover:text-cyan-700 flex items-center gap-0.5"
+                            className="text-[11px] font-bold text-sky-600 hover:text-sky-700 flex items-center gap-0.5"
                           >
                             {hint.label}
                             <ChevronRight size={11} />

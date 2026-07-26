@@ -238,7 +238,7 @@ export default function TechQuizActivity({ userId, onClose, onXPEarned }: Props)
 
   const q = QUESTIONS[qIndex];
   const timerPct = (timeLeft / TIME_PER_Q) * 100;
-  const timerColor = timeLeft > 10 ? "bg-cyan-500" : timeLeft > 5 ? "bg-amber-500" : "bg-red-500";
+  const timerColor = timeLeft > 10 ? "bg-sky-500" : timeLeft > 5 ? "bg-amber-500" : "bg-red-500";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -246,7 +246,7 @@ export default function TechQuizActivity({ userId, onClose, onXPEarned }: Props)
       <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden">
 
         {/* Header */}
-        <div className="bg-gradient-to-r from-cyan-600 to-teal-600 px-6 pt-5 pb-4 text-white">
+        <div className="bg-gradient-to-r from-sky-600 to-indigo-600 px-6 pt-5 pb-4 text-white">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
               <Cpu size={18} />
@@ -257,7 +257,7 @@ export default function TechQuizActivity({ userId, onClose, onXPEarned }: Props)
             </button>
           </div>
           {phase === "question" && (
-            <p className="text-cyan-100 text-xs">{qIndex + 1} / {QUESTIONS.length}</p>
+            <p className="text-sky-100 text-xs">{qIndex + 1} / {QUESTIONS.length}</p>
           )}
         </div>
 
@@ -266,8 +266,8 @@ export default function TechQuizActivity({ userId, onClose, onXPEarned }: Props)
           {/* ── INTRO ─────────────────────────────────────── */}
           {phase === "intro" && (
             <div className="text-center space-y-5">
-              <div className="w-16 h-16 rounded-2xl bg-cyan-50 flex items-center justify-center mx-auto">
-                <Cpu size={32} className="text-cyan-600" />
+              <div className="w-16 h-16 rounded-2xl bg-sky-50 flex items-center justify-center mx-auto">
+                <Cpu size={32} className="text-sky-600" />
               </div>
               <div>
                 <h2 className="text-xl font-extrabold mb-2">Quiz de Conocimiento Técnico</h2>
@@ -277,12 +277,12 @@ export default function TechQuizActivity({ userId, onClose, onXPEarned }: Props)
                 </p>
               </div>
               <div className="flex justify-center gap-6 text-sm text-slate-500">
-                <span className="flex items-center gap-1.5"><Clock size={14} className="text-cyan-500" /> 20 seg / pregunta</span>
+                <span className="flex items-center gap-1.5"><Clock size={14} className="text-sky-500" /> 20 seg / pregunta</span>
                 <span className="flex items-center gap-1.5"><Zap size={14} className="text-amber-500" /> Hasta 60 XP</span>
               </div>
               <button
                 onClick={startQuiz}
-                className="w-full py-3.5 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-2xl transition-colors"
+                className="w-full py-3.5 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-2xl transition-colors"
               >
                 Comenzar Quiz
               </button>
@@ -331,7 +331,7 @@ export default function TechQuizActivity({ userId, onClose, onXPEarned }: Props)
                   const isCorrect  = c.id === q.correct;
                   const isSelected = c.id === selected;
 
-                  let style = "border-slate-200 bg-white hover:bg-slate-50 hover:border-cyan-300";
+                  let style = "border-slate-200 bg-white hover:bg-slate-50 hover:border-sky-300";
                   if (revealed) {
                     if (isCorrect)             style = "border-emerald-400 bg-emerald-50 text-emerald-800";
                     else if (isSelected)       style = "border-red-400 bg-red-50 text-red-800";
@@ -379,11 +379,11 @@ export default function TechQuizActivity({ userId, onClose, onXPEarned }: Props)
               <div>
                 {correctIds.size >= 6
                   ? <Trophy size={48} className="mx-auto text-amber-500" />
-                  : <Cpu size={48} className="mx-auto text-cyan-400" />}
+                  : <Cpu size={48} className="mx-auto text-sky-400" />}
               </div>
               <div>
                 <h2 className="text-xl font-extrabold mb-1">Quiz completado</h2>
-                <p className="text-4xl font-black text-cyan-600 my-3">{correctIds.size} / {QUESTIONS.length}</p>
+                <p className="text-4xl font-black text-sky-600 my-3">{correctIds.size} / {QUESTIONS.length}</p>
                 <p className="text-slate-500 text-sm">
                   {correctIds.size >= 7 && "¡Resultado sobresaliente! Dominas los conceptos técnicos."}
                   {correctIds.size >= 5 && correctIds.size < 7 && "Buen resultado. Sigue reforzando los temas que fallaste."}

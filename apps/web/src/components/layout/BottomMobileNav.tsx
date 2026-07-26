@@ -50,7 +50,7 @@ export default function BottomMobileNav() {
             className={`
               flex flex-col items-center justify-center gap-0.5 px-3 py-1 rounded-xl
               transition-all duration-200
-              ${isActive ? "text-cyan-600" : "text-slate-400 hover:text-slate-600"}
+              ${isActive ? "text-sky-600" : "text-slate-400 hover:text-slate-600"}
             `}
           >
             {/* Icon + unread badge container */}
@@ -70,7 +70,7 @@ export default function BottomMobileNav() {
 
             {/* Active indicator dot below icon */}
             {isActive && (
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pop-in" />
+              <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pop-in" />
             )}
 
             {/* Label text */}

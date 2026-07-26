@@ -32,7 +32,7 @@ interface ReputationCardProps {
 
 const TYPE_META: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
   skill_validated:   { label: "Habilidad validada",       color: "text-amber-600 bg-amber-50",    icon: <ShieldCheck size={13} /> },
-  badge_earned:      { label: "Insignia obtenida",        color: "text-cyan-600 bg-cyan-50",       icon: <Award size={13} />       },
+  badge_earned:      { label: "Insignia obtenida",        color: "text-sky-600 bg-sky-50",       icon: <Award size={13} />       },
   applied_accepted:  { label: "Postulación aceptada",     color: "text-emerald-600 bg-emerald-50", icon: <Briefcase size={13} />   },
   internship_review: { label: "Revisión de práctica",     color: "text-violet-600 bg-violet-50",   icon: <TrendingUp size={13} />  },
   portfolio_item:    { label: "Proyecto de portafolio",   color: "text-slate-600 bg-slate-100",    icon: <Award size={13} />       },
@@ -40,7 +40,7 @@ const TYPE_META: Record<string, { label: string; color: string; icon: React.Reac
 
 function scoreLabel(score: number): { label: string; color: string } {
   if (score >= 500) return { label: "Élite",       color: "text-amber-600" };
-  if (score >= 300) return { label: "Destacado",   color: "text-cyan-600"  };
+  if (score >= 300) return { label: "Destacado",   color: "text-sky-600"  };
   if (score >= 150) return { label: "En ascenso",  color: "text-emerald-600" };
   if (score >= 50)  return { label: "Iniciando",   color: "text-slate-500" };
   return               { label: "Nuevo",           color: "text-slate-400" };
@@ -102,7 +102,7 @@ export default function ReputationCard({
   const { label: tierLabel, color: tierColor } = scoreLabel(reputationScore);
   const gaugeColor =
     reputationScore >= 500 ? "#f59e0b"
-    : reputationScore >= 300 ? "#06b6d4"
+    : reputationScore >= 300 ? "#60a5fa"
     : reputationScore >= 150 ? "#10b981"
     : "#94a3b8";
 

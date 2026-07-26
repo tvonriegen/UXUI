@@ -70,12 +70,12 @@ export default function RegisterPage() {
       <div
         aria-hidden="true"
         className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full opacity-20 blur-3xl"
-        style={{ background: "radial-gradient(circle, #06b6d4, transparent)" }}
+        style={{ background: "radial-gradient(circle, #60a5fa, transparent)" }}
       />
       <div
         aria-hidden="true"
         className="absolute -bottom-40 -right-40 w-[500px] h-[500px] rounded-full opacity-10 blur-3xl"
-        style={{ background: "radial-gradient(circle, #00687a, transparent)" }}
+        style={{ background: "radial-gradient(circle, #4f46e5, transparent)" }}
       />
 
       <div className="relative z-10 w-full max-w-md animate-fade-in-up">
@@ -94,7 +94,7 @@ export default function RegisterPage() {
               <h1 className="text-2xl font-extrabold text-white tracking-tight">
                 Registro de organización
               </h1>
-              <p className="text-cyan-100 text-sm mt-1">
+              <p className="text-sky-100 text-sm mt-1">
                 Solo Empresas y Colegios pueden registrarse aquí
               </p>
             </div>
@@ -128,7 +128,7 @@ export default function RegisterPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Tu nombre"
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none transition-all"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none transition-all"
               />
             </div>
 
@@ -144,7 +144,7 @@ export default function RegisterPage() {
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); setError(""); }}
                 placeholder="tu@correo.cr"
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none transition-all"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none transition-all"
               />
             </div>
 
@@ -162,7 +162,7 @@ export default function RegisterPage() {
                     className={`
                       flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all
                       ${role === r.value
-                        ? "border-cyan-500 bg-cyan-50 text-cyan-700"
+                        ? "border-sky-500 bg-sky-50 text-sky-700"
                         : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300"
                       }
                     `}
@@ -186,7 +186,7 @@ export default function RegisterPage() {
                   value={password}
                   onChange={(e) => { setPassword(e.target.value); setError(""); }}
                   placeholder="Mín. 12 car., 1 número, 1 especial"
-                  className="w-full px-4 py-3 pr-11 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none transition-all"
+                  className="w-full px-4 py-3 pr-11 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none transition-all"
                 />
                 <button
                   type="button"
@@ -211,14 +211,14 @@ export default function RegisterPage() {
                 value={confirm}
                 onChange={(e) => { setConfirm(e.target.value); setError(""); }}
                 placeholder="Repite tu contraseña"
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-cyan-200 focus:border-cyan-400 outline-none transition-all"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none transition-all"
               />
             </div>
 
             <button
               type="submit"
               disabled={isSubmitting || success || !name || !email || !password || !confirm}
-              className="w-full primary-gradient text-white py-3.5 rounded-xl font-bold text-sm hover:opacity-90 active:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md shadow-cyan-200/40 flex items-center justify-center gap-2 btn-press"
+              className="w-full primary-gradient text-white py-3.5 rounded-xl font-bold text-sm hover:opacity-90 active:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md shadow-sky-200/40 flex items-center justify-center gap-2 btn-press"
             >
               {isSubmitting ? (
                 <>
@@ -240,7 +240,7 @@ export default function RegisterPage() {
           <div className="px-8 pb-8 text-center">
             <p className="text-sm text-slate-500">
               ¿Ya tienes cuenta?{" "}
-              <Link href="/login" className="text-cyan-600 font-semibold hover:underline">
+              <Link href="/login" className="text-sky-600 font-semibold hover:underline">
                 Ingresar
               </Link>
             </p>
