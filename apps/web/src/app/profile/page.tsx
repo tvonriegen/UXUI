@@ -10,6 +10,7 @@ import { updateApplicationStatus, updateInternshipRequest, createInternshipReque
 import type { Vacancy, JobApplicant } from "@/lib/types";
 import { PortfolioGrid } from "./_components/PortfolioGrid";
 import { BadgesGrid }    from "./_components/BadgesGrid";
+import { ProfileEvidencePanel } from "@/components/profile/ProfileEvidencePanel";
 import ReputationCard    from "@/components/profile/ReputationCard";
 import { useToast }      from "@/components/ui/Toast";
 import { useConfirm }    from "@/components/ui/ConfirmDialog";
@@ -434,7 +435,7 @@ export default function ProfilePage() {
   useEffect(() => {
     const isStudentProfile = profile?.role === "Estudiante" || profile?.role === "Egresado";
     if (isStudentProfile && window.location.hash === "#profile-evidence") {
-      setTab("Portafolio");
+      setTab("Resumen");
     }
   }, [profile?.role]);
 
@@ -716,7 +717,7 @@ export default function ProfilePage() {
     { label: "Biografía",          done: !!displayBio,             weight: 15 },
     { label: "Habilidades",        done: displaySkills.length > 0, weight: 15 },
     { label: "Habilidades blandas",done: localSoftSkills.length > 0, weight: 15 },
-    { label: "Certificaciones",    done: (portfolio.length > 0),   weight: 10 },
+    { label: "Evidencia",           done: (portfolio.length > 0),   weight: 10 },
     { label: "Portafolio",         done: portfolio.length > 0,     weight: 20 },
     { label: "Asistencia",         done: true,                     weight: 10 },
     { label: "Promedio GPA",       done: profile.gpa != null,      weight: 15 },
@@ -1510,7 +1511,7 @@ export default function ProfilePage() {
           </div>
 
           {/* ── Main Content (Tabs + Content) ── */}
-          <div id="profile-evidence" className="lg:col-span-3 space-y-4">
+          <div id="profile-main-content" className="lg:col-span-3 space-y-4">
 
             {/* Tabs */}
             <div className="flex gap-1.5 bg-white border border-slate-200/60 rounded-xl p-1.5 w-fit">
@@ -1581,6 +1582,18 @@ export default function ProfilePage() {
                       </button>
                     </div>
                   </div>
+                )}
+
+                {isStudent && (
+                  <ProfileEvidencePanel
+                    profileId={profile.id}
+                    isOwner={profile.id === user?.id}
+                    profile={profile}
+                    skillsCount={displaySkills.length}
+                    softSkillsCount={localSoftSkills.length}
+                    portfolioCount={portfolio.length}
+                    schoolReportPresent={Boolean(schoolReport)}
+                  />
                 )}
 
                 {isStudent && badges.length > 0 && (

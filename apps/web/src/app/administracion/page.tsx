@@ -22,6 +22,7 @@ import {
 } from "@/app/actions/school";
 import { updateInternshipRequest } from "@/app/actions/company";
 import SmartImporter from "@/components/admin/SmartImporter";
+import { ProfileEvidenceReviewPanel } from "@/components/profile/ProfileEvidenceReviewPanel";
 import {
   GraduationCap, Plus, Search, TrendingUp, Users, FileText,
   Loader2, CheckCircle2, XCircle, ChevronRight, Upload, ShieldCheck,
@@ -705,6 +706,8 @@ export default function AdministracionPage() {
                               </div>
                             )}
                           </div>
+
+                          <ProfileEvidenceReviewPanel studentId={s.id} />
 
                           {/* Reporte del Colegio */}
                           <div className="bg-white rounded-xl p-4 border border-slate-200/60">

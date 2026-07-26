@@ -6,9 +6,8 @@
 - Push `main` directly to `origin`; no pull request is part of this integration.
 - Confirm the new `.github/workflows/ci.yml` passes on GitHub after push.
 - Grant the GitHub OAuth token the `workflow` scope before pushing commits that add or update workflows.
-- Apply `supabase/migrations/20260726000002_application_readiness_timeline.sql` after the privacy/interview migrations.
-- Apply `supabase/migrations/20260726000001_interviews_status_transitions.sql` to Supabase staging.
-- Exercise company and student interview transitions with real authenticated roles.
+- Create staging fixtures for company, school, minor student, graduate and one evidence submission.
+- Exercise contact mediation, evidence review, interview transitions and readiness timeline with real authenticated roles.
 - Set `SEED_SECRET` in Vercel and other deployed environments.
 
 ## Validation Matrix
@@ -19,6 +18,9 @@
 - `npm run verify:explainable-match`
 - `npm run verify:application-readiness`
 - `npm run verify:readiness-timeline`
+- `npm run verify:profile-evidence`
+- `npm run verify:phase3-security`
+- `npm run verify:function-grants`
 - `npm run typecheck`
 - `npm run lint`
 - `npm run build`

@@ -14,15 +14,17 @@
 
 ## Phase 2: Verified Student Profile
 
-- Model evidence more explicitly.
-- Add validation states and audit trail.
-- Improve profile completeness guidance.
+- [x] Model evidence more explicitly.
+- [x] Add validation states and audit trail.
+- [x] Improve profile completeness guidance.
 
 ## Phase 3: Assisted Application
 
 - [x] Add pre-application readiness checklist.
 - [x] Suggest improvements before applying.
 - [x] Persist readiness state and connect it with the application timeline.
+
+The readiness schema, contact mediation, interview transitions and evidence model are now deployed to the connected Supabase environment through idempotent migrations. Authenticated runtime fixtures remain a separate verification step.
 
 ## Phase 4: Production Hardening
 

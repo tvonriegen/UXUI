@@ -6,7 +6,7 @@
 
 ## Current Phase
 
-- Phase 0, Phase 1 and Phase 2 integrated locally: quality baseline, role-aware search, student application journey and readiness continuity in the ATS timeline.
+- Phase 0 through Phase 3 delivered: verified profile evidence, assisted application readiness, ATS timeline continuity and Supabase authorization alignment.
 
 ## Current State
 
@@ -30,6 +30,8 @@
 - Student navigation distinguishes activities from talent discovery.
 - Profile readiness links now target actionable sections, and inline student profile edits persist through RLS-scoped writes.
 - Applications persist a non-sensitive readiness snapshot and show a `Perfil revisado` event before `Postulado` in the timeline.
+- Profile evidence has explicit types, validation states, school review controls and immutable audit events.
+- Supabase now contains contact routing, readiness columns, interview transition guards and profile evidence tables.
 
 ## Validation
 
@@ -45,7 +47,7 @@
 
 ## Remaining External Verification
 
-- Apply the migrations to Supabase staging and exercise the RLS, trigger and interview transition matrix with real roles.
+- Exercise the applied migrations with Supabase staging fixtures and real authenticated roles.
 - Configure `SEED_SECRET` in every deployed environment before enabling `/api/seed`.
 - Review the remaining dependency vulnerabilities and broader schema snapshot drift as separate maintenance work.
 - The CI workflow still requires a remote GitHub run after the branch is pushed.
@@ -54,5 +56,4 @@
 ## Next Action
 
 - Renew or authorize the GitHub token with `workflow` scope, then push `main` and confirm CI.
-- Apply the readiness-timeline migration in Supabase staging with the existing privacy/interview migrations.
-- Run the Supabase staging authorization and application-timeline smoke matrix before production promotion.
+- Configure staging fixtures and run the Supabase authorization, evidence-review and application-timeline smoke matrix before production promotion.

@@ -41,9 +41,9 @@ CREATE POLICY "interviews_insert_company" ON interviews
       FROM job_applications ja
       JOIN job_postings jp ON jp.id = ja.job_id
       WHERE ja.id = application_id
-        AND ja.applicant_id = student_id
-        AND jp.company_id = auth.uid()
-        AND jp.company_id = company_id
+         AND ja.applicant_id = interviews.student_id
+         AND jp.company_id = auth.uid()
+         AND jp.company_id = interviews.company_id
     )
     -- Privacy gate: empresa↔egresado, empresa↔adult student, or
     -- empresa↔minor student with an approved contact_request.

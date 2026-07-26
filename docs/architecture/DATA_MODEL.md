@@ -4,6 +4,7 @@
 
 - Profiles: users across Estudiante, Egresado, Empresa and Colegio roles.
 - Skills and badges: competencies and achievements tied to student evidence.
+- Profile evidence: projects, certificates and other claims with pending, verified or rejected states plus immutable review events.
 - Job postings: opportunities published by companies.
 - Applications: student or graduate submissions to job postings.
 - Interviews and timeline: application process events.

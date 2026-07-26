@@ -194,13 +194,13 @@ CREATE POLICY "contact_requests_insert_company" ON contact_requests
     AND reviewed_at IS NULL
     AND COALESCE(rejection_reason, '') = ''
     AND EXISTS (SELECT 1 FROM profiles p WHERE p.id = company_id AND p.role = 'Empresa')
-    AND EXISTS (SELECT 1 FROM profiles p WHERE p.id = school_id AND p.role = 'Colegio')
+    AND EXISTS (SELECT 1 FROM profiles p WHERE p.id = contact_requests.school_id AND p.role = 'Colegio')
     AND EXISTS (
       SELECT 1
       FROM profiles p
       WHERE p.id = student_id
         AND p.role = 'Estudiante'
-        AND p.school_id = school_id
+        AND p.school_id = contact_requests.school_id
         AND is_minor_profile(p.role, p.age)
     )
   );
