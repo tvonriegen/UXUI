@@ -30,10 +30,16 @@ const DEMO_USERS: DemoUser[] = [
 export async function POST(request: Request) {
   const log: string[] = [];
 
-  // ── Guard: require x-seed-secret header ───────────────────────────
-  // In production, always set SEED_SECRET in your environment variables.
-  // Without it this endpoint is open to unauthenticated callers.
+  // ── Guard: local development may use the endpoint without a secret. ──
+  // Every deployed environment must configure SEED_SECRET explicitly.
   const envSecret = process.env.SEED_SECRET;
+  const isLocalDevelopment = process.env.NODE_ENV === "development" && !process.env.VERCEL;
+  if (!isLocalDevelopment && !envSecret) {
+    return NextResponse.json(
+      { error: "Seed endpoint is not configured for this environment." },
+      { status: 503 }
+    );
+  }
   if (envSecret) {
     const provided = request.headers.get("x-seed-secret");
     if (provided !== envSecret) {

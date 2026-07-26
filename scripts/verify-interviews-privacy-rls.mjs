@@ -5,15 +5,13 @@ import { dirname, join } from "node:path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const migrationPath = join(
-  __dirname,
-  "..",
-  "supabase",
-  "migrations",
-  "20260705000002_interviews_privacy_rls.sql"
-);
-
-const migration = await readFile(migrationPath, "utf-8");
+const migrationDir = join(__dirname, "..", "supabase", "migrations");
+const migrationText = (
+  await Promise.all([
+    "20260705000002_interviews_privacy_rls.sql",
+    "20260726000001_interviews_status_transitions.sql",
+  ].map((name) => readFile(join(migrationDir, name), "utf-8")))
+).join("\n");
 
 const required = [
   { pattern: /DROP\s+POLICY\s+IF\s+EXISTS\s+"interviews_insert_company"\s+ON\s+interviews/i, label: "DROP POLICY interviews_insert_company" },
@@ -34,11 +32,18 @@ const required = [
   { pattern: /company_id\s+IS\s+DISTINCT\s+FROM\s+OLD\.company_id/, label: "immutable company_id check" },
   { pattern: /student_id\s+IS\s+DISTINCT\s+FROM\s+OLD\.student_id/, label: "immutable student_id check" },
   { pattern: /created_at\s+IS\s+DISTINCT\s+FROM\s+OLD\.created_at/, label: "immutable created_at check" },
+  { pattern: /DROP\s+POLICY\s+IF\s+EXISTS\s+"interviews_update_participant"\s+ON\s+interviews/i, label: "DROP POLICY interviews_update_participant" },
+  { pattern: /CREATE\s+POLICY\s+"interviews_update_participant"\s+ON\s+interviews\s+FOR\s+UPDATE/i, label: "CREATE POLICY interviews_update_participant FOR UPDATE" },
+  { pattern: /CREATE\s+OR\s+REPLACE\s+FUNCTION\s+trg_fn_interviews_guard_status\s*\(\)/i, label: "status transition trigger function" },
+  { pattern: /OLD\.status\s*=\s*'proposed'/, label: "proposed status transition guard" },
+  { pattern: /NEW\.status\s+IN\s*\('accepted',\s*'declined'\)/, label: "student response transition guard" },
+  { pattern: /NEW\.status\s*=\s*'cancelled'/, label: "cancelled status transition guard" },
+  { pattern: /CREATE\s+TRIGGER\s+trg_interviews_guard_status\s+BEFORE\s+UPDATE\s+OF\s+status\s+ON\s+interviews/i, label: "CREATE TRIGGER trg_interviews_guard_status" },
 ];
 
 const missing = [];
 for (const { pattern, label } of required) {
-  if (!pattern.test(migration)) {
+  if (!pattern.test(migrationText)) {
     missing.push(label);
   }
 }

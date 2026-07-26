@@ -4,7 +4,7 @@
 // ──────────────────────────────────────────────────────────
 
 import { cookies } from "next/headers";
-import { createAdminClient, createServerSupabaseClient } from "@/lib/supabase-server";
+import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { isMinorProfile } from "@/lib/utils/is-minor";
 
 export type InterviewModality = "video" | "presencial" | "telefono";
@@ -210,8 +210,7 @@ export async function respondInterview(interviewId: string, response: "accepted"
   if (iv.student_id !== caller.id) return { error: "Acceso denegado." };
   if (iv.status !== "proposed") return { error: "Esta propuesta ya fue respondida." };
 
-  const admin = createAdminClient();
-  const { error } = await admin
+  const { error } = await supabase
     .from("interviews")
     .update({ status: response, updated_at: new Date().toISOString() })
     .eq("id", interviewId);
@@ -219,7 +218,7 @@ export async function respondInterview(interviewId: string, response: "accepted"
   if (error) return { error: error.message };
 
   // Log into the application event timeline
-  await admin.from("application_events").insert({
+  await supabase.from("application_events").insert({
     application_id: iv.application_id,
     event_type:     "note",
     actor_id:       caller.id,
@@ -249,8 +248,7 @@ export async function cancelInterview(interviewId: string) {
     return { error: "Acceso denegado." };
   }
 
-  const admin = createAdminClient();
-  const { error } = await admin
+  const { error } = await supabase
     .from("interviews")
     .update({ status: "cancelled", updated_at: new Date().toISOString() })
     .eq("id", interviewId);
