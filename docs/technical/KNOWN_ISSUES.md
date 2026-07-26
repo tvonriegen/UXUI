@@ -26,6 +26,16 @@
 - Supabase security advisors still report intentionally exposed authenticated `SECURITY DEFINER` helpers (`can_converse` and the school reviewer) plus leaked-password protection disabled; the helper grants are restricted and the Auth setting requires dashboard configuration.
 - The student profile route remains large despite the persistence and actionable-anchor improvements; keep its decomposition separate from product UX changes.
 
+## Phase 0 Four-Persona Findings (2026-07-26)
+
+- `Egresado` is still a database and TypeScript role; it must become `student_stage = graduated` without losing history.
+- `Externo` is not implemented in identity, routes, UI, database or RLS.
+- The live schema has no institution/member model or common `opportunities` model.
+- The live `profiles` SELECT policy is broad and exposes a table containing sensitive student fields; a safe public projection is required before anonymous exploration.
+- Many live policies are assigned to `public` and need a resource-by-resource rewrite to the authorization matrix.
+- The requested sequential integration branch policy differs from the current repository policy of direct work on `main`; resolve before Phase 1.
+- No runtime negative RLS suite covers cross-company, cross-school, external publisher restrictions or public sensitive-field absence.
+
 ## Historical External Issue
 
 - The Vercel check associated with historical PR #2 failed under a project owned by another account. The privacy implementation was locally validated and is now integrated into `main`; the old deployment issue is not treated as a current code failure.

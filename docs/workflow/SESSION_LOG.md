@@ -1,5 +1,53 @@
 # TalentHub Session Log
 
+## 2026-07-26 — Phase 0 four-persona audit
+
+### Goal
+
+- Audit the current TalentHub repository before implementing the four experiences Student, Company, School and External.
+- Produce the product, architecture, authorization, privacy, route, migration and QA contracts.
+- Do not modify application functionality, schema or RLS.
+
+### Initial inspection
+
+- Confirmed branch `main`, HEAD `8674fe8` and clean worktree at start.
+- Indexed codebase graph was ready with 1,536 nodes and 2,250 edges.
+- Confirmed Next.js 14 App Router, React 18, TypeScript, Tailwind and Supabase clients.
+- Inspected all tracked routes, middleware, auth contexts, server actions, API handlers, schema snapshot, reset helper and migrations.
+
+### Findings
+
+- Current authorization role union is `Estudiante | Egresado | Empresa | Colegio`.
+- `Egresado` is implemented as a separate dashboard and role, not a student stage.
+- There is no External account, institution/member model, safe public projection or common opportunity model.
+- Live Supabase has 36 public tables, broad profile reads and multiple policies assigned to `public`.
+- Live advisors report callable `SECURITY DEFINER` helpers and disabled leaked-password protection.
+- High-risk route sizes: profile 2,951 lines, muro 1,354, administration 1,292, jobs 1,257.
+
+### Documentation changes
+
+- Added `docs/architecture/PHASE_0_AUDIT.md`.
+- Added role, route, authorization, privacy, QA and three ADR documents.
+- Added product definition and user journeys.
+- Updated personas, requirements, data model, current state, roadmap, known issues and workflow state.
+
+### Validation
+
+- `git diff --check` passed.
+- All nine repository verification scripts passed.
+- Live Supabase introspection queries returned tables, policies, functions, triggers and target-model absence evidence.
+- `npm run lint` passed without warnings.
+- `npm run typecheck` passed after the production build generated `.next` types.
+- `npm run build` passed and generated 20 routes.
+
+### Verdict
+
+- **APROBAR CON OBSERVACIONES.** The baseline is incrementally migratable, but Phase 1 must address identity, public privacy, policy scope and runtime negative tests before persona dashboards.
+
+### Next session
+
+- Wait for explicit Phase 1 approval and branch-policy decision. Do not implement Phase 1 automatically.
+
 ## 2026-07-05 — Session 1
 
 ### Goal

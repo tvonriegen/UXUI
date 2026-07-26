@@ -1,31 +1,41 @@
 # Functional Requirements
 
-## Users and Roles
+## Identity and access
 
-- FR-001: The system supports Estudiante, Egresado, Colegio and Empresa roles.
-- FR-002: Role-specific navigation and dashboards are shown after authentication.
-- FR-003: Schools can manage and validate student-related information.
+- FR-001: The system supports exactly four account types: student, company, school and external.
+- FR-002: `graduated` is a student stage, not an account type.
+- FR-003: A single email/password login resolves account type on the server and redirects to the correct persona space.
+- FR-004: Students are created or invited by a school and must change a temporary password on first access.
+- FR-005: Companies and externals may self-register with email verification; school access requires controlled invitation or approval.
+- FR-006: Anonymous visitors are read-only.
 
-## Profiles and Evidence
+## Profiles and evidence
 
-- FR-010: Students can maintain a profile with specialty, skills, availability and portfolio evidence.
-- FR-011: Schools can validate badges, skills or reports.
-- FR-012: Companies can view public talent profile data allowed by role and privacy rules.
+- FR-010: Students can maintain specialty, skills, soft skills, availability, biography, projects, portfolio and evidence.
+- FR-011: Schools can validate evidence and skills only for linked students and authorized membership scopes.
+- FR-012: Graduated students retain profile, evidence, applications, contacts, validations, curriculum and portfolio.
+- FR-013: Companies and externals see only the public projection allowed by privacy policy.
+- FR-014: Public student data excludes RUT, personal contact details, exact age and private institutional reports.
 
-## Opportunities and Applications
+## Institutions
 
-- FR-020: Companies can publish opportunities.
-- FR-021: Students and graduates can review opportunities.
-- FR-022: The system can compute a compatibility score between a student and an opportunity.
-- FR-023: The system should explain compatibility factors before application.
+- FR-020: A school can have owner, admin, teacher and reviewer members.
+- FR-021: Schools can create and import students, change academic stage and review linked workflows.
+- FR-022: School access is isolated between institutions.
 
-## Assisted Application
+## Opportunities and applications
 
-- FR-030: Before applying, the system should identify missing profile data.
-- FR-031: Before applying, the system should recommend evidence or skills to strengthen the application.
-- FR-032: The system should record application status and timeline events.
+- FR-030: Companies can publish internships, jobs and company projects.
+- FR-031: Externals can publish freelance opportunities only.
+- FR-032: Only the publisher can edit or close an opportunity.
+- FR-033: Students can review and apply to eligible open opportunities, including freelance requests.
+- FR-034: A unique database constraint prevents duplicate applications.
+- FR-035: Matching and readiness explain fit and recommendations but never reject an application automatically.
+- FR-036: Every application status change creates an auditable timeline event.
 
-## Communication
+## Communication and privacy
 
-- FR-040: The platform supports messaging flows between allowed participants.
-- FR-041: Student contact restrictions must respect school mediation requirements.
+- FR-040: Messaging is available only to permitted participants.
+- FR-041: Company-to-minor contact requires approval by the student's school.
+- FR-042: Externals cannot bypass minor mediation or access corporate ATS workflows.
+- FR-043: Interviews and contact requests preserve actor, ownership and institution boundaries.

@@ -1,16 +1,22 @@
 # TalentHub Next Actions
 
-## Immediate
+## Gate before Phase 1
 
-- Keep development work on `main` until a new branching policy is explicitly chosen.
-- Push `main` directly to `origin`; no pull request is part of this integration.
-- Confirm the new `.github/workflows/ci.yml` passes on GitHub after push.
-- Grant the GitHub OAuth token the `workflow` scope before pushing commits that add or update workflows.
-- Create staging fixtures for company, school, minor student, graduate and one evidence submission.
-- Exercise contact mediation, evidence review, interview transitions and readiness timeline with real authenticated roles.
-- Set `SEED_SECRET` in Vercel and other deployed environments.
+- Confirm the Phase 0 verdict and canonical role contracts.
+- Choose whether the restructuring uses `epic/four-personas` with sequential branches or the current direct-`main` policy.
+- Approve the first migration scope: account types, student stages, schools, memberships and external profile.
+- Define staging fixtures for Company A/B, School A/B, minor student, adult student, graduated student and External A.
 
-## Validation Matrix
+## Phase 1 execution order
+
+1. Write the preflight SQL/report for legacy role and school data.
+2. Add idempotent identity/membership migration without deleting legacy columns.
+3. Add server account resolver and route guard contract.
+4. Add external registration restrictions and demo-mode gate.
+5. Add initial RLS policies and negative tests for cross-school/company access.
+6. Run structural verifiers, runtime staging tests, lint, typecheck and build.
+
+## Required validation matrix
 
 - `npm run verify:is-minor`
 - `npm run verify:contact-policy`
@@ -24,21 +30,12 @@
 - `npm run typecheck`
 - `npm run lint`
 - `npm run build`
-- Desktop and mobile smoke checks for dashboards, jobs, matching, applications, messages and health.
+- Runtime RLS and persona matrix against staging fixtures.
 
-## Phase 1 UX Smoke Checks
+## Deferred but tracked
 
-- Student global search opens `/empleos?q=...` and filters by opportunity text.
-- Company and school global search opens `/talent?q=...` and filters by name, specialty or title.
-- Student navigation labels `/talent` as `Actividades`.
-- Readiness recommendations open the relevant profile section.
-- Profile inline edits persist after reload for biography, location, technical skills and soft skills.
-- A new application records `Perfil revisado` before `Postulado` in its timeline.
-
-## Deferred Maintenance
-
-- Triage the 21 dependency vulnerabilities without unplanned major upgrades.
-- Regenerate the broader `supabase/schema.sql` snapshot where historical drift remains.
-- Add automated runtime authorization tests against a disposable Supabase instance.
-- Split `apps/web/src/app/profile/page.tsx` in a dedicated maintenance change.
-- Run moderated desktop and mobile UX checks with the four target personas.
+- Create safe public profile projection before anonymous exploration.
+- Rewrite broad `public` policies into authenticated, ownership and membership scopes.
+- Enable leaked-password protection and resolve advisor findings.
+- Migrate `job_postings` to common `opportunities`.
+- Decompose the oversized role-aware routes after characterization coverage.

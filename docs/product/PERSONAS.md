@@ -1,21 +1,25 @@
 # Personas
 
-## Estudiante Tecnico-Profesional
+## Estudiante
 
-Needs clear guidance, confidence before applying and a simple way to prove practical skills.
-
-## Egresado
-
-Needs to preserve school-backed proof while applying to broader job opportunities with more autonomy.
-
-## Colegio
-
-Needs control over student data, validation workflows and company contact mediation.
+Technical-professional student linked to a school. Needs clear guidance, confidence before applying and a simple way to prove practical skills. The graduated state remains inside this persona.
 
 ## Empresa
 
-Needs fast discovery of compatible talent with enough evidence to trust early-career candidates.
+Recruiting organization. Needs fast discovery of compatible talent, institutional context and a safe applicant pipeline.
 
-## Administrador del Proyecto
+## Colegio
 
-Needs traceable requirements, stable architecture and safe Git workflow to continue development.
+Institution with several authorized members. Needs control over linked student data, validation workflows, metrics and sensitive contact mediation.
+
+## Externo
+
+Individual, entrepreneur or small business client. Needs to publish a simple freelance request and review proposals without corporate ATS permissions.
+
+## Visitante anonimo
+
+Read-only public visitor. May explore safe public profiles, validated skills, portfolios and freelance opportunities, but cannot publish, apply or message.
+
+## Administrador del proyecto
+
+Needs traceable requirements, stable architecture, reproducible tests and a safe sequential Git workflow.

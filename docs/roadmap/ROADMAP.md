@@ -1,40 +1,25 @@
 # Roadmap
 
-## Phase 0: Repository Professionalization
+## Historical baseline
 
-- Complete workspace structure.
-- Establish documentation, Git workflow and QA baseline.
-- Rebrand active surfaces to TalentHub.
+- [x] Explainable matching factors.
+- [x] Verified profile evidence and audit trail.
+- [x] Assisted application readiness and timeline continuity.
+- [x] Contact mediation and interview transition hardening.
+- [x] Local CI baseline for verifiers, lint, typecheck and build.
 
-## Phase 1: Explainable Compatibility
+## Four-persona restructuring
 
-- [x] Return score factors from matching logic.
-- [x] Show compatibility explanation in opportunity pages.
-- [x] Add guidance for missing skills and evidence.
+- [x] Phase 0: audit, contracts, route map, authorization matrix, ADRs and migration plan.
+- [ ] Phase 1: canonical identity, student stage, external profile, school memberships, server guards and initial RLS.
+- [ ] Phase 2: public, student, company, school and external layouts/navigation.
+- [ ] Phase 3: student space migration.
+- [ ] Phase 4: school space migration.
+- [ ] Phase 5: company space migration.
+- [ ] Phase 6: external and public experience.
+- [ ] Phase 7: common opportunities and application migration.
+- [ ] Phase 8: runtime RLS, E2E, accessibility, mobile and deployment hardening.
 
-## Phase 2: Verified Student Profile
+## Gate policy
 
-- [x] Model evidence more explicitly.
-- [x] Add validation states and audit trail.
-- [x] Improve profile completeness guidance.
-
-## Phase 3: Assisted Application
-
-- [x] Add pre-application readiness checklist.
-- [x] Suggest improvements before applying.
-- [x] Persist readiness state and connect it with the application timeline.
-
-The readiness schema, contact mediation, interview transitions and evidence model are now deployed to the connected Supabase environment through idempotent migrations. Authenticated runtime fixtures remain a separate verification step.
-
-## Phase 4: Production Hardening
-
-- [x] Add CI for the verification, lint, typecheck and build matrix.
-- [ ] Add automated runtime tests for authorization-sensitive flows.
-- [x] Review the current RLS and API authorization surfaces.
-- [ ] Configure monitoring and deployment runbooks.
-
-## Phase 5: UX Continuity
-
-- [x] Align role navigation and global search with the student application journey.
-- [x] Make profile readiness recommendations link to actionable profile sections.
-- [ ] Validate the main journeys with desktop and mobile user testing.
+Do not start a later phase while the previous phase has failing validation, unresolved data mapping or an unrecorded security risk. The current Phase 0 verdict is `APROBAR CON OBSERVACIONES`; Phase 1 requires explicit user approval and a selected branch policy.
