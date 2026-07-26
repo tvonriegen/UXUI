@@ -7,6 +7,7 @@
 - 2026-07-26: `npm run lint` passed without warnings.
 - 2026-07-26: `npm run build` passed and generated 20 pages.
 - 2026-07-26: `git diff --check` passed before integration.
+- 2026-07-26: Phase 0 and Phase 1 branch validation passed before local merges; CI workflow added but not yet run remotely.
 
 ## External Verification Pending
 
@@ -19,6 +20,7 @@
 - The dependency tree previously reported 21 vulnerabilities. They were not auto-fixed to avoid unplanned upgrades.
 - `apps/web/src/app/profile/page.tsx` remains a large role-aware route and needs a separate decomposition effort.
 - There is no disposable Supabase integration test suite yet; current scripts are hermetic structural/domain checks.
+- The student profile route remains large despite the persistence and actionable-anchor improvements; keep its decomposition separate from product UX changes.
 
 ## Historical External Issue
 

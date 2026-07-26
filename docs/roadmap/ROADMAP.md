@@ -22,10 +22,17 @@
 
 - [x] Add pre-application readiness checklist.
 - [x] Suggest improvements before applying.
-- [ ] Connect readiness state with application timeline.
+- [ ] Persist readiness state and connect it with the application timeline.
 
 ## Phase 4: Production Hardening
 
-- [ ] Add automated tests and CI.
+- [x] Add CI for the verification, lint, typecheck and build matrix.
+- [ ] Add automated runtime tests for authorization-sensitive flows.
 - [x] Review the current RLS and API authorization surfaces.
 - [ ] Configure monitoring and deployment runbooks.
+
+## Phase 5: UX Continuity
+
+- [x] Align role navigation and global search with the student application journey.
+- [x] Make profile readiness recommendations link to actionable profile sections.
+- [ ] Validate the main journeys with desktop and mobile user testing.
