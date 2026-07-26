@@ -77,6 +77,12 @@ function ItemIcon({ type, status }: { type: ReadinessItem["type"]; status: Readi
 
 function ReadinessListItem({ item }: { item: ReadinessItem }) {
   const styles = itemStyles[item.type];
+  const profileHref = item.id.includes("skills")
+    ? "/profile#profile-skills"
+    : item.id.includes("evidence")
+    ? "/profile#profile-evidence"
+    : "/profile#profile-basics";
+
   return (
     <li
       className={`flex items-start gap-3 rounded-xl border p-3 ${styles.container}`}
@@ -93,7 +99,7 @@ function ReadinessListItem({ item }: { item: ReadinessItem }) {
         </p>
         {item.actionLabel && item.type !== "blocking" && (
           <Link
-            href="/profile"
+            href={profileHref}
             className="inline-flex mt-2 h-12 min-w-12 items-center justify-center px-3 text-xs font-bold text-sky-700 hover:text-sky-800 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 rounded"
           >
             {item.actionLabel}

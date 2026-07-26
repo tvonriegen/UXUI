@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import PageLayout from "@/components/layout/PageLayout";
 import Modal from "@/components/ui/Modal";
 import { useAuth } from "@/lib/auth-context";
@@ -10,7 +11,7 @@ import { updateApplicationStatusSA, type AtsStatus } from "@/app/actions/company
 import CompanyStatsGrid from "@/app/empleos/_components/CompanyStatsGrid";
 import { TP_SPECIALTIES } from "@/lib/specialties";
 import {
-  Briefcase, MapPin, Plus, Loader2, ChevronDown, Send, CheckCircle,
+  Briefcase, MapPin, Plus, Loader2, ChevronDown, Send, CheckCircle, Search,
   Users, ArrowUp, ArrowDown, Sparkles, UserPlus, UserCheck,
   BarChart2, Eye, CalendarClock, ListChecks,
 } from "lucide-react";
@@ -105,6 +106,7 @@ const MATCH_TEXT_CLASSES: Record<ReturnType<typeof getMatchColor>, string> = {
 export default function EmpleosPage() {
   const { user } = useAuth();
   const { role } = useRole();
+  const searchParams = useSearchParams();
   const isCompany = role === "Empresa";
   const { toast }          = useToast();
   const confirmFn          = useConfirm();
@@ -124,6 +126,7 @@ export default function EmpleosPage() {
   const [saveError,     setSaveError]     = useState<string | null>(null);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [companyStats,  setCompanyStats]  = useState<CompanyStats | null>(null);
+  const [jobSearch, setJobSearch] = useState(() => searchParams.get("q") ?? "");
 
   // Interview proposal state (company view)
   const [proposeFor, setProposeFor] = useState<{
@@ -584,7 +587,13 @@ export default function EmpleosPage() {
     setFollowingId(null);
   };
 
-  const selectedJob = jobs.find((j) => j.id === selectedJobId) ?? jobs[0] ?? null;
+  const normalizedSearch = jobSearch.trim().toLowerCase();
+  const visibleJobs = normalizedSearch
+    ? jobs.filter((job) => [job.title, job.description, job.location, job.specialty, job.company?.name]
+        .filter(Boolean)
+        .some((value) => value!.toLowerCase().includes(normalizedSearch)))
+    : jobs;
+  const selectedJob = visibleJobs.find((j) => j.id === selectedJobId) ?? visibleJobs[0] ?? null;
 
   // ── Render ────────────────────────────────────────────────
 
@@ -593,7 +602,7 @@ export default function EmpleosPage() {
       <div className="p-4 md:p-6 lg:p-8 max-w-6xl mx-auto w-full space-y-5">
 
         {/* ── Page Header ── */}
-        <div className="flex items-start justify-between animate-fade-in-up">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between animate-fade-in-up">
           <div>
             <p className="text-sm text-sky-600 font-semibold mb-1">Oportunidades</p>
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
@@ -604,6 +613,18 @@ export default function EmpleosPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            {!isCompany && (
+              <div className="relative w-full md:w-64">
+                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <input
+                  value={jobSearch}
+                  onChange={(e) => setJobSearch(e.target.value)}
+                  placeholder="Buscar oportunidades..."
+                  aria-label="Buscar oportunidades"
+                  className="w-full pl-9 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none"
+                />
+              </div>
+            )}
             {!isCompany && (
               <button
                 onClick={() => {
@@ -678,14 +699,24 @@ export default function EmpleosPage() {
           </div>
         )}
 
+        {!loading && jobs.length > 0 && visibleJobs.length === 0 && (
+          <div className="text-center py-16 bg-white rounded-2xl border border-slate-200/60">
+            <Search size={40} className="mx-auto mb-3 text-slate-200" />
+            <p className="text-slate-500 font-medium">No encontramos oportunidades con esa búsqueda.</p>
+            <button onClick={() => setJobSearch("")} className="mt-3 text-sm text-sky-600 font-semibold hover:underline">
+              Limpiar búsqueda
+            </button>
+          </div>
+        )}
+
         {/* ── Desktop split-view wrapper ── */}
-        <div className={!isCompany && jobs.length > 0 ? "xl:grid xl:grid-cols-[1fr_1.5fr] xl:gap-5 xl:items-start" : ""}>
+        <div className={!isCompany && visibleJobs.length > 0 ? "xl:grid xl:grid-cols-[1fr_1.5fr] xl:gap-5 xl:items-start" : ""}>
 
           {/* ── Job list ── */}
           <div className="space-y-4">
-            {jobs.map((job, i) => {
+            {visibleJobs.map((job, i) => {
               const isExpanded       = expandedId === job.id;
-              const isSelectedDesktop = !isCompany && job.id === (selectedJobId ?? jobs[0]?.id);
+              const isSelectedDesktop = !isCompany && job.id === (selectedJobId ?? visibleJobs[0]?.id);
               const hasApplied       = appliedIds.has(job.id);
               const jobApplicants    = applicantMap[job.id] ?? [];
               const acceptedCount    = jobApplicants.filter((a) => a.status === "accepted" || a.status === "hired").length;

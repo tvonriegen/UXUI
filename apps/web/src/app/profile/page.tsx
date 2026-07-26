@@ -100,6 +100,7 @@ export default function ProfilePage() {
 
   // Inline edit mode (student)
   const [isEditing,        setIsEditing]        = useState(false);
+  const [inlineSaving,     setInlineSaving]     = useState(false);
   const [editSkills,       setEditSkills]       = useState("");
   const [editSoftSkillsStr,setEditSoftSkillsStr]= useState("");
   const [editBioInline,    setEditBioInline]    = useState("");
@@ -430,6 +431,13 @@ export default function ProfilePage() {
     }
   }, [profile?.role, profile?.created_at]);
 
+  useEffect(() => {
+    const isStudentProfile = profile?.role === "Estudiante" || profile?.role === "Egresado";
+    if (isStudentProfile && window.location.hash === "#profile-evidence") {
+      setTab("Portafolio");
+    }
+  }, [profile?.role]);
+
   const openEdit = () => {
     if (!profile) return;
     setEditName(profile.name ?? "");
@@ -727,14 +735,91 @@ export default function ProfilePage() {
     setEditSoftSkillsStr(localSoftSkills.join(", "));
     setIsEditing(true);
   };
-  const saveInlineEdit = () => {
-    if (editBioInline !== displayBio)             setLocalBio(editBioInline);
-    if (editLocationInline !== displayLocation)   setLocalLocation(editLocationInline);
-    const parsedSkills = editSkills.split(",").map((s) => s.trim()).filter(Boolean);
-    const parsedSoft   = editSoftSkillsStr.split(",").map((s) => s.trim()).filter(Boolean);
-    setLocalSkills(parsedSkills);
+  const saveInlineEdit = async () => {
+    if (!user?.id || inlineSaving) return;
+
+    const parsedSkills = Array.from(new Set(editSkills.split(",").map((s) => s.trim()).filter(Boolean)));
+    const parsedSoft   = Array.from(new Set(editSoftSkillsStr.split(",").map((s) => s.trim()).filter(Boolean)));
+    setInlineSaving(true);
+
+    const { data: catalog, error: catalogError } = await supabase
+      .from("skills")
+      .select("id, name");
+
+    if (catalogError) {
+      toast({ type: "error", title: "No se pudieron verificar las competencias" });
+      setInlineSaving(false);
+      return;
+    }
+
+    const catalogByName = new Map(
+      (catalog ?? []).map((skill: { id: string; name: string }) => [skill.name.trim().toLowerCase(), skill])
+    );
+    const matchedSkills = parsedSkills
+      .map((name) => catalogByName.get(name.toLowerCase()))
+      .filter((skill): skill is { id: string; name: string } => Boolean(skill));
+    const missingSkills = parsedSkills.filter((name) => !catalogByName.has(name.toLowerCase()));
+
+    if (missingSkills.length > 0) {
+      toast({
+        type: "error",
+        title: "Competencia no disponible",
+        description: `No reconocemos: ${missingSkills.join(", ")}. Selecciona competencias del catálogo.`,
+      });
+      setInlineSaving(false);
+      return;
+    }
+
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .update({
+        bio: editBioInline.trim(),
+        location: editLocationInline.trim(),
+        soft_skills: parsedSoft,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", user.id);
+
+    if (profileError) {
+      toast({ type: "error", title: "No se pudo guardar el perfil" });
+      setInlineSaving(false);
+      return;
+    }
+
+    const { error: deleteSkillsError } = await supabase
+      .from("user_skills")
+      .delete()
+      .eq("user_id", user.id);
+    if (deleteSkillsError) {
+      toast({ type: "error", title: "No se pudieron actualizar las competencias" });
+      setInlineSaving(false);
+      return;
+    }
+
+    if (matchedSkills.length > 0) {
+      const { error: insertSkillsError } = await supabase
+        .from("user_skills")
+        .insert(matchedSkills.map((skill) => ({ user_id: user.id, skill_id: skill.id })));
+      if (insertSkillsError) {
+        toast({ type: "error", title: "No se pudieron guardar las competencias" });
+        setInlineSaving(false);
+        return;
+      }
+    }
+
+    setLocalBio(editBioInline.trim());
+    setLocalLocation(editLocationInline.trim());
+    setLocalSkills(matchedSkills.map((skill) => skill.name));
     setLocalSoftSkills(parsedSoft);
+    setProfile((previous) => previous ? {
+      ...previous,
+      bio: editBioInline.trim(),
+      location: editLocationInline.trim(),
+      soft_skills: parsedSoft,
+    } : previous);
     setIsEditing(false);
+    setInlineSaving(false);
+    toast({ type: "success", title: "Perfil actualizado" });
   };
 
   // Add vacancy helper
@@ -1182,6 +1267,23 @@ export default function ProfilePage() {
             </div>
 
             {isStudent && (
+              <div id="profile-skills" className="bg-white rounded-2xl p-5 border border-slate-200/60">
+                <h3 className="text-sm font-bold mb-3 text-slate-700">Habilidades Técnicas</h3>
+                {displaySkills.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {displaySkills.map((skill) => (
+                      <span key={skill} className="px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-50 text-sky-700 border border-sky-100">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400">Añade competencias para mejorar tu compatibilidad.</p>
+                )}
+              </div>
+            )}
+
+            {isStudent && (
               <div className="bg-white rounded-2xl p-5 border border-slate-200/60">
                 <h3 className="text-sm font-bold mb-3 text-slate-700">Completitud del Perfil</h3>
                 <div className="flex justify-center mb-3">
@@ -1408,7 +1510,7 @@ export default function ProfilePage() {
           </div>
 
           {/* ── Main Content (Tabs + Content) ── */}
-          <div className="lg:col-span-3 space-y-4">
+          <div id="profile-evidence" className="lg:col-span-3 space-y-4">
 
             {/* Tabs */}
             <div className="flex gap-1.5 bg-white border border-slate-200/60 rounded-xl p-1.5 w-fit">
@@ -1427,7 +1529,7 @@ export default function ProfilePage() {
 
             {/* ── Resumen ── */}
             {tab === "Resumen" && (
-              <div className="space-y-4">
+              <div id="profile-basics" className="space-y-4">
 
                 {/* ── Inline Edit Form (student only) ── */}
                 {isStudent && isEditing && (
@@ -1444,20 +1546,20 @@ export default function ProfilePage() {
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-slate-500 mb-1.5 block">Ubicación</label>
-                      <input
-                        value={editLocationInline}
-                        onChange={(e) => setEditLocationInline(e.target.value)}
-                        placeholder="Ej: Santiago, Chile"
-                        className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none"
-                      />
-                    </div>
-                    <div>
                       <label className="text-xs font-semibold text-slate-500 mb-1.5 block">Habilidades Técnicas (separadas por coma)</label>
                       <input
                         value={editSkills}
                         onChange={(e) => setEditSkills(e.target.value)}
                         placeholder="Arduino, Python, Soldadura TIG..."
+                        className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-500 mb-1.5 block">Ubicación</label>
+                      <input
+                        value={editLocationInline}
+                        onChange={(e) => setEditLocationInline(e.target.value)}
+                        placeholder="Ej: Santiago, Chile"
                         className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none"
                       />
                     </div>
@@ -1471,8 +1573,8 @@ export default function ProfilePage() {
                       />
                     </div>
                     <div className="flex gap-3 pt-1">
-                      <button onClick={saveInlineEdit} className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2">
-                        <CheckCircle2 size={15} /> Guardar Cambios
+                      <button onClick={saveInlineEdit} disabled={inlineSaving} className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
+                        {inlineSaving ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle2 size={15} />} {inlineSaving ? "Guardando…" : "Guardar Cambios"}
                       </button>
                       <button onClick={() => setIsEditing(false)} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-2.5 rounded-xl font-bold text-sm transition-colors">
                         Cancelar

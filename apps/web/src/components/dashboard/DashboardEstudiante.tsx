@@ -463,8 +463,9 @@ export default function DashboardEstudiante() {
             <div className="space-y-1">
               {[
                 { href: "/profile",  icon: <BookOpen     size={16} className="text-sky-500" />,    bg: "bg-sky-50",    label: "Mi Perfil",   sub: "Portafolio y logros" },
+                { href: "/empleos",  icon: <Briefcase    size={16} className="text-violet-500" />,  bg: "bg-violet-50",  label: "Buscar oportunidades", sub: "Match y postulaciones" },
                 { href: "/muro",     icon: <Flame        size={16} className="text-amber-500" />,   bg: "bg-amber-50",   label: "El Muro",     sub: "Proyectos y eventos" },
-                { href: "/talent",   icon: <Briefcase    size={16} className="text-violet-500" />,  bg: "bg-violet-50",  label: "Talento",     sub: "Conecta y aprende" },
+                { href: "/talent",   icon: <Zap          size={16} className="text-emerald-500" />,  bg: "bg-emerald-50",  label: "Actividades",  sub: "Misiones y desarrollo" },
                 { href: "/messages", icon: <MessageSquare size={16} className="text-emerald-500" />, bg: "bg-emerald-50", label: "Mensajes",    sub: "Conversaciones" },
               ].map((a) => (
                 <Link
