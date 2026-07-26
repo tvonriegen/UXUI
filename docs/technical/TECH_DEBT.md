@@ -8,7 +8,7 @@
 
 ## Medium Priority
 
-- Convert compatibility score into explainable factors shown in the UI.
+- Connect the explainable compatibility and readiness results to persisted application timeline evidence.
 - Normalize profile evidence and validation flows.
 - Add CI once lint/typecheck/build are stable.
 

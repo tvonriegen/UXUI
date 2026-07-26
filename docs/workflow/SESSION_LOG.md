@@ -570,3 +570,39 @@
 - Run the runtime RLS / trigger smoke test on a Supabase **staging** instance when available, as a **follow-up before `main`** (see `OPEN_QUESTIONS.md` Q15).
 - The PR 1B changes were merged as part of GitHub PR #2 (https://github.com/tvonriegen/UXUI/pull/2) to `caro-maturana` with merge commit `6f2be0f5740bc37764e360c4298b8adbcd64fa5f`; the commit `8f39ce63b67f43f11d5dd49a23d28876c4413d05 fix(security): enforce interview privacy at RLS` is reachable from `caro-maturana` via that merge. The "amend PR #2" framing in the original entry is now **historical**: the PR #2 update happened through the merge itself, not as a separate amend.
 - Schedule the runtime Supabase staging smoke test as a follow-up before `main` (not a blocker for the privacy PR #2 merge; a blocker for promoting `caro-maturana` → `main`).
+
+## 2026-07-26 - Main normalization and direct integration
+
+### Goal
+
+- Integrate the complete TalentHub feature history into `main`, close the documented security gaps, normalize the workflow documentation and leave `main` as the only active branch.
+
+### Actions Run
+
+- Confirmed the worktree was clean on `feature/value-added-ux` at `9f766e9` and `main` was at `0e32d98`.
+- Fetched remote refs and confirmed the latest functional SHA was `9f766e9`.
+- Added `supabase/migrations/20260726000001_interviews_status_transitions.sql` with participant-scoped updates and status transition guards.
+- Removed the admin-client bypass from `respondInterview` and `cancelInterview`.
+- Protected `/api/seed` outside local development when `SEED_SECRET` is absent.
+- Updated `supabase/schema.sql` and extended `verify-interviews-privacy-rls.mjs` to cover the new transition migration.
+- Committed the hardening as `695622f fix: harden interview transitions and seed endpoint`.
+- Merged `feature/value-added-ux` into `main` with `34e21205 merge: integrate TalentHub product flow`.
+- Replaced stale current-state workflow documents and recorded ADR-004.
+
+### Validation
+
+- `npm run verify:is-minor` passed: 7 cases.
+- `npm run verify:contact-policy` passed: 8 cases.
+- `npm run verify:interviews-privacy-rls` passed: 25 invariants.
+- `npm run verify:explainable-match` passed: 9 cases.
+- `npm run verify:application-readiness` passed: 15 cases.
+- `npm run typecheck` passed.
+- `npm run lint` passed.
+- `npm run build` passed and generated 20 pages.
+- `git diff --check` passed before the integration commit.
+
+### Risks / Follow-up
+
+- Supabase staging was not available from this workspace, so runtime RLS and trigger behavior remains external verification.
+- The dependency tree still has the previously reported 21 vulnerabilities.
+- Historical branches are being removed from the active workflow; their commits remain reachable from `main`.

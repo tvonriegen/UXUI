@@ -47,4 +47,4 @@ The web app runs at `http://localhost:3000` by default.
 
 ## Current Status
 
-MVP in active restructuring. Some legacy ClassLink naming can remain in historical migrations until it is safe to remove without losing traceability.
+`main` contains the normalized TalentHub workspace, explainable matching, assisted application readiness and privacy hardening. Some legacy ClassLink naming can remain in historical migrations until it is safe to remove without losing traceability. Supabase staging smoke tests remain required before production deployment.

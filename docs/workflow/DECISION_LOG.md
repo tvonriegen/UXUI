@@ -274,3 +274,28 @@ Negative / Trade-offs:
 - Make Phase A and Phase B mandatory in PR 2. Rejected: PR 2 must respect the "small and reversible" bar from PR 1. Phase B is optional and gated on Phase A's success.
 - Add a heavyweight test runner (e.g. full Vitest + jsdom + testing-library) to the repo. Rejected for the default: the PR 1 `verify:*` script approach is intentionally low-friction; PR 2 may upgrade it only if the owner explicitly approves.
 - Add a new `package.json` dependency to PR 2 by default. Rejected: the rule is "no new dependencies by default"; any addition must be justified by Gate 2 and recorded in this ADR.
+
+## ADR-004 - Main-only direct integration and security normalization
+
+- Status: Accepted
+- Date: 2026-07-26
+- Branch: `main`
+
+### Context
+
+The repository had accumulated a workspace foundation, privacy work, feature-boundary refactors and two product increments across historical branches. Workflow documents still described the old stacked-branch process, while interview status updates and the seed endpoint retained avoidable security gaps.
+
+### Decision
+
+- `main` is the only active branch for this workstream.
+- The complete feature branch is integrated directly into `main` with merge commit `34e21205`; no pull request, squash or history rewrite is used.
+- Interview responses and cancellations use the authenticated Supabase server client rather than the service-role client.
+- `interviews.status` transitions are enforced by the participant RLS policy and `trg_fn_interviews_guard_status()` in `supabase/migrations/20260726000001_interviews_status_transitions.sql`.
+- `/api/seed` is open without a secret only in local development. Deployed environments require `SEED_SECRET`.
+- Migrations remain the executable database source of truth; `supabase/schema.sql` is updated for the current security surface.
+
+### Consequences
+
+- The final local workflow is simpler and has one integration target.
+- Direct status mutations cannot bypass the interview lifecycle rules through a browser client or server action.
+- A live Supabase staging smoke test is still required because structural verification cannot prove deployed RLS behavior.

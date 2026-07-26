@@ -16,7 +16,7 @@
 
 - Review all RLS policies before production use.
 - Verify that school/company scoping is enforced server-side, not only in UI.
-- Review `/api/seed` exposure before deploying any non-local environment.
+- `/api/seed` is unauthenticated only in local development; deployed environments require `SEED_SECRET` and reject missing configuration.
 
 ## PR 1 Contact Routing Decisions
 
@@ -32,7 +32,7 @@ Brief summary of the architectural decisions that resolve the 2026-07-05 archite
 - **Soft-lock for existing Empresa↔minor conversations (M5).** History visible to the participants; new messages blocked by `can_converse` on `messages INSERT` until a `contact_request` is approved. On approval, the implementation reuses the existing conversation if one exists, or creates a new one.
 - **`SECURITY DEFINER` hygiene (M-8).** Explicit `search_path`, minimum grants, explicit `REVOKE` from `PUBLIC` where needed, `STABLE` for read-only helpers, no mutations.
 - **Secondary.** A minor student does not see `contact_requests` rows in the `pending` state in PR 1. A company may cancel a `pending` row. `rejection_reason` is optional; when present, visible to the company and the school, not to the student in PR 1. `can_converse` denies Colegio↔Egresado by default; any future allow rule is out of scope for PR 1.
-- **Implementation resolution (validated, 2026-07-05).** PR 1 uses `scripts/verify-is-minor.mjs` as the no-new-dependency verification mechanism; the approval trigger reuses or creates the canonical company-student conversation; `respondInterview` / `cancelInterview` remain out of PR 1 scope because this change only touches `proposeInterview` in the direct contact / interview proposal path. Local QA passed (`verify:is-minor` 7/7, lint, typecheck, build with no dummy env). Security review verdict after the B1 (`trg_profiles_guard_role_age` trigger + tightened `profiles_update` policy) and M1 (talent directory `email` removed from the client select) fixes: **APROBAR, sin BLOCKER / HIGH**. Runtime Supabase migration / RLS / trigger verification on a live instance is a recommended follow-up before merge / deploy, not a blocker (`OPEN_QUESTIONS.md` Q15).
+- **Implementation resolution (validated, 2026-07-26).** The contact-routing and readiness flows use no-new-dependency verification scripts. The approval trigger reuses or creates the canonical company-student conversation. `proposeInterview`, `respondInterview` and `cancelInterview` use the RLS-constrained server client. Local QA passed for all verification scripts, lint, typecheck and build. Runtime Supabase migration / RLS / trigger verification on a live staging instance remains external follow-up.
 
 ## PR 1B Interview INSERT Hardening
 
@@ -41,5 +41,6 @@ Brief summary of the architectural decisions that resolve the 2026-07-05 archite
   - the application exists and belongs to the caller's job posting (`job_applications` → `job_postings`);
   - the interview's `student_id` matches the application's canonical `applicant_id`;
   - `can_converse(company_id, student_id)` is true.
-- **UPDATE integrity.** `interviews_update_participant` did not restrict mutable columns. A `BEFORE UPDATE` trigger `trg_interviews_guard_immutable` now prevents changes to `application_id`, `company_id`, `student_id`, and `created_at`. Status transitions and detail updates remain intentionally untouched.
-- **Verification.** Structural validation is provided by `scripts/verify-interviews-privacy-rls.mjs` (`npm run verify:interviews-privacy-rls`). Runtime RLS / trigger smoke testing on a live Supabase instance is a recommended follow-up before merge / deploy, not a blocker.
+- **UPDATE integrity.** `interviews_update_participant` is participant-scoped. `trg_interviews_guard_immutable` prevents changes to `application_id`, `company_id`, `student_id` and `created_at`. `trg_interviews_guard_status` restricts lifecycle transitions to the authenticated participant and the current status.
+- **Allowed status transitions.** A student can respond to `proposed` with `accepted` or `declined`, or cancel an active interview. A company can cancel, complete or reschedule only from allowed active states. Arbitrary status changes are rejected by the database trigger.
+- **Verification.** Structural validation is provided by `scripts/verify-interviews-privacy-rls.mjs` (`npm run verify:interviews-privacy-rls`). Runtime RLS / trigger smoke testing on a live Supabase staging instance remains pending.

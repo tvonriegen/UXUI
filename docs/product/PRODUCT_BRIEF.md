@@ -23,4 +23,4 @@ TalentHub will prioritize three pillars:
 
 ## Current MVP
 
-The current app already includes role-aware dashboards, talent search, profiles, jobs, messages, gamification, Supabase schema and demo seed data. The next work should turn these pieces into a coherent assisted application flow.
+The current app includes role-aware dashboards, talent search, profiles, jobs, messages, gamification, explainable matching, assisted readiness checks, Supabase schema and demo seed data. The next work should connect readiness state with the application timeline and production validation.

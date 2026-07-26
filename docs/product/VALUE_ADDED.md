@@ -4,7 +4,7 @@ The approved value added is the transformation from a labor social network into 
 
 ## Pillar 1: Explainable Compatibility
 
-Compatibility must show the factors behind a score: specialty match, skill overlap, availability, evidence and gaps. The current `computeMatchScore` implementation in `apps/web/src/lib/utils/matching.ts` is the first baseline and should evolve into an explainable model.
+Compatibility shows the factors behind a score through `computeExplainableMatch` and `MatchExplanationPanel`: specialty match, skill overlap, practice signal and improvement guidance. The score remains an orientation, not a hiring decision.
 
 ## Pillar 2: Verified Student Profile
 
@@ -12,7 +12,7 @@ Profiles should include evidence, competencies, badges, academic context and val
 
 ## Pillar 3: Assisted Application
 
-Before applying, a student should see readiness checks, missing profile fields, suggested evidence, skill gaps and risk warnings.
+Before applying, a student sees readiness checks, missing profile fields, suggested evidence, skill gaps and hard blockers through `computeApplicationReadiness` and `ApplicationReadinessPanel`.
 
 ## Product Guardrail
 

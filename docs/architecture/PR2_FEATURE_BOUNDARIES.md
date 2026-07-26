@@ -1,5 +1,7 @@
 # PR 2 — Feature Boundaries Architecture
 
+> Historical architecture record. The planned boundaries in this document were implemented and integrated into `main` by merge commit `34e21205` on 2026-07-26. `main` is now the only active branch; the branch and PR references below describe the original implementation context.
+
 - Status: **Phase A service-boundary implementation staged locally; Phase B optional.**
 - Date: 2026-07-05.
 - Branch: `refactor/feature-boundaries` (stacked on `fix/privacy-contact-routing` while PR #2 is held by the external Vercel blocker; see `DECISION_LOG.md` ADR-003).
