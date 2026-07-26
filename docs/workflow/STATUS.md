@@ -6,12 +6,12 @@
 
 ## Current Phase
 
-- Phase 0 and Phase 1 integrated locally: quality baseline, role-aware search and the student application journey.
+- Phase 0, Phase 1 and Phase 2 integrated locally: quality baseline, role-aware search, student application journey and readiness continuity in the ATS timeline.
 
 ## Current State
 
 - The active local branch is `main`.
-- The latest local merges are `95c35e5 merge: integrate phase zero quality baseline` and `5ebc6a6 merge: integrate phase one application journey`.
+- The latest local merges are `5ebc6a6 merge: integrate phase one application journey` and the Phase 2 readiness-timeline merge.
 - Security hardening is included in `695622f fix: harden interview transitions and seed endpoint`.
 - The full feature branch was integrated into `main` with merge commit `34e21205 merge: integrate TalentHub product flow`.
 - The remaining `feature/talenthub-rebrand` work was integrated into `main` with merge commit `f3eb54d merge: integrate TalentHub rebrand`.
@@ -29,6 +29,7 @@
 - Global search routed to the correct role surface and consumed by talent/jobs search.
 - Student navigation distinguishes activities from talent discovery.
 - Profile readiness links now target actionable sections, and inline student profile edits persist through RLS-scoped writes.
+- Applications persist a non-sensitive readiness snapshot and show a `Perfil revisado` event before `Postulado` in the timeline.
 
 ## Validation
 
@@ -48,9 +49,10 @@
 - Configure `SEED_SECRET` in every deployed environment before enabling `/api/seed`.
 - Review the remaining dependency vulnerabilities and broader schema snapshot drift as separate maintenance work.
 - The CI workflow still requires a remote GitHub run after the branch is pushed.
+- The current GitHub OAuth token cannot publish `.github/workflows/ci.yml` because it lacks the `workflow` scope.
 
 ## Next Action
 
-- Push the integrated `main` branch after reviewing branch protection and deployment settings.
-- Run the Supabase staging authorization matrix before production promotion.
-- Plan Phase 2 around persisted readiness evidence and runtime integration tests.
+- Renew or authorize the GitHub token with `workflow` scope, then push `main` and confirm CI.
+- Apply the readiness-timeline migration in Supabase staging with the existing privacy/interview migrations.
+- Run the Supabase staging authorization and application-timeline smoke matrix before production promotion.
