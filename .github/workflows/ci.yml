@@ -35,6 +35,9 @@ jobs:
           npm run verify:explainable-match
           npm run verify:application-readiness
           npm run verify:readiness-timeline
+          npm run verify:profile-evidence
+          npm run verify:phase3-security
+          npm run verify:function-grants
 
       - name: Lint
         run: npm run lint

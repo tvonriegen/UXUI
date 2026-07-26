@@ -115,6 +115,16 @@ export const profileEditSchema = z.object({
   theme_color:  z.enum(THEME_COLORS).optional().nullable(),
 });
 
+export const profileEvidenceSchema = z.object({
+  evidence_type: z.enum(["project", "certificate", "course", "award", "document", "other"]),
+  title:         z.string().trim().min(2, "El título debe tener al menos 2 caracteres").max(160),
+  description:   z.string().trim().max(2000).optional().default(""),
+  url:           z.string().trim().url("El enlace no es válido").optional().or(z.literal("")).default(""),
+  issuer:        z.string().trim().max(160).optional().default(""),
+  issued_at:     z.string().optional(),
+  expires_at:    z.string().optional(),
+});
+
 // ── Post ─────────────────────────────────────────────────────
 export const postSchema = z.object({
   title:       z.string().min(3, "El título es demasiado corto").max(120),

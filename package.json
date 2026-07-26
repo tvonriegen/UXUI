@@ -15,6 +15,9 @@
     "verify:explainable-match": "node scripts/verify-explainable-match.mjs",
     "verify:application-readiness": "node scripts/verify-application-readiness.mjs",
     "verify:readiness-timeline": "node scripts/verify-readiness-timeline.mjs",
+    "verify:profile-evidence": "node scripts/verify-profile-evidence.mjs",
+    "verify:phase3-security": "node scripts/verify-phase3-security.mjs",
+    "verify:function-grants": "node scripts/verify-function-grants.mjs",
     "verify:runtime-supabase": "node scripts/verify-runtime-supabase.mjs",
     "install:web": "npm --prefix apps/web install",
     "clean": "rm -rf apps/web/.next apps/web/out apps/web/coverage"

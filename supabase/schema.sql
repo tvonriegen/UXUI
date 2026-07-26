@@ -364,6 +364,44 @@ CREATE TABLE IF NOT EXISTS contact_requests (
   updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- ─────────────────────────────────────────────────────────────────
+-- SECTION 10B – VERIFIED PROFILE EVIDENCE
+-- ─────────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS profile_evidence (
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner_id         UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  evidence_type    TEXT NOT NULL CHECK (evidence_type IN ('project','certificate','course','award','document','other')),
+  title            TEXT NOT NULL CHECK (char_length(trim(title)) BETWEEN 2 AND 160),
+  description      TEXT NOT NULL DEFAULT '',
+  url              TEXT NOT NULL DEFAULT '',
+  issuer           TEXT NOT NULL DEFAULT '',
+  issued_at        DATE,
+  expires_at       DATE,
+  status           TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('draft','pending','verified','rejected','expired')),
+  validation_note  TEXT NOT NULL DEFAULT '',
+  reviewed_by      UUID REFERENCES profiles(id) ON DELETE SET NULL,
+  reviewed_at      TIMESTAMPTZ,
+  submitted_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS profile_evidence_events (
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  evidence_id    UUID NOT NULL REFERENCES profile_evidence(id) ON DELETE CASCADE,
+  actor_id       UUID REFERENCES profiles(id) ON DELETE SET NULL,
+  from_status    TEXT,
+  to_status      TEXT NOT NULL,
+  note           TEXT NOT NULL DEFAULT '',
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_profile_evidence_owner_status
+  ON profile_evidence(owner_id, status, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_profile_evidence_events_evidence
+  ON profile_evidence_events(evidence_id, created_at DESC);
+
 
 -- ─────────────────────────────────────────────────────────────────
 -- SECTION 11 – PROFILE VIEWS (analytics)
@@ -442,6 +480,99 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION profile_evidence_school_reviewer(p_owner_id UUID, p_actor_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM profiles student
+    JOIN profiles school ON school.id = student.school_id
+    WHERE student.id = p_owner_id AND school.id = p_actor_id AND school.role = 'Colegio'
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION trg_fn_profile_evidence_guard()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  actor_id UUID := auth.uid();
+  is_service_role BOOLEAN := COALESCE(current_setting('request.jwt.claim.role', true), '') = 'service_role';
+BEGIN
+  IF NEW.owner_id IS DISTINCT FROM OLD.owner_id OR NEW.created_at IS DISTINCT FROM OLD.created_at THEN
+    RAISE EXCEPTION 'evidence ownership and creation time are immutable';
+  END IF;
+  IF is_service_role THEN NEW.updated_at := NOW(); RETURN NEW; END IF;
+  IF actor_id = OLD.owner_id THEN
+    IF NEW.reviewed_by IS DISTINCT FROM OLD.reviewed_by
+       OR NEW.reviewed_at IS DISTINCT FROM OLD.reviewed_at
+       OR (
+         NEW.validation_note IS DISTINCT FROM OLD.validation_note
+         AND NOT (OLD.status = 'rejected' AND NEW.status = 'pending' AND NEW.validation_note = '')
+       ) THEN
+      RAISE EXCEPTION 'profile owners cannot change review metadata';
+    END IF;
+    IF NEW.status IS DISTINCT FROM OLD.status
+       AND NOT (OLD.status IN ('draft','rejected') AND NEW.status = 'pending') THEN
+      RAISE EXCEPTION 'profile owners may only resubmit rejected evidence';
+    END IF;
+  ELSIF profile_evidence_school_reviewer(OLD.owner_id, actor_id) THEN
+    IF NEW.evidence_type IS DISTINCT FROM OLD.evidence_type
+       OR NEW.title IS DISTINCT FROM OLD.title
+       OR NEW.description IS DISTINCT FROM OLD.description
+       OR NEW.url IS DISTINCT FROM OLD.url
+       OR NEW.issuer IS DISTINCT FROM OLD.issuer
+       OR NEW.issued_at IS DISTINCT FROM OLD.issued_at
+       OR NEW.expires_at IS DISTINCT FROM OLD.expires_at
+       OR NEW.submitted_at IS DISTINCT FROM OLD.submitted_at
+       OR OLD.status <> 'pending'
+       OR NEW.status NOT IN ('verified','rejected') THEN
+      RAISE EXCEPTION 'schools may only review pending evidence';
+    END IF;
+    NEW.reviewed_by := actor_id;
+    NEW.reviewed_at := NOW();
+  ELSE
+    RAISE EXCEPTION 'only the owner school or service role may update evidence';
+  END IF;
+  NEW.updated_at := NOW();
+  RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION trg_fn_profile_evidence_audit()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    INSERT INTO profile_evidence_events (evidence_id, actor_id, to_status, note)
+    VALUES (NEW.id, auth.uid(), NEW.status, NEW.validation_note);
+  ELSIF NEW.status IS DISTINCT FROM OLD.status THEN
+    INSERT INTO profile_evidence_events (evidence_id, actor_id, from_status, to_status, note)
+    VALUES (NEW.id, auth.uid(), OLD.status, NEW.status, NEW.validation_note);
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_profile_evidence_guard ON profile_evidence;
+CREATE TRIGGER trg_profile_evidence_guard BEFORE UPDATE ON profile_evidence
+FOR EACH ROW EXECUTE FUNCTION trg_fn_profile_evidence_guard();
+DROP TRIGGER IF EXISTS trg_profile_evidence_audit_ins ON profile_evidence;
+CREATE TRIGGER trg_profile_evidence_audit_ins AFTER INSERT ON profile_evidence
+FOR EACH ROW EXECUTE FUNCTION trg_fn_profile_evidence_audit();
+DROP TRIGGER IF EXISTS trg_profile_evidence_audit_upd ON profile_evidence;
+CREATE TRIGGER trg_profile_evidence_audit_upd AFTER UPDATE OF status ON profile_evidence
+FOR EACH ROW EXECUTE FUNCTION trg_fn_profile_evidence_audit();
+
 
 -- ─────────────────────────────────────────────────────────────────
 -- SECTION 12 – ROW LEVEL SECURITY
@@ -469,6 +600,8 @@ ALTER TABLE messages           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contact_requests   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE profile_views      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE profile_evidence   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE profile_evidence_events ENABLE ROW LEVEL SECURITY;
 
 -- Drop all existing policies before recreating (makes script re-runnable)
 DO $$ DECLARE r RECORD;
@@ -618,12 +751,12 @@ CREATE POLICY "contact_requests_insert_company" ON contact_requests FOR INSERT
     AND reviewed_at IS NULL
     AND COALESCE(rejection_reason, '') = ''
     AND EXISTS (SELECT 1 FROM profiles p WHERE p.id = company_id AND p.role = 'Empresa')
-    AND EXISTS (SELECT 1 FROM profiles p WHERE p.id = school_id AND p.role = 'Colegio')
+    AND EXISTS (SELECT 1 FROM profiles p WHERE p.id = contact_requests.school_id AND p.role = 'Colegio')
     AND EXISTS (
       SELECT 1 FROM profiles p
-      WHERE p.id = student_id
-        AND p.role = 'Estudiante'
-        AND p.school_id = school_id
+       WHERE p.id = contact_requests.student_id
+         AND p.role = 'Estudiante'
+         AND p.school_id = contact_requests.school_id
         AND is_minor_profile(p.role, p.age)
     )
   );
@@ -634,6 +767,31 @@ CREATE POLICY "contact_requests_school_review" ON contact_requests FOR UPDATE
   USING (auth.uid() = school_id AND status = 'pending')
   WITH CHECK (auth.uid() = school_id AND status IN ('approved','rejected'));
 CREATE POLICY "contact_requests_delete_denied" ON contact_requests FOR DELETE USING (FALSE);
+
+-- profile_evidence
+CREATE POLICY "profile_evidence_select" ON profile_evidence FOR SELECT USING (
+  owner_id = auth.uid()
+  OR status = 'verified'
+  OR profile_evidence_school_reviewer(owner_id, auth.uid())
+);
+CREATE POLICY "profile_evidence_insert_owner" ON profile_evidence FOR INSERT WITH CHECK (
+  owner_id = auth.uid() AND status = 'pending'
+  AND EXISTS (SELECT 1 FROM profiles p WHERE p.id = auth.uid() AND p.role IN ('Estudiante','Egresado'))
+);
+CREATE POLICY "profile_evidence_update_owner" ON profile_evidence FOR UPDATE
+  USING (owner_id = auth.uid()) WITH CHECK (owner_id = auth.uid());
+CREATE POLICY "profile_evidence_review_school" ON profile_evidence FOR UPDATE
+  USING (profile_evidence_school_reviewer(owner_id, auth.uid()))
+  WITH CHECK (profile_evidence_school_reviewer(owner_id, auth.uid()));
+CREATE POLICY "profile_evidence_delete_owner" ON profile_evidence FOR DELETE
+  USING (owner_id = auth.uid() AND status IN ('draft','pending','rejected'));
+CREATE POLICY "profile_evidence_events_select" ON profile_evidence_events FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM profile_evidence e
+    WHERE e.id = evidence_id
+      AND (e.owner_id = auth.uid() OR profile_evidence_school_reviewer(e.owner_id, auth.uid()))
+  )
+);
 
 -- interviews
 CREATE POLICY "interviews_select" ON interviews FOR SELECT
@@ -646,10 +804,10 @@ CREATE POLICY "interviews_insert_company" ON interviews FOR INSERT
       SELECT 1
       FROM job_applications ja
       JOIN job_postings jp ON jp.id = ja.job_id
-      WHERE ja.id = application_id
-        AND ja.applicant_id = student_id
+      WHERE ja.id = interviews.application_id
+        AND ja.applicant_id = interviews.student_id
         AND jp.company_id = auth.uid()
-        AND jp.company_id = company_id
+        AND jp.company_id = interviews.company_id
     )
     AND can_converse(company_id, student_id)
   );

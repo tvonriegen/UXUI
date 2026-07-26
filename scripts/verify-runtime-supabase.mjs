@@ -92,6 +92,12 @@ assert(!schoolRequestError && schoolRequest, "school cannot read the pending con
 assert(schoolRequest.school_id === school.id, "contact request is outside the school fixture scope");
 assert(schoolRequest.student_id === minor.id, "contact request is outside the minor fixture scope");
 
+const { error: evidenceSchemaError } = await schoolClient
+  .from("profile_evidence")
+  .select("id")
+  .limit(1);
+assert(!evidenceSchemaError, "profile evidence schema is not available in staging");
+
 const { data: minorPendingRequests, error: minorRequestError } = await minorClient
   .from("contact_requests")
   .select("id")
