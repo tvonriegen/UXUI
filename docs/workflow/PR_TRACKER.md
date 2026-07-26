@@ -7,6 +7,7 @@
 | Explainable matching | `51d0a11` | `main` | Integrated by `34e21205` | 9 verifier cases, lint, typecheck, build passed |
 | Assisted application readiness | `9f766e9` | `main` | Integrated by `34e21205` | 15 verifier cases, lint, typecheck, build passed |
 | Interview and seed hardening | `695622f` | `main` | Integrated by `34e21205` | 25 RLS invariants, lint, typecheck, build passed |
+| TalentHub rebrand and notification migration | `6c7ae79` | `main` | Integrated by `f3eb54d` | Full validation matrix passed after merge |
 
 ## Integration Policy
 

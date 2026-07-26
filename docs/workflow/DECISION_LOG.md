@@ -288,7 +288,7 @@ The repository had accumulated a workspace foundation, privacy work, feature-bou
 ### Decision
 
 - `main` is the only active branch for this workstream.
-- The complete feature branch is integrated directly into `main` with merge commit `34e21205`; no pull request, squash or history rewrite is used.
+- The complete feature branch is integrated directly into `main` with merge commit `34e21205`, and the remaining rebrand branch is integrated with `f3eb54d`; no pull request, squash or history rewrite is used.
 - Interview responses and cancellations use the authenticated Supabase server client rather than the service-role client.
 - `interviews.status` transitions are enforced by the participant RLS policy and `trg_fn_interviews_guard_status()` in `supabase/migrations/20260726000001_interviews_status_transitions.sql`.
 - `/api/seed` is open without a secret only in local development. Deployed environments require `SEED_SECRET`.

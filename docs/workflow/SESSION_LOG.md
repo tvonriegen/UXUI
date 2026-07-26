@@ -606,3 +606,22 @@
 - Supabase staging was not available from this workspace, so runtime RLS and trigger behavior remains external verification.
 - The dependency tree still has the previously reported 21 vulnerabilities.
 - Historical branches are being removed from the active workflow; their commits remain reachable from `main`.
+
+## 2026-07-26 - Remaining branch integration
+
+### Goal
+
+- Inspect all remote branches before cleanup and integrate any unique work into `main`.
+
+### Actions Run
+
+- Compared every remote branch against `main` after the first integration.
+- Confirmed `feature/pr4-ux-iteration-ignacio`, `test`, `Test-thomas` and `Entrega-Pasada` had no unique commits.
+- Found unique rebrand work at `6c7ae79 Cambios colores` on `feature/talenthub-rebrand`.
+- Merged it directly into `main` with `f3eb54d merge: integrate TalentHub rebrand`.
+- Resolved the README status conflict in favor of the normalized `main` state.
+
+### Validation
+
+- Re-ran all five verification scripts, `npm run typecheck`, `npm run lint` and `npm run build`.
+- All checks passed; the build generated 20 pages.

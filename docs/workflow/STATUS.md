@@ -14,6 +14,7 @@
 - The latest product commits are `51d0a11 feat(matching): explain job compatibility` and `9f766e9 feat(applications): add assisted readiness flow`.
 - Security hardening is included in `695622f fix: harden interview transitions and seed endpoint`.
 - The full feature branch was integrated into `main` with merge commit `34e21205 merge: integrate TalentHub product flow`.
+- The remaining `feature/talenthub-rebrand` work was integrated into `main` with merge commit `f3eb54d merge: integrate TalentHub rebrand`.
 - No pull request is required for the current workflow; `main` is the integration branch.
 
 ## Delivered

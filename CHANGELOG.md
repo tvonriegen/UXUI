@@ -16,3 +16,4 @@ All notable repository-level changes are tracked here.
 - Hardened interview status transitions and removed admin-client bypasses from interview responses and cancellations.
 - Protected `/api/seed` outside local development when `SEED_SECRET` is not configured.
 - Normalized workflow documentation so `main` is the only active branch.
+- Integrated the remaining TalentHub visual rebrand and existing-notification migration.
