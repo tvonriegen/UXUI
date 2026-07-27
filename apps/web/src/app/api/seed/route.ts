@@ -18,13 +18,14 @@ interface DemoUser {
   email: string;
   name:  string;
   role:  string;
+  accountType: "student" | "company" | "school";
 }
 
 const DEMO_USERS: DemoUser[] = [
-  { email: "colegio@demo.cr", name: "Colegio Técnico San José", role: "Colegio"    },
-  { email: "alan@demo.cr",    name: "Alan García",              role: "Estudiante" },
-  { email: "ian@demo.cr",     name: "Ian Mora",                 role: "Estudiante" },
-  { email: "google@demo.cr",  name: "Google CR",                role: "Empresa"    },
+  { email: "colegio@demo.cr", name: "Colegio Técnico San José", role: "Colegio", accountType: "school" },
+  { email: "alan@demo.cr",    name: "Alan García",              role: "Estudiante", accountType: "student" },
+  { email: "ian@demo.cr",     name: "Ian Mora",                 role: "Estudiante", accountType: "student" },
+  { email: "google@demo.cr",  name: "Google CR",                role: "Empresa", accountType: "company" },
 ];
 
 export async function POST(request: Request) {
@@ -72,6 +73,9 @@ export async function POST(request: Request) {
 
       if (existing?.id) {
         uids[demo.email] = existing.id;
+        await admin.auth.admin.updateUserById(existing.id, {
+          app_metadata: { account_type: demo.accountType },
+        });
         log.push(`✓ ${demo.email} already exists (${existing.id})`);
         continue;
       }
@@ -81,7 +85,8 @@ export async function POST(request: Request) {
         email:            demo.email,
         password:         DEMO_PASSWORD,
         email_confirm:    true,
-        user_metadata:    { name: demo.name, role: demo.role },
+        app_metadata:    { account_type: demo.accountType },
+        user_metadata:    { name: demo.name },
       });
 
       if (createErr || !created?.user) {
@@ -112,6 +117,7 @@ export async function POST(request: Request) {
       email:              "colegio@demo.cr",
       name:               "Colegio Técnico San José",
       role:               "Colegio",
+      account_type:       "school",
       school_name:        "Colegio Técnico San José",
       location:           "San José, Costa Rica",
       bio:                "Centro educativo de excelencia técnica con más de 40 años formando profesionales en especialidades técnicas.",
@@ -126,6 +132,7 @@ export async function POST(request: Request) {
       email:            "alan@demo.cr",
       name:             "Alan García",
       role:             "Estudiante",
+      account_type:     "student",
       school_id:        schoolId,
       specialty:        "Mecatrónica",
       title:            "Técnico en Mecatrónica",
@@ -145,6 +152,7 @@ export async function POST(request: Request) {
       email:            "ian@demo.cr",
       name:             "Ian Mora",
       role:             "Estudiante",
+      account_type:     "student",
       school_id:        schoolId,
       specialty:        "Electricidad",
       title:            "Técnico en Electricidad",
@@ -164,6 +172,7 @@ export async function POST(request: Request) {
       email:          "google@demo.cr",
       name:           "Google CR",
       role:           "Empresa",
+      account_type:   "company",
       company_name:   "Google CR",
       industry:       "Tecnología",
       employee_count: "10,000+",
@@ -173,6 +182,24 @@ export async function POST(request: Request) {
       open_positions: 3,
     });
     log.push("✓ Google profile enriched");
+
+    await admin.from("schools").upsert({
+      id: schoolId,
+      profile_id: schoolId,
+      name: "Colegio Técnico San José",
+      status: "active",
+    }, { onConflict: "id" });
+    await admin.from("school_members").upsert({
+      school_id: schoolId,
+      profile_id: schoolId,
+      member_role: "owner",
+      status: "active",
+    }, { onConflict: "school_id,profile_id" });
+    await admin.from("student_profiles").upsert([
+      { profile_id: alanId, school_id: schoolId, student_stage: "enrolled", specialty: "Mecatrónica", availability: "Disponible", bio: "", public_visibility: false },
+      { profile_id: ianId, school_id: schoolId, student_stage: "internship", specialty: "Electricidad", availability: "En prácticas", bio: "", public_visibility: false },
+    ], { onConflict: "profile_id" });
+    log.push("✓ Canonical identity profiles aligned");
 
     // ── Step 3: Seed badges ───────────────────────────────────────
     const badgeData = [

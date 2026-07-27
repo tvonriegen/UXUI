@@ -17,8 +17,13 @@
 
 /* ── 1. Primitives & Unions ─────────────────────────────── */
 
-/** The four user archetypes in the platform */
-export type Role = "Estudiante" | "Egresado" | "Empresa" | "Colegio";
+/** Canonical account types used by server authorization. */
+export type AccountType = "student" | "company" | "school" | "external";
+
+export type StudentStage = "enrolled" | "internship" | "graduated";
+
+/** Legacy display roles retained only while existing surfaces migrate. */
+export type Role = "Estudiante" | "Egresado" | "Empresa" | "Colegio" | "Externo";
 
 /* ── 2. User / Profile Models ───────────────────────────── */
 

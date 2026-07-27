@@ -48,8 +48,8 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Contraseña requerida"),
 });
 
-// Only Empresa and Colegio can self-register.
-// Students are created exclusively by their school via the admin Server Action.
+// Only Empresa and Externo can self-register.
+// Students are created by a school; Colegio access is invitation/approval-only.
 export const registerSchema = z.object({
   name:     z.string().min(2, "El nombre debe tener al menos 2 caracteres").max(100),
   email:    z.string().email("Email inválido"),
@@ -58,8 +58,8 @@ export const registerSchema = z.object({
     .regex(/[0-9]/, "Debe incluir al menos un número")
     .regex(/[^a-zA-Z0-9]/, "Debe incluir al menos un carácter especial"),
   confirmPassword: z.string(),
-  role: z.enum(["Empresa", "Colegio"], {
-    error: () => ({ message: "Solo Empresa y Colegio pueden registrarse aquí." }),
+  accountType: z.enum(["company", "external"], {
+    error: () => ({ message: "Solo Empresa y Externo pueden registrarse aquí." }),
   }),
 }).refine((d) => d.password === d.confirmPassword, {
   message: "Las contraseñas no coinciden",

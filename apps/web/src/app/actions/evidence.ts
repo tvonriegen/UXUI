@@ -31,10 +31,10 @@ export async function submitProfileEvidence(input: {
 
   const { data: profile } = await auth.supabase
     .from("profiles")
-    .select("role")
+    .select("account_type")
     .eq("id", auth.user.id)
     .single();
-  if (!profile || !["Estudiante", "Egresado"].includes(profile.role)) {
+  if (!profile || profile.account_type !== "student") {
     return { error: "Solo estudiantes y egresados pueden registrar evidencia." };
   }
 
@@ -72,10 +72,10 @@ export async function reviewProfileEvidence(
 
   const { data: reviewer } = await auth.supabase
     .from("profiles")
-    .select("role")
+    .select("account_type")
     .eq("id", auth.user.id)
     .single();
-  if (!reviewer || reviewer.role !== "Colegio") return { error: "Solo un colegio puede revisar evidencia." };
+  if (!reviewer || reviewer.account_type !== "school") return { error: "Solo un colegio puede revisar evidencia." };
 
   const { error } = await auth.supabase
     .from("profile_evidence")

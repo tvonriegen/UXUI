@@ -46,10 +46,10 @@ async function getCallerCompany(supabase: ReturnType<typeof createServerSupabase
   if (!caller) return null;
   const { data } = await supabase
     .from("profiles")
-    .select("id, role, name, company_name")
+    .select("id, account_type, name, company_name")
     .eq("id", caller.id)
     .single();
-  if (!data || data.role !== "Empresa") return null;
+  if (!data || data.account_type !== "company") return null;
   return { ...data, userId: caller.id };
 }
 
@@ -241,10 +241,10 @@ export async function updateInternshipRequest(
 
   const { data: callerProfile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("account_type")
     .eq("id", caller.id)
     .single();
-  if (!callerProfile || callerProfile.role !== "Colegio") return { error: "Acceso denegado." };
+  if (!callerProfile || callerProfile.account_type !== "school") return { error: "Acceso denegado." };
 
   const { data: req } = await supabase
     .from("internship_requests")

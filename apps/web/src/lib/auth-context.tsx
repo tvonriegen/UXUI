@@ -10,7 +10,7 @@
 //  isLoading    – true while waiting for the initial session check
 //  login()      – sign in with email + password via Supabase Auth
 //  logout()     – sign out and clear user state
-//  register()   – create a new account + matching profile row
+//  accountType – canonical server-resolved account type
 // ──────────────────────────────────────────────────────────
 
 import React, {
@@ -21,7 +21,7 @@ import React, {
   useCallback,
 } from "react";
 import { supabase } from "./supabase";
-import type { Role } from "./types";
+import type { AccountType, Role, StudentStage } from "./types";
 
 // ── Shapes ────────────────────────────────────────────────
 
@@ -30,6 +30,9 @@ export interface AuthUser {
   name:                string;
   email:               string;
   role:                Role;
+  accountType:        AccountType;
+  accountStatus:       "active" | "pending" | "suspended" | "disabled";
+  studentStage:        StudentStage | null;
   avatar:              string;
   mustChangePassword:  boolean;
 }
@@ -40,13 +43,6 @@ interface AuthContextValue {
   /** Returns null on success, an error message string on failure */
   login:    (email: string, password: string) => Promise<{ error: string | null }>;
   logout:   () => Promise<void>;
-  /** Create a new account and profile row */
-  register: (
-    email:    string,
-    password: string,
-    name:     string,
-    role:     Role
-  ) => Promise<{ error: string | null }>;
 }
 
 // ── Context ───────────────────────────────────────────────
@@ -64,17 +60,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * and store it in React state.
    */
   const loadProfile = useCallback(async (supabaseUserId: string) => {
-    const [{ data }, { data: { session } }] = await Promise.all([
-      supabase.from("profiles").select("id, name, email, role, avatar").eq("id", supabaseUserId).single(),
+    const [{ data }, { data: studentProfile }, { data: { session } }] = await Promise.all([
+      supabase.from("profiles").select("id, name, email, role, avatar, account_type, account_status, availability").eq("id", supabaseUserId).single(),
+      supabase.from("student_profiles").select("student_stage").eq("profile_id", supabaseUserId).maybeSingle(),
       supabase.auth.getSession(),
     ]);
 
-    if (data) {
+    if (data && (data.account_type === "student" || data.account_type === "company" || data.account_type === "school" || data.account_type === "external")) {
+      const role = data.account_type === "company"
+        ? "Empresa"
+        : data.account_type === "school"
+          ? "Colegio"
+          : data.account_type === "external"
+            ? "Externo"
+          : studentProfile?.student_stage === "graduated" ? "Egresado" : "Estudiante";
+      const studentStage = data.account_type !== "student"
+        ? null
+        : studentProfile?.student_stage === "graduated"
+          ? "graduated"
+          : studentProfile?.student_stage === "internship" || data.availability === "En prácticas" ? "internship" : "enrolled";
       setUser({
         id:                 data.id,
         name:               data.name,
         email:              data.email,
-        role:               data.role as Role,
+        role:               role as Role,
+        accountType:        data.account_type,
+        accountStatus:      data.account_status as AuthUser["accountStatus"],
+        studentStage,
         avatar:             data.avatar ?? "",
         mustChangePassword: session?.user.app_metadata?.must_change_password === true,
       });
@@ -123,31 +135,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   }, []);
 
-  const register = useCallback(
-    async (
-      email:    string,
-      password: string,
-      name:     string,
-      role:     Role
-    ): Promise<{ error: string | null }> => {
-      // Create the Supabase auth user (metadata is picked up by the DB trigger)
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { name, role } },
-      });
-      if (error) return { error: error.message };
-
-      // The DB trigger (trg_new_user) handles profile creation automatically.
-      // A client-side upsert here fails when email confirmation is enabled
-      // because auth.uid() is null until the session is confirmed.
-      return { error: null };
-    },
-    []
-  );
-
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout, register }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
