@@ -30,6 +30,7 @@ export default function LoginPage() {
   const [error,        setError]        = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [demoLoading,  setDemoLoading]  = useState<string | null>(null);
+  const demoMode = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
   // Already authenticated → go to dashboard
   useEffect(() => {
@@ -191,7 +192,7 @@ export default function LoginPage() {
           </div>
 
           {/* ── Demo bypass section ── */}
-          <div className="px-8 pb-8">
+          {demoMode && <div className="px-8 pb-8">
             <div className="border-t border-slate-100 pt-5">
               <div className="flex items-center gap-2 mb-3">
                 <Zap size={14} className="text-amber-500" />
@@ -225,7 +226,7 @@ export default function LoginPage() {
                 Contraseña de todas: <span className="font-mono font-bold text-slate-500">Demo1234!</span>
               </p>
             </div>
-          </div>
+          </div>}
         </div>
 
         <p className="text-center text-[11px] text-slate-400 mt-4">

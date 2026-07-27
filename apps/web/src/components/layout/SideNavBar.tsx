@@ -78,6 +78,7 @@ const ROLE_SUB: Record<Role, string> = {
   Egresado:   "Alumni",
   Empresa:    "Talent searcher",
   Colegio:    "Student manager",
+  Externo:    "Client",
 };
 
 export default function SideNavBar() {

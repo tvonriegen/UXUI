@@ -203,7 +203,7 @@ export default function ChatWidget() {
   }, [input, messages, streaming, aiEnabled]);
 
   // Only render for authenticated users
-  if (!user) return null;
+  if (!user || (role !== "Empresa" && role !== "Colegio")) return null;
 
   const cfg       = ROLE_CONFIG[role] ?? FALLBACK_CONFIG;
   const { accent: accentCls, hover: hoverCls, bubble: bubbleCls } = cfg;
