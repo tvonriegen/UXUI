@@ -13,6 +13,8 @@ Authentication uses Supabase email/password. Server resolution and middleware us
 
 Persona dashboards, public exploration routes and an initial external freelance publishing surface exist. The larger legacy role-aware routes still coexist during migration.
 
+The shared authenticated shell now filters navigation from canonical `accountType`, supports the External persona on desktop/mobile, and provides protected aliases for the planned persona route tree.
+
 ## Data
 
 The live Supabase database retains the wide `profiles` table and legacy `job_postings`, while also containing canonical identity tables, `opportunities`, legacy mappings and staged application links.
