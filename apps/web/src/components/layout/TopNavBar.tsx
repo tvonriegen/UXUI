@@ -19,8 +19,9 @@ import { useAuth } from "@/lib/auth-context";
 import { Bell, X, LogOut, User as UserIcon, Search, Plus } from "lucide-react";
 
 export default function TopNavBar() {
-  const { role, notifications, unreadCount, markRead, markAllRead } = useRole();
+  const { notifications, unreadCount, markRead, markAllRead } = useRole();
   const { user, logout } = useAuth();
+  const accountType = user?.accountType ?? "student";
   const router = useRouter();
 
   const [notifOpen,  setNotifOpen]  = useState(false);
@@ -60,7 +61,11 @@ export default function TopNavBar() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQ.trim()) {
-      const target = role === "Estudiante" || role === "Egresado" ? "/empleos" : "/talent";
+      const target = accountType === "student"
+        ? "/empleos"
+        : accountType === "company"
+          ? "/talent"
+          : accountType === "external" ? "/external/jobs" : "/administracion";
       router.push(`${target}?q=${encodeURIComponent(searchQ.trim())}`);
       setSearchQ("");
     }
@@ -97,9 +102,9 @@ export default function TopNavBar() {
             id="global-search"
             value={searchQ}
             onChange={(e) => setSearchQ(e.target.value)}
-            placeholder={role === "Estudiante" || role === "Egresado"
+            placeholder={accountType === "student"
               ? "Buscar oportunidades…"
-              : "Buscar talento por nombre o especialidad…"}
+              : accountType === "external" ? "Buscar mis encargos…" : "Buscar talento por nombre o especialidad…"}
             className="flex-1 bg-transparent border-none outline-none text-[13.5px] text-slate-700 placeholder-slate-400"
           />
           <span className="text-[10px] text-slate-400 font-semibold px-1.5 py-0.5 border border-slate-300/60 rounded bg-white shrink-0 hidden xl:block">
@@ -112,11 +117,11 @@ export default function TopNavBar() {
 
           {/* Publicar button (desktop only) */}
           <Link
-            href="/muro?compose=1"
+            href={accountType === "external" ? "/external/jobs/new" : accountType === "company" ? "/empleos?create=1" : "/muro?compose=1"}
             className="hidden lg:flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white text-[13px] font-semibold shadow-sm transition-all duration-150"
           >
             <Plus size={15} strokeWidth={2.5} />
-            Publicar
+            {accountType === "external" ? "Publicar encargo" : accountType === "company" ? "Nueva vacante" : "Publicar"}
           </Link>
 
           {/* ══ Notifications Bell → /notifications ════════ */}

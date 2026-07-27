@@ -16,24 +16,34 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRole } from "@/lib/role-context";
-import { LayoutDashboard, Newspaper, Users, MessageCircle, User, LayoutGrid, Bell } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
+import type { AccountType } from "@/lib/types";
+import { LayoutDashboard, Newspaper, Users, MessageCircle, User, LayoutGrid, Bell, Briefcase } from "lucide-react";
 
 // All tabs — filtered per role below
 const ALL_LINKS = [
-  { path: "/muro",           label: "Muro",    icon: Newspaper,       roles: ["Estudiante", "Egresado", "Empresa", "Colegio"], badge: false },
-  { path: "/administracion", label: "Admin",   icon: LayoutGrid,      roles: ["Colegio"],                                       badge: false },
-  { path: "/talent",         label: "Talento", icon: Users,           roles: ["Estudiante", "Egresado", "Empresa"],              badge: false },
-  { path: "/",               label: "Home",    icon: LayoutDashboard, roles: ["Estudiante", "Egresado", "Empresa", "Colegio"], badge: false },
-  { path: "/messages",       label: "Chat",    icon: MessageCircle,   roles: ["Estudiante", "Egresado", "Empresa", "Colegio"], badge: true  },
-  { path: "/notifications",  label: "Avisos",  icon: Bell,            roles: ["Estudiante", "Egresado", "Empresa", "Colegio"], badge: true  },
-  { path: "/profile",        label: "Perfil",  icon: User,            roles: ["Estudiante", "Egresado", "Empresa", "Colegio"], badge: false },
+  { path: "/student/dashboard", label: "Inicio", icon: LayoutDashboard, accountTypes: ["student"] as AccountType[], badge: false },
+  { path: "/company/dashboard", label: "Inicio", icon: LayoutDashboard, accountTypes: ["company"] as AccountType[], badge: false },
+  { path: "/school/dashboard", label: "Inicio", icon: LayoutDashboard, accountTypes: ["school"] as AccountType[], badge: false },
+  { path: "/external/dashboard", label: "Inicio", icon: LayoutDashboard, accountTypes: ["external"] as AccountType[], badge: false },
+  { path: "/muro", label: "Muro", icon: Newspaper, accountTypes: ["student", "company", "school"] as AccountType[], badge: false },
+  { path: "/administracion", label: "Admin", icon: LayoutGrid, accountTypes: ["school"] as AccountType[], badge: false },
+  { path: "/talent", label: "Talento", icon: Users, accountTypes: ["company"] as AccountType[], badge: false },
+  { path: "/empleos", label: "Empleos", icon: Briefcase, accountTypes: ["student", "company"] as AccountType[], badge: false },
+  { path: "/external/proposals", label: "Propuestas", icon: Users, accountTypes: ["external"] as AccountType[], badge: false },
+  { path: "/messages", label: "Chat", icon: MessageCircle, accountTypes: ["student", "company", "school"] as AccountType[], badge: true },
+  { path: "/notifications", label: "Avisos", icon: Bell, accountTypes: ["student", "company", "school"] as AccountType[], badge: true },
+  { path: "/profile", label: "Perfil", icon: User, accountTypes: ["student", "company", "school"] as AccountType[], badge: false },
+  { path: "/external/profile", label: "Perfil", icon: User, accountTypes: ["external"] as AccountType[], badge: false },
 ];
 
 export default function BottomMobileNav() {
   const pathname    = usePathname();
-  const { unreadCount, role } = useRole();
+  const { unreadCount } = useRole();
+  const { user } = useAuth();
+  const accountType = user?.accountType ?? "student";
 
-  const LINKS = ALL_LINKS.filter((l) => l.roles.includes(role));
+  const LINKS = ALL_LINKS.filter((l) => l.accountTypes.includes(accountType));
 
   return (
     // Frosted-glass bar pinned to the bottom of the viewport.
@@ -75,7 +85,7 @@ export default function BottomMobileNav() {
 
             {/* Label text */}
             <span className={`text-[9px] ${isActive ? "font-bold" : "font-medium"}`}>
-              {link.path === "/talent" && role === "Estudiante" ? "Actividades" : link.label}
+              {link.path === "/talent" && accountType === "student" ? "Actividades" : link.label}
             </span>
           </Link>
         );

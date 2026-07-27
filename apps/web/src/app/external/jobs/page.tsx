@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { getCurrentAccount, requireAccountType } from "@/lib/auth-server";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import type { Opportunity } from "@/lib/types";
+import PageLayout from "@/components/layout/PageLayout";
 
 export default async function ExternalJobsPage() {
   await requireAccountType("external");
@@ -13,7 +14,7 @@ export default async function ExternalJobsPage() {
   const opportunities = (data ?? []) as Opportunity[];
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-white sm:px-10">
+    <PageLayout><section className="min-h-full bg-slate-950 px-6 py-10 text-white sm:px-10">
       <div className="mx-auto max-w-5xl">
         <Link href="/external/dashboard" className="text-sm font-bold text-sky-300">Volver al espacio externo</Link>
         <div className="mt-16 flex flex-wrap items-end justify-between gap-5">
@@ -31,6 +32,6 @@ export default async function ExternalJobsPage() {
           {!opportunities.length && <p className="rounded-3xl border border-dashed border-white/20 p-8 text-slate-400">Todavía no tienes encargos publicados.</p>}
         </div>
       </div>
-    </main>
+    </section></PageLayout>
   );
 }

@@ -216,7 +216,7 @@ export async function POST(request: Request) {
       status: "active",
     }, { onConflict: "school_id,profile_id" });
     await admin.from("student_profiles").upsert([
-      { profile_id: alanId, school_id: schoolId, student_stage: "enrolled", specialty: "Mecatrónica", availability: "Disponible", bio: "", public_visibility: false },
+      { profile_id: alanId, school_id: schoolId, student_stage: "enrolled", specialty: "Mecatrónica", availability: "Disponible", bio: "", public_visibility: true },
       { profile_id: ianId, school_id: schoolId, student_stage: "internship", specialty: "Electricidad", availability: "En prácticas", bio: "", public_visibility: false },
     ], { onConflict: "profile_id" });
     log.push("✓ Canonical identity profiles aligned");

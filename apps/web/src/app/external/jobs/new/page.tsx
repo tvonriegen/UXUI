@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { requireAccountType } from "@/lib/auth-server";
 import { createOpportunityFromForm } from "@/app/actions/opportunities";
+import PageLayout from "@/components/layout/PageLayout";
 
 export default async function NewExternalJobPage() {
   await requireAccountType("external");
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-white sm:px-10">
+    <PageLayout><section className="min-h-full bg-slate-950 px-6 py-10 text-white sm:px-10">
       <div className="mx-auto max-w-3xl">
         <Link href="/external/jobs" className="text-sm font-bold text-sky-300">Volver a mis encargos</Link>
         <h1 className="mt-16 text-4xl font-black">Publicar encargo freelance</h1>
@@ -27,6 +28,6 @@ export default async function NewExternalJobPage() {
           <button type="submit" className="mt-2 rounded-xl bg-sky-400 px-5 py-3 text-sm font-black text-slate-950 hover:bg-sky-300">Publicar encargo</button>
         </form>
       </div>
-    </main>
+    </section></PageLayout>
   );
 }
