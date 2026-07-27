@@ -12,6 +12,7 @@ export default async function ExternalDashboardPage() {
         <div className="mt-8 flex flex-wrap gap-3">
           <Link href="/external/jobs/new" className="rounded-full bg-sky-400 px-5 py-3 text-sm font-bold text-slate-950">Publicar encargo</Link>
           <Link href="/external/jobs" className="rounded-full border border-white/20 px-5 py-3 text-sm font-bold">Mis encargos</Link>
+          <Link href="/external/proposals" className="rounded-full border border-white/20 px-5 py-3 text-sm font-bold">Propuestas</Link>
         </div>
       </div>
     </main>
