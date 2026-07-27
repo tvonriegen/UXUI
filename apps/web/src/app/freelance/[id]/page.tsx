@@ -2,13 +2,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { submitProposalFromForm } from "@/app/actions/opportunities";
+import { getCurrentAccount } from "@/lib/auth-server";
 import type { Opportunity } from "@/lib/types";
 
-export default async function FreelanceDetailPage({ params }: { params: { id: string } }) {
+export default async function FreelanceDetailPage({ params, searchParams }: { params: { id: string }; searchParams?: { error?: string; submitted?: string } }) {
   const supabase = createServerSupabaseClient(await cookies() as any); // eslint-disable-line
   const { data } = await supabase.from("opportunities").select("*").eq("id", params.id).eq("publisher_type", "external").single();
   if (!data) notFound();
   const opportunity = data as Opportunity;
+  const account = await getCurrentAccount();
 
   return (
     <main className="min-h-screen bg-amber-50 px-6 py-10 text-slate-900 sm:px-10">
@@ -19,7 +22,18 @@ export default async function FreelanceDetailPage({ params }: { params: { id: st
           <h1 className="mt-4 text-4xl font-black">{opportunity.title}</h1>
           <p className="mt-5 leading-7 text-slate-600">{opportunity.description}</p>
           <div className="mt-8 flex flex-wrap gap-3 text-sm font-bold text-slate-700"><span className="rounded-full bg-amber-100 px-4 py-2">{opportunity.location || "Remoto"}</span>{opportunity.compensation_max != null && <span className="rounded-full bg-amber-100 px-4 py-2">Hasta {opportunity.compensation_max}</span>}</div>
-          <div className="mt-10 flex flex-wrap gap-3"><Link href="/login" className="rounded-full bg-slate-950 px-5 py-3 text-sm font-bold text-white">Ingresar para postular</Link><Link href="/register" className="rounded-full border border-slate-300 px-5 py-3 text-sm font-bold">Crear cuenta</Link></div>
+          {searchParams?.submitted && <p className="mt-8 rounded-2xl bg-emerald-100 px-4 py-3 text-sm font-bold text-emerald-900">Tu propuesta fue enviada.</p>}
+          {searchParams?.error && <p className="mt-8 rounded-2xl bg-rose-100 px-4 py-3 text-sm font-bold text-rose-900">{searchParams.error}</p>}
+          {account?.accountType === "student" ? (
+            <form action={submitProposalFromForm} className="mt-10 grid gap-4 border-t border-amber-100 pt-8">
+              <input type="hidden" name="opportunityId" value={opportunity.id} />
+              <label className="grid gap-2 text-sm font-bold">Tu propuesta<textarea name="coverLetter" required minLength={20} maxLength={5000} rows={5} className="rounded-xl border border-slate-200 px-4 py-3 font-normal outline-none focus:border-amber-500" placeholder="Cuenta cómo resolverías el encargo y qué entregarías." /></label>
+              <label className="grid gap-2 text-sm font-bold">Monto propuesto<input name="proposedAmount" type="number" min="0" className="rounded-xl border border-slate-200 px-4 py-3 font-normal outline-none focus:border-amber-500" /></label>
+              <button type="submit" className="rounded-full bg-slate-950 px-5 py-3 text-sm font-bold text-white">Enviar propuesta</button>
+            </form>
+          ) : (
+            <div className="mt-10 flex flex-wrap gap-3"><Link href="/login" className="rounded-full bg-slate-950 px-5 py-3 text-sm font-bold text-white">Ingresar para postular</Link><Link href="/register" className="rounded-full border border-slate-300 px-5 py-3 text-sm font-bold">Crear cuenta</Link></div>
+          )}
         </div>
       </div>
     </main>

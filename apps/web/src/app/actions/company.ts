@@ -198,7 +198,7 @@ export async function createInternshipRequest(
   const admin = createAdminClient();
   const now = new Date().toISOString();
 
-  const { error } = await admin.from("internship_requests").insert({
+  const { data: createdRequest, error } = await admin.from("internship_requests").insert({
     company_id:  company.userId,
     school_id:   schoolId,
     title:       data.title.trim(),
@@ -209,9 +209,28 @@ export async function createInternshipRequest(
     status:      "pendiente",
     created_at:  now,
     updated_at:  now,
-  });
+  }).select("id").single();
 
-  if (error) return { error: error.message };
+  if (error || !createdRequest?.id) return { error: error?.message ?? "No se pudo crear la solicitud." };
+
+  await admin.from("opportunities").upsert({
+    id: createdRequest.id,
+    publisher_id: company.userId,
+    publisher_type: "company",
+    opportunity_type: "internship",
+    title: data.title.trim(),
+    description: data.description,
+    specialty: data.specialty,
+    max_candidates: Math.max(1, data.slots),
+    status: "draft",
+    created_at: now,
+    updated_at: now,
+  }, { onConflict: "id" });
+  await admin.from("opportunity_legacy_links").upsert({
+    opportunity_id: createdRequest.id,
+    legacy_source: "internship_requests",
+    legacy_id: createdRequest.id,
+  }, { onConflict: "legacy_source,legacy_id" });
 
   const display = company.company_name || company.name || "Una empresa";
   await admin.from("notifications").insert({
@@ -262,6 +281,11 @@ export async function updateInternshipRequest(
     .update({ status, updated_at: now })
     .eq("id", requestId);
   if (error) return { error: error.message };
+
+  await admin.from("opportunities").update({
+    status: status === "aprobado" ? "open" : "closed",
+    updated_at: now,
+  }).eq("id", requestId);
 
   await admin.from("notifications").insert({
     user_id:    req.company_id,
