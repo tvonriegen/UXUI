@@ -32,6 +32,8 @@ import { useConfirm } from "@/components/ui/ConfirmDialog";
 import { useQuestProgress } from "@/lib/hooks/useQuestProgress";
 import ProposeInterviewModal from "@/components/ats/ProposeInterviewModal";
 import ApplicationTimeline from "@/components/ats/ApplicationTimeline";
+import { mergeOpportunitySources, type LegacyJobPosting } from "@/lib/services/opportunities";
+import type { Opportunity } from "@/lib/types";
 
 // ── Types ─────────────────────────────────────────────────
 
@@ -176,16 +178,16 @@ export default function EmpleosPage() {
 
   const fetchJobs = useCallback(async () => {
     setLoading(true); setError(null);
-    let query;
+    let legacyQuery;
 
     if (isCompany && user?.id) {
-      query = supabase
+      legacyQuery = supabase
         .from("job_postings")
         .select("*, company:profiles!job_postings_company_id_fkey(name,avatar)")
         .eq("company_id", user.id)
         .order("created_at", { ascending: false });
     } else {
-      query = supabase
+      legacyQuery = supabase
         .from("job_postings")
         .select("*, company:profiles!job_postings_company_id_fkey(name,avatar)")
         .eq("active", true)
@@ -193,9 +195,27 @@ export default function EmpleosPage() {
         .limit(50);
     }
 
-    const { data, error: err } = await query;
-    if (err) { setError("No se pudieron cargar las vacantes."); }
-    else { setJobs(data as JobPosting[]); }
+    const canonicalQuery = supabase
+      .from("opportunities")
+      .select("*")
+      .eq("publisher_type", "company")
+      .order("created_at", { ascending: false });
+    const scopedCanonicalQuery = isCompany && user?.id
+      ? canonicalQuery.eq("publisher_id", user.id)
+      : canonicalQuery.eq("status", "open");
+
+    const [{ data: legacyData, error: legacyError }, { data: canonicalData, error: canonicalError }] = await Promise.all([
+      legacyQuery,
+      scopedCanonicalQuery,
+    ]);
+    if (legacyError && canonicalError) {
+      setError("No se pudieron cargar las vacantes.");
+    } else {
+      setJobs(mergeOpportunitySources(
+        (canonicalData ?? []) as Opportunity[],
+        (legacyData ?? []) as LegacyJobPosting[],
+      ) as JobPosting[]);
+    }
     setLoading(false);
   }, [isCompany, user?.id]);
 

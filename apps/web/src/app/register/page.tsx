@@ -8,27 +8,27 @@ import { useState, useEffect } from "react";
 import Link        from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth }  from "@/lib/auth-context";
+import { registerAccount } from "@/app/actions/auth";
 import CursorGlow   from "@/components/layout/CursorGlow";
-import type { Role } from "@/lib/types";
+import type { AccountType } from "@/lib/types";
 import { Eye, EyeOff, UserPlus, AlertCircle, CheckCircle } from "lucide-react";
 import { registerSchema } from "@/lib/schemas";
 
-// Only organizations can self-register.
-// Students are created exclusively by their school via the admin panel.
-const ROLES: { value: Role; label: string; emoji: string }[] = [
-  { value: "Empresa", label: "Empresa", emoji: "🏢" },
-  { value: "Colegio", label: "Colegio", emoji: "🏫" },
+// Students are created by schools and Colegio access is controlled.
+const ACCOUNT_TYPES: { value: AccountType; label: string; emoji: string }[] = [
+  { value: "company", label: "Empresa", emoji: "🏢" },
+  { value: "external", label: "Externo", emoji: "👤" },
 ];
 
 export default function RegisterPage() {
-  const { register, user } = useAuth();
+  const { user } = useAuth();
   const router              = useRouter();
 
   const [name,         setName]         = useState("");
   const [email,        setEmail]        = useState("");
   const [password,     setPassword]     = useState("");
   const [confirm,      setConfirm]      = useState("");
-  const [role,         setRole]         = useState<Role>("Empresa");
+  const [accountType,  setAccountType]  = useState<AccountType>("company");
   const [showPass,     setShowPass]     = useState(false);
   const [error,        setError]        = useState("");
   const [success,      setSuccess]      = useState(false);
@@ -43,7 +43,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
 
-    const parsed = registerSchema.safeParse({ name, email, password, confirmPassword: confirm, role });
+    const parsed = registerSchema.safeParse({ name, email, password, confirmPassword: confirm, accountType });
     if (!parsed.success) {
       setError(parsed.error.issues[0].message);
       setIsSubmitting(false);
@@ -51,10 +51,16 @@ export default function RegisterPage() {
     }
 
     setIsSubmitting(true);
-    const { error: regError } = await register(email.trim(), password, name.trim(), role);
+    const result = await registerAccount({
+      name: name.trim(),
+      email: email.trim(),
+      password,
+      confirmPassword: confirm,
+      accountType,
+    });
 
-    if (regError) {
-      setError(regError);
+    if (result.error) {
+      setError(result.error);
       setIsSubmitting(false);
     } else {
       setSuccess(true);
@@ -92,10 +98,10 @@ export default function RegisterPage() {
                 <span className="text-white font-bold text-xl tracking-tight">TalentHub</span>
               </div>
               <h1 className="text-2xl font-extrabold text-white tracking-tight">
-                Registro de organización
+                Crear cuenta
               </h1>
               <p className="text-sky-100 text-sm mt-1">
-                Solo Empresas y Colegios pueden registrarse aquí
+                Empresas y Externos pueden registrarse aquí
               </p>
             </div>
           </div>
@@ -154,14 +160,14 @@ export default function RegisterPage() {
                 Tipo de usuario
               </label>
               <div className="grid grid-cols-2 gap-2">
-                {ROLES.map((r) => (
+                {ACCOUNT_TYPES.map((r) => (
                   <button
                     key={r.value}
                     type="button"
-                    onClick={() => setRole(r.value)}
+                    onClick={() => setAccountType(r.value)}
                     className={`
                       flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all
-                      ${role === r.value
+                      ${accountType === r.value
                         ? "border-sky-500 bg-sky-50 text-sky-700"
                         : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300"
                       }

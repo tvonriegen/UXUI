@@ -23,4 +23,14 @@ Use separate authenticated fixtures for Company A, Company B, School A, School B
 
 ## Current remote baseline
 
-The connected database has RLS enabled on the existing tables, but many policies are assigned to `public` and `profiles` has a broad public SELECT policy. Runtime negative tests are not yet automated. The matrix is therefore a hardening gate, not a claim that all assertions currently pass.
+The connected database has the canonical identity, opportunities, proposal and internship mapping migrations applied. Public profile reads use the allowlisted projection, while authenticated compatibility reads on `profiles` remain broad during legacy migration. The runtime matrix is implemented in `scripts/verify-runtime-security.mjs` and runs through the manual `Runtime Security Smoke Tests` workflow. It requires isolated staging fixtures and is not considered passing until that workflow completes successfully.
+
+## Runtime command
+
+Run locally only against disposable staging fixtures:
+
+```bash
+npm run verify:runtime-security
+```
+
+Required variables are documented in `docs/qa/RUNTIME_SECURITY_RUNBOOK.md`. Never point this suite at production users.

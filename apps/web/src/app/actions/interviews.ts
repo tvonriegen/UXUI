@@ -85,14 +85,24 @@ export async function proposeInterview(args: ProposeArgs) {
 
   const { data: applicant } = await supabase
     .from("profiles")
-    .select("id, role, age, school_id")
+    .select("id, account_type, age, school_id")
     .eq("id", app.applicant_id)
     .single();
 
   if (!applicant) return { error: "Perfil del postulante no encontrado." };
 
-  if (isMinorProfile(applicant.role, applicant.age)) {
-    if (!applicant.school_id) {
+  const { data: studentProfile } = await supabase
+    .from("student_profiles")
+    .select("student_stage, school_id")
+    .eq("profile_id", app.applicant_id)
+    .maybeSingle();
+  const applicantRole = applicant.account_type === "student" && studentProfile?.student_stage === "graduated"
+    ? "Egresado"
+    : applicant.account_type === "student" ? "Estudiante" : applicant.account_type;
+
+  if (isMinorProfile(applicantRole, applicant.age)) {
+    const schoolId = studentProfile?.school_id ?? applicant.school_id;
+    if (!schoolId) {
       return { error: "El postulante requiere mediación escolar, pero no tiene colegio asignado." };
     }
 

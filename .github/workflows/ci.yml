@@ -38,6 +38,8 @@ jobs:
           npm run verify:profile-evidence
           npm run verify:phase3-security
           npm run verify:function-grants
+          npm run verify:identity-access
+          npm run verify:opportunities
 
       - name: Lint
         run: npm run lint

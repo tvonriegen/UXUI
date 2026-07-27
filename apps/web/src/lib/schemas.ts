@@ -48,8 +48,8 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Contraseña requerida"),
 });
 
-// Only Empresa and Colegio can self-register.
-// Students are created exclusively by their school via the admin Server Action.
+// Only Empresa and Externo can self-register.
+// Students are created by a school; Colegio access is invitation/approval-only.
 export const registerSchema = z.object({
   name:     z.string().min(2, "El nombre debe tener al menos 2 caracteres").max(100),
   email:    z.string().email("Email inválido"),
@@ -58,13 +58,28 @@ export const registerSchema = z.object({
     .regex(/[0-9]/, "Debe incluir al menos un número")
     .regex(/[^a-zA-Z0-9]/, "Debe incluir al menos un carácter especial"),
   confirmPassword: z.string(),
-  role: z.enum(["Empresa", "Colegio"], {
-    error: () => ({ message: "Solo Empresa y Colegio pueden registrarse aquí." }),
+  accountType: z.enum(["company", "external"], {
+    error: () => ({ message: "Solo Empresa y Externo pueden registrarse aquí." }),
   }),
 }).refine((d) => d.password === d.confirmPassword, {
   message: "Las contraseñas no coinciden",
   path: ["confirmPassword"],
 });
+
+export const opportunitySchema = z.object({
+  opportunityType: z.enum(["internship", "job", "company_project", "freelance"]),
+  title: z.string().trim().min(4, "El título es demasiado corto.").max(160),
+  description: z.string().trim().min(20, "Describe el encargo con más detalle.").max(5000),
+  specialty: z.string().trim().max(100).default(""),
+  location: z.string().trim().max(160).default("Remoto"),
+  compensationMin: z.coerce.number().int().min(0).optional(),
+  compensationMax: z.coerce.number().int().min(0).optional(),
+  maxCandidates: z.coerce.number().int().min(1).max(10000).optional(),
+  closesAt: z.string().trim().optional(),
+}).refine(
+  (value) => value.compensationMin == null || value.compensationMax == null || value.compensationMin <= value.compensationMax,
+  { message: "La compensación mínima no puede superar la máxima.", path: ["compensationMax"] },
+);
 
 // School creates a student account
 export const createStudentSchema = z.object({

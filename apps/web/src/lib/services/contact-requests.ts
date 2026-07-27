@@ -4,13 +4,21 @@ import { ensureConversation, type SupabaseRlsClient } from "@/lib/services/conve
 
 type ContactProfile = {
   id: string;
-  role: string | null;
+  account_type: string | null;
 };
 
 type ContactTalentProfile = ContactProfile & {
   age: number | null;
   school_id: string | null;
+  student_stage?: string | null;
 };
+
+function legacyRoleForContact(accountType: string | null, studentStage?: string | null) {
+  if (accountType === "company") return "Empresa";
+  if (accountType === "school") return "Colegio";
+  if (accountType === "external") return "Externo";
+  return studentStage === "graduated" ? "Egresado" : "Estudiante";
+}
 
 export type RequestContactWithTalentResult =
   | {
@@ -45,23 +53,29 @@ export async function requestContactWithTalentService(
 
   const { data: caller } = await supabase
     .from("profiles")
-    .select("id, role")
+    .select("id, account_type")
     .eq("id", user.id)
     .single();
 
   const { data: talent } = await supabase
     .from("profiles")
-    .select("id, role, age, school_id")
+    .select("id, account_type, age, school_id")
     .eq("id", talentId)
     .single();
 
   if (!caller || !talent) return { error: "Perfil no encontrado." };
 
+  const { data: talentStage } = await supabase
+    .from("student_profiles")
+    .select("student_stage")
+    .eq("profile_id", talentId)
+    .maybeSingle();
+
   const contactPath = decideContactPath({
     callerId: user.id,
-    callerRole: (caller as ContactProfile).role,
+    callerRole: legacyRoleForContact((caller as ContactProfile).account_type),
     talentId,
-    talentRole: (talent as ContactTalentProfile).role,
+    talentRole: legacyRoleForContact((talent as ContactTalentProfile).account_type, talentStage?.student_stage),
     talentAge: (talent as ContactTalentProfile).age,
     talentSchoolId: (talent as ContactTalentProfile).school_id,
   });

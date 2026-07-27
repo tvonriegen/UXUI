@@ -41,14 +41,14 @@ export async function createStudent(formData: {
 
   const { data: callerProfile, error: profileErr } = await supabase
     .from("profiles")
-    .select("role, id")
+    .select("account_type, id")
     .eq("id", caller.id)
     .single();
 
   if (profileErr || !callerProfile) {
     return { error: "Perfil no encontrado." };
   }
-  if (callerProfile.role !== "Colegio") {
+  if (callerProfile.account_type !== "school") {
     return { error: "Solo un Colegio puede crear estudiantes." };
   }
 
@@ -63,7 +63,7 @@ export async function createStudent(formData: {
     password:       parsed.data.tempPassword,
     email_confirm:  true, // skip email confirmation for school-created accounts
     app_metadata: {
-      role:                 "Estudiante",
+      account_type:         "student",
       must_change_password: true,
     },
     user_metadata: {
@@ -88,6 +88,7 @@ export async function createStudent(formData: {
         name:       fullName,
         email:      parsed.data.email.trim(),
         role:       "Estudiante",
+        account_type: "student",
         school_id:  schoolId,
         rut:        formatRut(parsed.data.rut),
         gender:     parsed.data.gender,
@@ -105,6 +106,20 @@ export async function createStudent(formData: {
     // Roll back: delete the auth user we just created
     await admin.auth.admin.deleteUser(newUser.user.id);
     return { error: insertErr.message };
+  }
+
+  const { error: studentProfileErr } = await admin.from("student_profiles").upsert({
+    profile_id: newUser.user.id,
+    school_id: schoolId,
+    student_stage: "enrolled",
+    specialty: parsed.data.specialty ?? "",
+    availability: "Disponible",
+    bio: "",
+    public_visibility: false,
+  }, { onConflict: "profile_id" });
+  if (studentProfileErr) {
+    await admin.auth.admin.deleteUser(newUser.user.id);
+    return { error: studentProfileErr.message };
   }
 
   return { success: true, userId: newUser.user.id };
@@ -133,7 +148,7 @@ export async function clearMustChangePassword() {
 }
 
 // ── graduateStudent ──────────────────────────────────────
-// Promotes a student to Egresado. Only the owning school may call this.
+// Changes the academic stage without creating a second access role.
 export async function graduateStudent(studentId: string) {
   if (!studentId) return { error: "ID inválido." };
 
@@ -146,40 +161,41 @@ export async function graduateStudent(studentId: string) {
   // Verify caller is a Colegio and owns the student
   const { data: callerProfile } = await supabase
     .from("profiles")
-    .select("role, id")
+    .select("account_type, id")
     .eq("id", caller.id)
     .single();
 
-  if (!callerProfile || callerProfile.role !== "Colegio") {
+  if (!callerProfile || callerProfile.account_type !== "school") {
     return { error: "Solo un Colegio puede graduar estudiantes." };
   }
 
   const { data: studentProfile } = await supabase
     .from("profiles")
-    .select("school_id, role")
+    .select("school_id, account_type")
     .eq("id", studentId)
     .single();
 
   if (!studentProfile || studentProfile.school_id !== callerProfile.id) {
     return { error: "Estudiante no pertenece a este centro." };
   }
-  if (studentProfile.role !== "Estudiante") {
-    return { error: "Este perfil ya no es Estudiante." };
+  if (studentProfile.account_type !== "student") {
+    return { error: "Este perfil no es una cuenta de estudiante." };
   }
 
   const admin = createAdminClient();
 
-  // Update profile row
+  // Keep the same account identity and update only the academic stage.
   const { error: updateErr } = await admin
-    .from("profiles")
-    .update({ role: "Egresado", updated_at: new Date().toISOString() })
-    .eq("id", studentId);
+    .from("student_profiles")
+    .update({ student_stage: "graduated", updated_at: new Date().toISOString() })
+    .eq("profile_id", studentId)
+    .eq("school_id", callerProfile.id);
 
   if (updateErr) return { error: updateErr.message };
 
-  // Update auth app_metadata role
+  // Keep the canonical Auth metadata stable.
   await admin.auth.admin.updateUserById(studentId, {
-    app_metadata: { role: "Egresado" },
+    app_metadata: { account_type: "student" },
   });
 
   return { success: true };
@@ -214,11 +230,11 @@ export async function bulkCreateStudents(students: Array<{
 
   const { data: callerProfile } = await supabase
     .from("profiles")
-    .select("role, id")
+    .select("account_type, id")
     .eq("id", caller.id)
     .single();
 
-  if (!callerProfile || callerProfile.role !== "Colegio") {
+  if (!callerProfile || callerProfile.account_type !== "school") {
     return { error: "Solo un Colegio puede importar estudiantes." };
   }
 
@@ -242,7 +258,7 @@ export async function bulkCreateStudents(students: Array<{
       email:         s.email.trim(),
       password:      s.password,
       email_confirm: true,
-      app_metadata:  { role: "Estudiante", must_change_password: true },
+      app_metadata:  { account_type: "student", must_change_password: true },
       user_metadata: { name: s.name.trim() },
     });
 
@@ -258,6 +274,7 @@ export async function bulkCreateStudents(students: Array<{
         name:       s.name.trim(),
         email:      s.email.trim(),
         role:       "Estudiante",
+        account_type: "student",
         school_id:  schoolId,
         rut:        formatRut(s.rut),
         gender:     s.gender   || null,
@@ -278,6 +295,21 @@ export async function bulkCreateStudents(students: Array<{
       continue;
     }
 
+    const { error: studentProfileErr } = await admin.from("student_profiles").upsert({
+      profile_id: newUser.user.id,
+      school_id: schoolId,
+      student_stage: "enrolled",
+      specialty: s.specialty ?? "",
+      availability: "Disponible",
+      bio: "",
+      public_visibility: false,
+    }, { onConflict: "profile_id" });
+    if (studentProfileErr) {
+      await admin.auth.admin.deleteUser(newUser.user.id);
+      errors.push({ index: i, email: s.email, message: studentProfileErr.message });
+      continue;
+    }
+
     created++;
   }
 
@@ -293,8 +325,8 @@ async function verifySchoolOwnsStudent(
   if (!caller) return { error: "No autenticado." };
 
   const { data: school } = await supabase
-    .from("profiles").select("role, id").eq("id", caller.id).single();
-  if (!school || school.role !== "Colegio") return { error: "Acceso denegado." };
+    .from("profiles").select("account_type, id").eq("id", caller.id).single();
+  if (!school || school.account_type !== "school") return { error: "Acceso denegado." };
 
   const { data: student } = await supabase
     .from("profiles").select("school_id").eq("id", studentId).single();
@@ -447,11 +479,11 @@ export async function validateStudentSkill(
 
   const { data: schoolProfile } = await supabase
     .from("profiles")
-    .select("role, id")
+    .select("account_type, id")
     .eq("id", caller.id)
     .single();
 
-  if (!schoolProfile || schoolProfile.role !== "Colegio") {
+  if (!schoolProfile || schoolProfile.account_type !== "school") {
     return { error: "Solo un Colegio puede validar habilidades." };
   }
 

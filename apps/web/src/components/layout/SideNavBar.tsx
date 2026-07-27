@@ -16,7 +16,7 @@ import { usePathname } from "next/navigation";
 import { useRole } from "@/lib/role-context";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
-import type { Role } from "@/lib/types";
+import type { AccountType } from "@/lib/types";
 import {
   LayoutDashboard, Newspaper, Users, MessageCircle, User,
   Settings, Briefcase, LayoutGrid, Bell, Zap,
@@ -24,66 +24,111 @@ import {
 
 const LINKS = [
   {
-    path: "/",
+    path: "/student/dashboard",
     label: "Inicio",
     icon: LayoutDashboard,
-    visibleFor: ["Estudiante", "Egresado", "Empresa", "Colegio"] as Role[],
+    visibleFor: ["student"] as AccountType[],
   },
   {
     path: "/muro",
     label: "El Muro",
     icon: Newspaper,
-    visibleFor: ["Estudiante", "Egresado", "Empresa", "Colegio"] as Role[],
+    visibleFor: ["student", "company", "school"] as AccountType[],
+  },
+  {
+    path: "/school/dashboard",
+    label: "Inicio",
+    icon: LayoutDashboard,
+    visibleFor: ["school"] as AccountType[],
   },
   {
     path: "/administracion",
     label: "Administración",
     icon: LayoutGrid,
-    visibleFor: ["Colegio"] as Role[],
+    visibleFor: ["school"] as AccountType[],
   },
   {
     path: "/talent",
     label: "Talento",
     icon: Users,
-    visibleFor: ["Estudiante", "Egresado", "Empresa"] as Role[],
+    visibleFor: ["company"] as AccountType[],
   },
   {
     path: "/empleos",
     label: "Empleos",
     icon: Briefcase,
-    visibleFor: ["Estudiante", "Egresado", "Empresa"] as Role[],
+    visibleFor: ["student", "company"] as AccountType[],
+  },
+  {
+    path: "/company/dashboard",
+    label: "Inicio",
+    icon: LayoutDashboard,
+    visibleFor: ["company"] as AccountType[],
+  },
+  {
+    path: "/external/dashboard",
+    label: "Inicio",
+    icon: LayoutDashboard,
+    visibleFor: ["external"] as AccountType[],
+  },
+  {
+    path: "/external/jobs",
+    label: "Mis encargos",
+    icon: Briefcase,
+    visibleFor: ["external"] as AccountType[],
+  },
+  {
+    path: "/external/proposals",
+    label: "Propuestas",
+    icon: Users,
+    visibleFor: ["external"] as AccountType[],
   },
   {
     path: "/messages",
     label: "Mensajes",
     icon: MessageCircle,
-    visibleFor: ["Estudiante", "Egresado", "Empresa", "Colegio"] as Role[],
+    visibleFor: ["student", "company", "school"] as AccountType[],
   },
   {
     path: "/notifications",
     label: "Notificaciones",
     icon: Bell,
-    visibleFor: ["Estudiante", "Egresado", "Empresa", "Colegio"] as Role[],
+    visibleFor: ["student", "company", "school"] as AccountType[],
   },
   {
     path: "/profile",
     label: "Mi Perfil",
     icon: User,
-    visibleFor: ["Estudiante", "Egresado", "Empresa", "Colegio"] as Role[],
+    visibleFor: ["student", "company", "school"] as AccountType[],
   },
 ];
 
-const ROLE_SUB: Record<Role, string> = {
-  Estudiante: "Networker",
-  Egresado:   "Alumni",
-  Empresa:    "Talent searcher",
-  Colegio:    "Student manager",
+const ACCOUNT_SUB: Record<AccountType, string> = {
+  student: "Student space",
+  company: "Talent partner",
+  school: "School admin",
+  external: "Client space",
 };
+
+const CANONICAL_ROUTES: Record<string, Partial<Record<AccountType, string>>> = {
+  "/muro": { student: "/student/feed" },
+  "/talent": { company: "/company/talent" },
+  "/empleos": { student: "/student/opportunities", company: "/company/jobs" },
+  "/messages": { student: "/student/messages", company: "/company/messages", school: "/school/messages" },
+  "/notifications": { student: "/student/notifications", company: "/company/notifications", school: "/school/notifications" },
+  "/profile": { student: "/student/profile", company: "/company/profile", school: "/school/profile" },
+  "/settings": { student: "/student/settings", company: "/company/settings", school: "/school/settings" },
+};
+
+function canonicalRoute(path: string, accountType: AccountType) {
+  return CANONICAL_ROUTES[path]?.[accountType] ?? path;
+}
 
 export default function SideNavBar() {
   const pathname              = usePathname();
-  const { role, unreadCount } = useRole();
+  const { unreadCount } = useRole();
   const { user }              = useAuth();
+  const accountType = user?.accountType ?? "student";
 
   const [level, setLevel] = useState<number | null>(null);
   const [xp,    setXp]    = useState<number | null>(null);
@@ -104,7 +149,7 @@ export default function SideNavBar() {
       });
   }, [user?.id]);
 
-  const filtered = LINKS.filter((l) => l.visibleFor.includes(role));
+  const filtered = LINKS.filter((l) => l.visibleFor.includes(accountType));
 
   const initials = user?.name
     ? user.name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()
@@ -123,7 +168,7 @@ export default function SideNavBar() {
             Talent<span className="text-indigo-600">Hub</span>
           </span>
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[.08em] -mt-0.5">
-            {ROLE_SUB[role]}
+            {ACCOUNT_SUB[accountType]}
           </p>
         </div>
       </div>
@@ -131,13 +176,14 @@ export default function SideNavBar() {
       {/* ── Navigation Links ── */}
       <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
         {filtered.map((link, idx) => {
-          const isActive = pathname === link.path;
+          const target = canonicalRoute(link.path, accountType);
+          const isActive = pathname === target;
           const IconComp = link.icon;
 
           return (
             <Link
               key={link.path}
-              href={link.path}
+              href={target}
               className={`
                 flex items-center gap-3 px-3 py-2.5 rounded-xl
                 transition-all duration-200 text-[13px] font-medium
@@ -160,7 +206,7 @@ export default function SideNavBar() {
                 )}
               </span>
 
-              <span>{link.path === "/talent" && role === "Estudiante" ? "Actividades" : link.label}</span>
+              <span>{link.path === "/talent" && accountType === "student" ? "Actividades" : link.label}</span>
 
               {link.path === "/messages" && unreadCount > 0 && (
                 <span className="ml-auto text-[10px] font-bold bg-red-500 text-white px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
@@ -175,11 +221,11 @@ export default function SideNavBar() {
       {/* ── Footer ── */}
       <div className="px-3 pb-4 border-t border-slate-100 pt-3 space-y-1.5">
         <Link
-          href="/settings"
+          href={canonicalRoute("/settings", accountType)}
           className={`
             w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
             transition-all duration-200 text-[13px] font-medium
-            ${pathname === "/settings"
+            ${pathname === canonicalRoute("/settings", accountType)
               ? "text-sky-700 bg-sky-50/80 font-semibold"
               : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
             }

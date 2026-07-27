@@ -1,6 +1,6 @@
 # ADR-003: One Opportunity Model With Publisher Constraints
 
-- Status: Proposed in Phase 0
+- Status: Accepted and implemented incrementally in Phase 2
 - Date: 2026-07-26
 
 ## Context
@@ -25,3 +25,11 @@ Introduce `opportunities` as the canonical publication model with `publisher_typ
 - Existing company jobs need a reversible backfill and compatibility read path.
 - `internship_requests` remains an institutional workflow until its use is mapped to opportunity approval or retired.
 - RLS and server actions become simpler after the migration, but the transition requires dual-read verification.
+
+## Phase 2 implementation
+
+- `opportunities` is live with company `job` and `internship` backfills from `job_postings`.
+- `opportunity_legacy_links` preserves the reversible relationship to `job_postings`.
+- `job_applications.opportunity_id` is nullable during the staged transition; existing `job_id` history remains valid.
+- External publishing is restricted to verified-email `freelance` opportunities.
+- Public reads expose only open, non-expired opportunities; publisher writes are owner-scoped.

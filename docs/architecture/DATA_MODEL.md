@@ -4,7 +4,7 @@
 
 The live schema has one wide `profiles` table with `role` values `Estudiante`, `Egresado`, `Empresa` and `Colegio`. It also contains normalized skills, certifications, portfolio, evidence, feed, jobs, applications, timelines, interviews, contact requests, messaging, notifications, school reports, validation, reputation, gamification and radar tables.
 
-The current source contains 36 live public tables. The live database has no `schools`, `school_members`, `student_profiles`, `company_profiles`, `external_profiles` or `opportunities` table. See `docs/architecture/PHASE_0_AUDIT.md` for the complete inventory and drift notes.
+The audited baseline contained 36 live public tables. Phase 1 added canonical identity tables and Phase 2 added `opportunities` plus `opportunity_legacy_links`; the legacy `job_postings` and `internship_requests` tables remain during staged migration.
 
 ## Target model
 
@@ -31,6 +31,12 @@ Do not drop `profiles.role`, `job_postings`, `student_id` aliases or historical 
 - `(opportunity_id, applicant_id)` is unique.
 - Closed or expired opportunities reject new applications.
 - Public reads use an allowlisted projection, never the complete profile table.
+
+## Phase 2 compatibility
+
+- Existing `job_postings` rows are backfilled with stable IDs into `opportunities`.
+- Existing `job_applications.job_id` remains nullable and valid while `opportunity_id` becomes the canonical link.
+- `internship_requests` remains a school approval workflow and is not yet converted into a public opportunity.
 
 ## Database source
 

@@ -8,6 +8,7 @@
 //   Alan García (Estudiante)  →  alan@demo.cr      / Demo1234!
 //   Ian Mora    (Estudiante)  →  ian@demo.cr       / Demo1234!
 //   Google CR   (Empresa)     →  google@demo.cr    / Demo1234!
+//   Cliente Demo (Externo)    →  cliente@demo.cr    / Demo1234!
 // ──────────────────────────────────────────────────────────
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
@@ -18,13 +19,15 @@ interface DemoUser {
   email: string;
   name:  string;
   role:  string;
+  accountType: "student" | "company" | "school" | "external";
 }
 
 const DEMO_USERS: DemoUser[] = [
-  { email: "colegio@demo.cr", name: "Colegio Técnico San José", role: "Colegio"    },
-  { email: "alan@demo.cr",    name: "Alan García",              role: "Estudiante" },
-  { email: "ian@demo.cr",     name: "Ian Mora",                 role: "Estudiante" },
-  { email: "google@demo.cr",  name: "Google CR",                role: "Empresa"    },
+  { email: "colegio@demo.cr", name: "Colegio Técnico San José", role: "Colegio", accountType: "school" },
+  { email: "alan@demo.cr",    name: "Alan García",              role: "Estudiante", accountType: "student" },
+  { email: "ian@demo.cr",     name: "Ian Mora",                 role: "Estudiante", accountType: "student" },
+  { email: "google@demo.cr",  name: "Google CR",                role: "Empresa", accountType: "company" },
+  { email: "cliente@demo.cr", name: "Cliente Demo",              role: "Externo", accountType: "external" },
 ];
 
 export async function POST(request: Request) {
@@ -72,6 +75,9 @@ export async function POST(request: Request) {
 
       if (existing?.id) {
         uids[demo.email] = existing.id;
+        await admin.auth.admin.updateUserById(existing.id, {
+          app_metadata: { account_type: demo.accountType },
+        });
         log.push(`✓ ${demo.email} already exists (${existing.id})`);
         continue;
       }
@@ -81,7 +87,8 @@ export async function POST(request: Request) {
         email:            demo.email,
         password:         DEMO_PASSWORD,
         email_confirm:    true,
-        user_metadata:    { name: demo.name, role: demo.role },
+        app_metadata:    { account_type: demo.accountType },
+        user_metadata:    { name: demo.name },
       });
 
       if (createErr || !created?.user) {
@@ -100,8 +107,9 @@ export async function POST(request: Request) {
     const alanId    = uids["alan@demo.cr"];
     const ianId     = uids["ian@demo.cr"];
     const googleId  = uids["google@demo.cr"];
+    const externalId = uids["cliente@demo.cr"];
 
-    if (!schoolId || !alanId || !ianId || !googleId) {
+    if (!schoolId || !alanId || !ianId || !googleId || !externalId) {
       return NextResponse.json({ ok: false, log, error: "One or more accounts could not be created." }, { status: 500 });
     }
 
@@ -112,6 +120,7 @@ export async function POST(request: Request) {
       email:              "colegio@demo.cr",
       name:               "Colegio Técnico San José",
       role:               "Colegio",
+      account_type:       "school",
       school_name:        "Colegio Técnico San José",
       location:           "San José, Costa Rica",
       bio:                "Centro educativo de excelencia técnica con más de 40 años formando profesionales en especialidades técnicas.",
@@ -126,6 +135,7 @@ export async function POST(request: Request) {
       email:            "alan@demo.cr",
       name:             "Alan García",
       role:             "Estudiante",
+      account_type:     "student",
       school_id:        schoolId,
       specialty:        "Mecatrónica",
       title:            "Técnico en Mecatrónica",
@@ -145,6 +155,7 @@ export async function POST(request: Request) {
       email:            "ian@demo.cr",
       name:             "Ian Mora",
       role:             "Estudiante",
+      account_type:     "student",
       school_id:        schoolId,
       specialty:        "Electricidad",
       title:            "Técnico en Electricidad",
@@ -164,6 +175,7 @@ export async function POST(request: Request) {
       email:          "google@demo.cr",
       name:           "Google CR",
       role:           "Empresa",
+      account_type:   "company",
       company_name:   "Google CR",
       industry:       "Tecnología",
       employee_count: "10,000+",
@@ -173,6 +185,41 @@ export async function POST(request: Request) {
       open_positions: 3,
     });
     log.push("✓ Google profile enriched");
+
+    await admin.from("profiles").upsert({
+      id: externalId,
+      email: "cliente@demo.cr",
+      name: "Cliente Demo",
+      role: "Externo",
+      account_type: "external",
+      location: "San José, Costa Rica",
+      bio: "Cliente demo para encargos técnicos y prototipos.",
+    });
+    await admin.from("external_profiles").upsert({
+      profile_id: externalId,
+      public_name: "Cliente Demo",
+      client_type: "individual",
+      verification_status: "verified",
+    }, { onConflict: "profile_id" });
+    log.push("✓ External profile enriched");
+
+    await admin.from("schools").upsert({
+      id: schoolId,
+      profile_id: schoolId,
+      name: "Colegio Técnico San José",
+      status: "active",
+    }, { onConflict: "id" });
+    await admin.from("school_members").upsert({
+      school_id: schoolId,
+      profile_id: schoolId,
+      member_role: "owner",
+      status: "active",
+    }, { onConflict: "school_id,profile_id" });
+    await admin.from("student_profiles").upsert([
+      { profile_id: alanId, school_id: schoolId, student_stage: "enrolled", specialty: "Mecatrónica", availability: "Disponible", bio: "", public_visibility: true },
+      { profile_id: ianId, school_id: schoolId, student_stage: "internship", specialty: "Electricidad", availability: "En prácticas", bio: "", public_visibility: false },
+    ], { onConflict: "profile_id" });
+    log.push("✓ Canonical identity profiles aligned");
 
     // ── Step 3: Seed badges ───────────────────────────────────────
     const badgeData = [
@@ -320,11 +367,53 @@ export async function POST(request: Request) {
         .eq("title", job.title)
         .maybeSingle();
 
+      let jobId = existing?.id;
       if (!existing) {
-        await admin.from("job_postings").insert(job);
+        const { data: inserted } = await admin.from("job_postings").insert(job).select("id").single();
+        jobId = inserted?.id;
+      }
+      if (jobId) {
+        await admin.from("opportunities").upsert({
+          id: jobId,
+          publisher_id: googleId,
+          publisher_type: "company",
+          opportunity_type: job.type === "pasantia" ? "internship" : "job",
+          title: job.title,
+          description: job.description,
+          specialty: job.specialty,
+          location: job.location,
+          status: job.active ? "open" : "closed",
+        }, { onConflict: "id" });
+        await admin.from("opportunity_legacy_links").upsert({
+          opportunity_id: jobId,
+          legacy_source: "job_postings",
+          legacy_id: jobId,
+        }, { onConflict: "legacy_source,legacy_id" });
       }
     }
     log.push(`✓ ${jobs.length} job postings seeded`);
+
+    const { data: existingFreelance } = await admin
+      .from("opportunities")
+      .select("id")
+      .eq("publisher_id", externalId)
+      .eq("title", "Diagnóstico de automatización para pyme")
+      .maybeSingle();
+    if (!existingFreelance) {
+      await admin.from("opportunities").insert({
+        publisher_id: externalId,
+        publisher_type: "external",
+        opportunity_type: "freelance",
+        title: "Diagnóstico de automatización para pyme",
+        description: "Necesito identificar mejoras de automatización para el control de inventario y recibir un plan de implementación.",
+        specialty: "Mecatrónica",
+        location: "San José, Costa Rica",
+        compensation_min: 250,
+        compensation_max: 500,
+        status: "open",
+      });
+    }
+    log.push("✓ Freelance opportunity seeded");
 
     // ── Step 6: Create alliance between Google and the school ─────
     const { data: existingAlliance } = await admin

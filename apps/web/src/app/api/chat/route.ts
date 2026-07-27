@@ -234,7 +234,7 @@ async function runSchoolTool(
       .from("profiles")
       .select("id, name, specialty, class_name, availability, reputation_score, age, gender")
       .eq("school_id", schoolId)
-      .eq("role", "Estudiante")
+      .eq("account_type", "student")
       .order("name");
 
     if (input.specialty) query = query.eq("specialty", String(input.specialty));
@@ -256,7 +256,7 @@ async function runSchoolTool(
       .select("id, name, email, rut, gender, cellphone, class_name, age, specialty, grade, attendance, availability, xp, level, reputation_score, bio")
       .eq("id", studentId)
       .eq("school_id", schoolId)
-      .eq("role", "Estudiante")
+      .eq("account_type", "student")
       .single();
 
     if (error || !student) return "Estudiante no encontrado o no pertenece a este colegio.";
@@ -310,10 +310,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No autenticado." }, { status: 401 });
   }
 
-  // 2. Load profile + role
+  // 2. Load the trusted canonical account type
   const { data: profile, error: profileErr } = await supabase
     .from("profiles")
-    .select("id, role, name, company_name, school_name")
+    .select("id, account_type, name, company_name, school_name")
     .eq("id", user.id)
     .single();
 
@@ -321,8 +321,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Perfil no encontrado." }, { status: 403 });
   }
 
-  const { role } = profile;
-  if (role !== "Empresa" && role !== "Colegio") {
+  const role = profile.account_type === "company" ? "Empresa" : profile.account_type === "school" ? "Colegio" : null;
+  if (!role) {
     return NextResponse.json({ error: "El chatbot sólo está disponible para Empresa y Colegio." }, { status: 403 });
   }
 
