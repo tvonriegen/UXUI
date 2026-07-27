@@ -9,6 +9,7 @@
 - 2026-07-26: `git diff --check` passed before integration.
 - 2026-07-26: Phase 0 and Phase 1 branch validation passed before local merges; CI workflow added but not yet run remotely.
 - 2026-07-26: Phase 2 evidence and Phase 3 readiness/security validations passed locally; Supabase schema and policy migrations were applied and verified remotely.
+- 2026-07-26: Phase 1 canonical identity migrations are applied to Supabase staging; focused authenticated RLS checks pass, while the complete negative matrix remains pending.
 
 ## External Verification Pending
 
@@ -23,6 +24,7 @@
 - `apps/web/src/app/profile/page.tsx` remains a large role-aware route and needs a separate decomposition effort.
 - There is no disposable Supabase integration test suite yet; current scripts are hermetic structural/domain checks.
 - Runtime Supabase smoke testing is now available as an opt-in manual workflow, but staging fixtures and GitHub environment secrets still need to be configured.
+- The local Supabase CLI is unavailable (`supabase: command not found`); remote migration execution currently uses Supabase MCP.
 - Supabase security advisors still report intentionally exposed authenticated `SECURITY DEFINER` helpers (`can_converse` and the school reviewer) plus leaked-password protection disabled; the helper grants are restricted and the Auth setting requires dashboard configuration.
 - The student profile route remains large despite the persistence and actionable-anchor improvements; keep its decomposition separate from product UX changes.
 
