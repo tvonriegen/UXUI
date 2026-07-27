@@ -13,7 +13,7 @@
 - Improved public exploration with clear paths for students, opportunities and school-supported talent.
 - Added editable External profile data.
 - Set the demo Alan profile as explicitly public in the seed fixture; production defaults remain private.
-- Added transition aliases so legacy feature surfaces remain available while dedicated routes are extracted.
+- Added dedicated route entry points for the full Student, Company and School navigation trees, reusing tested legacy surfaces during extraction.
 
 ## Verification
 
@@ -24,7 +24,7 @@
 
 ## Next UX slice
 
-- Replace compatibility aliases with dedicated Student, Company and School feature pages.
+- Extract feature components behind the dedicated Student, Company and School routes instead of re-exporting legacy pages.
 - Add real profile editing for Student, Company and School.
 - Add shared empty/error/loading primitives instead of route-local markup.
 - Run keyboard, mobile viewport and screen-reader checks against all four persona journeys.
