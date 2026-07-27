@@ -2,29 +2,28 @@
 
 ## Repository
 
-- `apps/web`: Next.js 14 App Router app with a shared client shell.
-- `supabase`: 28 chronological migrations, schema snapshot, reset helper and seed data.
+- `apps/web`: Next.js 14 App Router app with a shared client shell and canonical persona routes.
+- `supabase`: chronological migrations, schema snapshot, reset helper and seed data.
 - `docs`: product, architecture, requirements, QA, Git and workflow records.
 - `scripts`: structural/domain/security verification and maintenance helpers.
 
 ## Application
 
-Authentication uses Supabase email/password. The browser loads `profiles.role` and the shared shell uses it to change dashboards, navigation labels and feature visibility. Middleware protects session presence and forced password changes, but not persona route authorization.
+Authentication uses Supabase email/password. Server resolution and middleware use canonical `account_type`; legacy `profiles.role` remains only for compatibility labels and older surfaces.
 
-Existing role-aware surfaces include student, graduate, company and school components. There is no external surface and no public safe exploration surface.
+Persona dashboards, public exploration routes and an initial external freelance publishing surface exist. The larger legacy role-aware routes still coexist during migration.
 
 ## Data
 
-The live Supabase database contains 36 public tables centered on a wide `profiles` table and `job_postings`. Evidence, contact routing, interviews, readiness timeline, reputation, gamification and radar are present. The canonical four-account model and common opportunities are not present.
+The live Supabase database retains the wide `profiles` table and legacy `job_postings`, while also containing canonical identity tables, `opportunities`, legacy mappings and staged application links.
 
 ## Known structural and security risks
 
-- `profiles` has broad public reads and contains sensitive columns.
+- Authenticated compatibility reads on `profiles` remain broad while legacy surfaces migrate; anonymous profile reads use the public projection.
 - Many live policies remain assigned to `public` and historical policy variants coexist.
-- No institution/member tables isolate school administration.
-- `Egresado` is still an independent role in code, schema, policies and seed data.
-- No external account or freelance opportunity workflow exists.
+- Legacy role and job surfaces remain in code and require staged migration.
+- `internship_requests` is still separate from common opportunities.
 - `profile/page.tsx` is 2,951 lines; other high-risk routes are also oversized.
-- Runtime authenticated RLS tests are pending even though structural verifiers pass.
+- Focused runtime RLS tests pass; the complete cross-persona negative matrix remains pending.
 - Supabase advisors report callable `SECURITY DEFINER` helpers and disabled leaked-password protection.
 - AI chat is optional and must remain disabled unless flags and keys are intentionally configured.
