@@ -1,5 +1,33 @@
 # TalentHub Session Log
 
+## 2026-07-26 — Merge and handoff
+
+### Result
+
+- Merged `foundation/identity-access` into `main` with merge commit `fffcae4`.
+- Local `main` is ready to publish to `origin` after this handoff commit.
+- Added the runtime security workflow, runbook and current handoff records.
+
+### Delivered scope
+
+- Canonical identity and initial RLS.
+- Common opportunities, freelance proposals and internship mapping.
+- Persona route tree, shared navigation and external profile flow.
+- Structural verifiers plus a manual runtime security matrix.
+
+### Validation
+
+- `npm run lint` passed.
+- `npm run build` passed with 64 routes.
+- `npm run verify:identity-access` passed.
+- `npm run verify:opportunities` passed.
+- Runtime security workflow is pending isolated staging fixture secrets.
+
+### Handoff
+
+- Read `docs/workflow/HANDOFF.md` before continuing.
+- First action: configure fixtures and run `Runtime Security Smoke Tests`.
+
 ## 2026-07-26 — Phase 0 four-persona audit
 
 ### Goal

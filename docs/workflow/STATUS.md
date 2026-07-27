@@ -3,45 +3,52 @@
 ## Current Branch
 
 - `main`
-- HEAD: `8674fe8347cdf6f28b5808a36df3c629e96b956f`
-- Worktree was clean at Phase 0 start.
+- HEAD: `fffcae46689192b00418ae1b2898eba7066d199d`
+- Integrated source: `foundation/identity-access`
+- Worktree is clean before the handoff update.
 
 ## Current Phase
 
-- Phase 0 audit and product contracts.
-- Verdict: **APROBAR CON OBSERVACIONES**.
-- Phase 1 has not started and must wait for explicit approval.
+- Four-persona restructuring is in incremental delivery.
+- Initial identity, opportunities, page experience and route-tree work is complete.
+- Student, Company and School feature extraction remains in progress because the dedicated routes still reuse legacy components.
+- Runtime RLS, E2E, accessibility, mobile and deployment hardening remain the release gate.
 
-## Phase 0 delivered
+## Delivered
 
-- Four-persona product definition and journeys.
-- Canonical role model: student, company, school, external; graduate as student stage.
-- Current and target route maps.
-- Authorization and public privacy matrices.
-- ADRs for graduate state, external account and common opportunities.
-- Incremental migration plan, persona test matrix and RLS test matrix.
-- Live Supabase inventory and documented security observations.
+- Canonical `account_type`, `account_status` and `student_stage` model.
+- School, membership, student, company and external profile tables with initial RLS.
+- Safe anonymous student projection.
+- Common opportunities with reversible legacy mappings.
+- Freelance proposals and institutional internship mapping.
+- Server guards and dedicated persona route entry points.
+- Shared canonical-account navigation for desktop and mobile.
+- External profile and opportunity publishing flows.
+- Runtime security verifier and manual GitHub Actions workflow.
+- CI, structural verifiers, lint, typecheck and production build baseline.
 
-## Existing baseline retained
+## Remote State
 
-- Explainable matching, readiness, evidence audit, contact mediation, interview transitions and application timeline.
-- Local verification scripts, lint, typecheck and build CI baseline.
+- Supabase migrations are applied through `20260727002337_map_internship_requests`.
+- Connected staging currently has 6 profiles: 2 schools, 2 companies and 2 students.
+- Connected staging currently has 4 opportunities, 1 mapped internship request and 0 proposals.
+- External fixture seeding and the runtime security workflow are still pending.
 
-## Validation
+## Release Risks
 
-- All nine repository verification scripts passed locally during Phase 0.
-- `git diff --check` passed before documentation changes.
-- Live Supabase queries confirmed 36 public tables, current policies, functions and triggers.
-- Runtime persona/RLS suite is not yet implemented.
-
-## Open observations
-
-- `profiles.role` still contains `Egresado` and is used as authorization data.
-- `Externo`, institution memberships, safe public projection and common opportunities are absent.
-- Broad public profile reads and public-role policies require hardening.
-- Supabase advisors report callable `SECURITY DEFINER` helpers and leaked-password protection disabled.
-- Branch policy requested for the restructuring conflicts with the current direct-`main` workflow.
+- Authenticated `profiles` compatibility reads remain broad during legacy extraction.
+- Legacy role-aware pages remain large and still contain direct legacy reads/writes.
+- Runtime RLS matrix has not run with isolated staging secrets.
+- Supabase advisors still report intentional callable `SECURITY DEFINER` helpers and leaked-password protection disabled.
+- The local Supabase CLI is unavailable; remote migrations use Supabase MCP.
 
 ## Next Action
 
-Obtain explicit approval of the Phase 0 contract and choose the sequential branch policy. Then begin Phase 1 with identity/membership schema design and negative RLS tests only.
+1. Configure disposable staging fixtures and run `Runtime Security Smoke Tests`.
+2. Extract Student features from `profile/page.tsx`, `muro/page.tsx` and `empleos/page.tsx`.
+3. Move new Company opportunity writes to canonical `opportunities`.
+4. Narrow authenticated profile reads and resolve remaining advisor findings.
+
+## Historical Baseline
+
+Phase 0 verdict: **APROBAR CON OBSERVACIONES**. The original audit and workflow records remain in the session history for traceability.

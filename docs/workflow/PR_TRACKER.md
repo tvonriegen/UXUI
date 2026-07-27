@@ -8,15 +8,16 @@
 | Assisted application readiness | `9f766e9` | `main` | Integrated by `34e21205` | 15 verifier cases, lint, typecheck, build passed |
 | Interview and seed hardening | `695622f` | `main` | Integrated by `34e21205` | 25 RLS invariants, lint, typecheck, build passed |
 | TalentHub rebrand and notification migration | `6c7ae79` | `main` | Integrated by `f3eb54d` | Full validation matrix passed after merge |
-| Phase 0 four-persona contract | `main` | pending explicit approval | Audit package at `8674fe8` | Local structural checks passed; runtime persona/RLS suite pending |
+| Phase 0 four-persona contract | `main` | `main` | Integrated | Audit package at `cea0da6`; contract retained |
+| Identity access and persona foundation | `foundation/identity-access` | `main` | Integrated by `fffcae4` | 19 commits merged; lint, typecheck, build and structural verifiers passed; runtime security workflow pending fixtures |
 
 ## Integration Policy
 
-- `main` is the only active branch after normalization.
+- `main` is the active integration branch. `foundation/identity-access` remains for historical traceability.
 - Integration uses direct merge commits and does not use pull requests.
 - Historical branch names remain in commit ancestry for traceability, but no longer represent active work.
-- Runtime Supabase staging verification remains external and is not claimed as complete by local checks.
+- Runtime Supabase staging verification is defined by `Runtime Security Smoke Tests` and is not claimed complete until its isolated fixtures run.
 
-## Restructuring policy decision pending
+## Restructuring policy
 
-The Phase 0 request proposes `epic/four-personas` and sequential branches (`foundation/identity-access`, persona features, opportunities and hardening). The current repository policy is direct work on `main`. No new branch was created during Phase 0; the owner must choose one policy before Phase 1.
+The restructuring was developed on `foundation/identity-access` with atomic commits and integrated into `main` using a direct merge commit. Future feature slices should use short-lived branches or explicit atomic commits on the approved integration branch.
