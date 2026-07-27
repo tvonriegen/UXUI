@@ -2,7 +2,7 @@
 
 - Date: 2026-07-26
 - Branch: `main`
-- HEAD: `fffcae46689192b00418ae1b2898eba7066d199d`
+- HEAD: `ef00aad35a90493f27b1949f6b288c64f335f220`
 - Integrated source: `foundation/identity-access`
 
 ## Mission
