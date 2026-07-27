@@ -12,6 +12,7 @@
 - 2026-07-26: Phase 1 canonical identity migrations are applied to Supabase staging; focused authenticated RLS checks pass, while the complete negative matrix remains pending.
 - 2026-07-26: Common opportunities migration backfilled 3 company opportunities and 1 application link; external runtime publishing fixtures are still pending.
 - 2026-07-27: Freelance proposals and institutional internship mappings are deployed structurally; runtime proposal tests require running the seed fixture with `cliente@demo.cr`.
+- 2026-07-27: `verify:runtime-security` and the manual `Runtime Security Smoke Tests` workflow are available; staging fixture secrets have not yet been configured, so the full matrix remains unexecuted.
 
 ## External Verification Pending
 
