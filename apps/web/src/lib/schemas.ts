@@ -66,6 +66,21 @@ export const registerSchema = z.object({
   path: ["confirmPassword"],
 });
 
+export const opportunitySchema = z.object({
+  opportunityType: z.enum(["internship", "job", "company_project", "freelance"]),
+  title: z.string().trim().min(4, "El título es demasiado corto.").max(160),
+  description: z.string().trim().min(20, "Describe el encargo con más detalle.").max(5000),
+  specialty: z.string().trim().max(100).default(""),
+  location: z.string().trim().max(160).default("Remoto"),
+  compensationMin: z.coerce.number().int().min(0).optional(),
+  compensationMax: z.coerce.number().int().min(0).optional(),
+  maxCandidates: z.coerce.number().int().min(1).max(10000).optional(),
+  closesAt: z.string().trim().optional(),
+}).refine(
+  (value) => value.compensationMin == null || value.compensationMax == null || value.compensationMin <= value.compensationMax,
+  { message: "La compensación mínima no puede superar la máxima.", path: ["compensationMax"] },
+);
+
 // School creates a student account
 export const createStudentSchema = z.object({
   firstName:    z.string().min(2, "Nombre muy corto").max(50),

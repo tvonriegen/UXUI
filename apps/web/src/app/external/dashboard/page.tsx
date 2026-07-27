@@ -8,10 +8,10 @@ export default async function ExternalDashboardPage() {
       <div className="mx-auto max-w-4xl">
         <p className="text-sm font-bold uppercase tracking-[0.2em] text-sky-300">Espacio externo</p>
         <h1 className="mt-4 text-4xl font-black tracking-tight">Hola, {account.name}</h1>
-        <p className="mt-4 max-w-xl text-slate-300">Desde aqui podras publicar encargos freelance y revisar propuestas. Esta superficie se completara en la Fase 6.</p>
+        <p className="mt-4 max-w-xl text-slate-300">Publica encargos freelance, conserva el control de tus oportunidades y recibe propuestas de talento técnico.</p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link href="/external/profile" className="rounded-full bg-sky-400 px-5 py-3 text-sm font-bold text-slate-950">Completar perfil</Link>
-          <Link href="/freelance" className="rounded-full border border-white/20 px-5 py-3 text-sm font-bold">Explorar encargos</Link>
+          <Link href="/external/jobs/new" className="rounded-full bg-sky-400 px-5 py-3 text-sm font-bold text-slate-950">Publicar encargo</Link>
+          <Link href="/external/jobs" className="rounded-full border border-white/20 px-5 py-3 text-sm font-bold">Mis encargos</Link>
         </div>
       </div>
     </main>

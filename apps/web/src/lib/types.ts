@@ -22,6 +22,29 @@ export type AccountType = "student" | "company" | "school" | "external";
 
 export type StudentStage = "enrolled" | "internship" | "graduated";
 
+export type OpportunityPublisherType = "company" | "external";
+export type OpportunityType = "internship" | "job" | "company_project" | "freelance";
+export type OpportunityStatus = "draft" | "open" | "closed" | "expired";
+
+export interface Opportunity {
+  id: string;
+  publisher_id: string;
+  publisher_type: OpportunityPublisherType;
+  opportunity_type: OpportunityType;
+  title: string;
+  description: string;
+  specialty: string;
+  location: string;
+  compensation_min: number | null;
+  compensation_max: number | null;
+  max_candidates: number | null;
+  views_count: number;
+  status: OpportunityStatus;
+  closes_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 /** Legacy display roles retained only while existing surfaces migrate. */
 export type Role = "Estudiante" | "Egresado" | "Empresa" | "Colegio" | "Externo";
 
