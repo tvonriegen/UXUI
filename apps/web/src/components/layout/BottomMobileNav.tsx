@@ -37,6 +37,19 @@ const ALL_LINKS = [
   { path: "/external/profile", label: "Perfil", icon: User, accountTypes: ["external"] as AccountType[], badge: false },
 ];
 
+const CANONICAL_ROUTES: Record<string, Partial<Record<AccountType, string>>> = {
+  "/muro": { student: "/student/feed" },
+  "/talent": { company: "/company/talent" },
+  "/empleos": { student: "/student/opportunities", company: "/company/jobs" },
+  "/messages": { student: "/student/messages", company: "/company/messages", school: "/school/messages" },
+  "/notifications": { student: "/student/notifications", company: "/company/notifications", school: "/school/notifications" },
+  "/profile": { student: "/student/profile", company: "/company/profile", school: "/school/profile" },
+};
+
+function canonicalRoute(path: string, accountType: AccountType) {
+  return CANONICAL_ROUTES[path]?.[accountType] ?? path;
+}
+
 export default function BottomMobileNav() {
   const pathname    = usePathname();
   const { unreadCount } = useRole();
@@ -50,13 +63,14 @@ export default function BottomMobileNav() {
     // The bottom padding includes the iOS safe-area inset on notched devices.
     <nav aria-label="Navegación principal" className="lg:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-1 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-2 bg-white/92 backdrop-blur-xl border-t border-slate-200/60 shadow-[0_-2px_12px_rgba(0,0,0,0.05)]">
       {LINKS.map((link) => {
-        const isActive = pathname === link.path;
+        const target = canonicalRoute(link.path, accountType);
+        const isActive = pathname === target;
         const IconComp = link.icon;
 
         return (
           <Link
             key={link.path}
-            href={link.path}
+            href={target}
             className={`
               flex flex-col items-center justify-center gap-0.5 px-3 py-1 rounded-xl
               transition-all duration-200

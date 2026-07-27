@@ -62,9 +62,9 @@ export default function TopNavBar() {
     e.preventDefault();
     if (searchQ.trim()) {
       const target = accountType === "student"
-        ? "/empleos"
+        ? "/student/opportunities"
         : accountType === "company"
-          ? "/talent"
+          ? "/company/talent"
           : accountType === "external" ? "/external/jobs" : "/administracion";
       router.push(`${target}?q=${encodeURIComponent(searchQ.trim())}`);
       setSearchQ("");
@@ -117,7 +117,7 @@ export default function TopNavBar() {
 
           {/* Publicar button (desktop only) */}
           <Link
-            href={accountType === "external" ? "/external/jobs/new" : accountType === "company" ? "/empleos?create=1" : "/muro?compose=1"}
+            href={accountType === "external" ? "/external/jobs/new" : accountType === "company" ? "/company/jobs?create=1" : accountType === "school" ? "/school/contact-requests" : "/student/feed?compose=1"}
             className="hidden lg:flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white text-[13px] font-semibold shadow-sm transition-all duration-150"
           >
             <Plus size={15} strokeWidth={2.5} />
