@@ -20,6 +20,7 @@
     "verify:function-grants": "node scripts/verify-function-grants.mjs",
     "verify:identity-access": "node scripts/verify-identity-access.mjs",
     "verify:opportunities": "node scripts/verify-opportunities.mjs",
+    "verify:runtime-opportunities": "node scripts/verify-runtime-opportunities.mjs",
     "verify:runtime-supabase": "node scripts/verify-runtime-supabase.mjs",
     "install:web": "npm --prefix apps/web install",
     "clean": "rm -rf apps/web/.next apps/web/out apps/web/coverage"
