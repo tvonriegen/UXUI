@@ -45,7 +45,7 @@ export async function registerAccount(input: {
     role: legacyRoleFor(accountType),
     account_type: accountType,
     account_status: "active",
-  }, { onConflict: "id" });
+  }, { onConflict: "id", ignoreDuplicates: true });
 
   if (profileError) {
     await admin.auth.admin.deleteUser(created.user.id);
