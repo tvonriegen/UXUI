@@ -6,16 +6,16 @@ Run the canonical identity, public privacy, opportunity, proposal and school-sco
 
 ## Fixtures
 
-Create isolated, email-confirmed staging accounts with these account types:
+Create isolated, email-confirmed accounts in the separate free staging project described in `docs/technical/STAGING_SETUP.md`:
 
-- `student`: active student account.
+- `student`: active minor student account linked to the staging school.
 - `company`: active company account.
 - `school`: active school owner account.
 - `external`: active, email-confirmed external account with one open freelance opportunity.
 - Optional second school and second student for cross-school isolation.
 - Optional pending contact request linked to the first company, school and student.
 
-The repository seed creates the demo fixture set when invoked through the deployed `/api/seed` endpoint with `SEED_SECRET`. Do not reuse these credentials in production.
+The repository seed creates the demo fixture set when invoked through the staging deployment `/api/seed` endpoint with `SEED_SECRET`. Do not reuse these credentials in production.
 
 ## Environment Variables
 
@@ -33,15 +33,17 @@ The repository seed creates the demo fixture set when invoked through the deploy
 - `RUNTIME_SECOND_SCHOOL_PASSWORD` (optional)
 - `RUNTIME_SECOND_STUDENT_EMAIL` (optional)
 - `RUNTIME_SECOND_STUDENT_PASSWORD` (optional)
-- `RUNTIME_PENDING_CONTACT_REQUEST_ID` (optional)
+- `RUNTIME_PENDING_CONTACT_REQUEST_ID` (required by `verify:runtime-supabase`, optional in the security matrix)
+- `RUNTIME_FEED_POST_ID` (required by the feed RPC smoke test)
 
 ## Local Execution
 
 ```bash
 npm run verify:runtime-security
+npm run verify:runtime-feed-rpcs
 ```
 
-The command must be run with the variables above in the shell environment. It performs only rejected writes and read checks; no successful test data mutations are intended.
+The command must be run with the variables above in the shell environment. The security matrix performs rejected writes and read checks. The feed RPC smoke test performs temporary writes and cleanup. Neither test may target production.
 
 ## GitHub Execution
 
@@ -59,3 +61,4 @@ Use the manually triggered `Runtime Security Smoke Tests` workflow. Store the va
 - Students and external publishers can read proposal scopes allowed by RLS.
 - Optional second-school fixtures test school membership isolation.
 - Optional pending contact request fixture tests minor pending visibility.
+- Feed RPC smoke test verifies trending tags, a reversible like toggle, comment insertion and cleanup.

@@ -1,9 +1,9 @@
 # TalentHub Project Handoff
 
-- Date: 2026-07-26
-- Branch: `main`
-- HEAD: `ef00aad35a90493f27b1949f6b288c64f335f220`
-- Integrated source: `foundation/identity-access`
+- Date: 2026-07-29
+- Branch: `fix/supabase-feed-runtime-reconciliation`
+- HEAD: `6c24a57`
+- Base: `main` / `origin/main`
 
 ## Mission
 
@@ -24,10 +24,10 @@ TalentHub is moving from a shared legacy role-aware application to four canonica
 
 ## Current Remote State
 
-- Supabase migrations applied through `20260727002337_map_internship_requests`.
-- 6 staging profiles: 2 schools, 2 companies and 2 students.
-- 4 opportunities, 1 mapped internship request and 0 proposals.
-- No external runtime fixture has been seeded in the connected staging project yet.
+- Supabase production migrations applied through `20260729222304_harden_feed_rpc_security`.
+- 6 production profiles: 2 schools, 2 companies and 2 students.
+- 4 production opportunities, 1 mapped internship request and 0 proposals.
+- The connected project is production; no separate staging project has been provisioned yet.
 
 ## Local Verification
 
@@ -39,16 +39,17 @@ npm run verify:identity-access
 npm run verify:opportunities
 ```
 
-All passed at handoff. `npm run verify:runtime-security` requires isolated staging credentials and is intentionally not run with local or production users.
+Static verification passes for the current change set. `lint`, `typecheck` and `build` must be rerun before merge. Runtime checks require the separate staging project described in `docs/technical/STAGING_SETUP.md` and must not use production users.
 
 ## Runtime Gate
 
-1. Set `SEED_SECRET` in the deployed app environment.
-2. Run the protected `/api/seed` endpoint against disposable staging.
-3. Confirm the external fixture owns an open freelance opportunity.
-4. Configure the `RUNTIME_*` GitHub secrets listed in `docs/qa/RUNTIME_SECURITY_RUNBOOK.md`.
-5. Trigger `.github/workflows/runtime-security.yml` manually.
-6. Record the result before enabling production rollout.
+1. Create the second free Supabase project and reviewed schema baseline.
+2. Set `SEED_SECRET` in the staging deployment environment.
+3. Run the protected `/api/seed` endpoint against disposable staging.
+4. Confirm the external fixture owns an open freelance opportunity.
+5. Configure the canonical `RUNTIME_*` GitHub secrets listed in `docs/qa/RUNTIME_SECURITY_RUNBOOK.md`.
+6. Trigger the runtime workflows manually.
+7. Record the result before enabling production rollout.
 
 ## Known Risks
 
@@ -56,7 +57,8 @@ All passed at handoff. `npm run verify:runtime-security` requires isolated stagi
 - `profile/page.tsx`, `muro/page.tsx`, `administracion/page.tsx` and `empleos/page.tsx` remain oversized legacy routes.
 - New dedicated persona routes currently re-export tested legacy components in several places.
 - Direct legacy `job_postings` reads/writes remain during dual-read migration.
-- Supabase Advisors report intentional callable `SECURITY DEFINER` helpers and leaked-password protection disabled.
+- Supabase production Advisors report leaked-password protection disabled; the RLS helpers are private and not public RPC endpoints.
+- Production feed RPCs are restored through three tracked forward migrations; authenticated write smoke testing remains pending without staging.
 - Local Supabase CLI is unavailable; use Supabase MCP for remote migration operations.
 
 ## Next Implementation Order

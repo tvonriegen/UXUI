@@ -6,6 +6,10 @@ const migration = readFileSync(
   resolve(root, "supabase/migrations/20260726000003_phase3_security_alignment.sql"),
   "utf8",
 );
+const privateHelpersMigration = readFileSync(
+  resolve(root, "supabase/migrations/20260728000002_move_rls_helpers_private.sql"),
+  "utf8",
+);
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -28,4 +32,16 @@ for (const fragment of requiredFragments) {
 }
 
 assert(!migration.includes("GRANT EXECUTE ON FUNCTION bulk_upsert_student_profiles(JSONB) TO anon"), "bulk importer must not be executable by anon");
-console.log(`verify:phase3-security passed: ${requiredFragments.length} security invariants.`);
+
+for (const fragment of [
+  "CREATE SCHEMA IF NOT EXISTS private",
+  "private.can_converse",
+  "private.is_active_school_member",
+  "private.is_school_admin",
+  "ALTER FUNCTION public.can_converse(UUID, UUID) SECURITY INVOKER",
+  "REVOKE ALL ON FUNCTION public.is_school_admin(UUID, UUID) FROM anon, authenticated, PUBLIC",
+]) {
+  assert(privateHelpersMigration.includes(fragment), `private RLS helper invariant missing: ${fragment}`);
+}
+
+console.log(`verify:phase3-security passed: ${requiredFragments.length + 6} security invariants.`);

@@ -26,6 +26,6 @@ The repository includes an opt-in authenticated staging smoke test:
 npm run verify:runtime-supabase
 ```
 
-It requires the `RUNTIME_*` variables documented in `.env.example` and uses four dedicated fixtures: Empresa, Colegio, Estudiante menor and Egresado. The test is read-only against application data and verifies profile roles, contact-request scoping and pending-request invisibility for the minor student. `RUNTIME_APP_URL` additionally checks `/api/health`.
+It requires the `RUNTIME_*` variables documented in `.env.example` and uses four dedicated fixtures: Company, School, a minor Student and External. The student stage is stored in `student_profiles`; `graduated` is not a separate account type. The test verifies canonical account types, contact-request scoping and pending-request invisibility for the minor student. `RUNTIME_APP_URL` additionally checks `/api/health`.
 
-GitHub Actions exposes the same check through the manual `Runtime Supabase Smoke` workflow using secrets in the `staging` environment. Never use production users or production data as fixtures.
+GitHub Actions exposes the same check through the manual `Runtime Supabase Smoke` workflow using secrets in the `staging` environment. Staging provisioning is documented in `docs/technical/STAGING_SETUP.md`. Never use production users or production data as fixtures.

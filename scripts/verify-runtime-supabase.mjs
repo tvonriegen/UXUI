@@ -21,10 +21,10 @@ const anonKey = required("RUNTIME_SUPABASE_ANON_KEY");
 const pendingContactRequestId = required("RUNTIME_PENDING_CONTACT_REQUEST_ID");
 
 const accountConfig = [
-  { key: "company", role: "Empresa" },
-  { key: "school", role: "Colegio" },
-  { key: "minor", role: "Estudiante" },
-  { key: "graduate", role: "Egresado" },
+  { key: "company", accountType: "company" },
+  { key: "school", accountType: "school" },
+  { key: "student", accountType: "student" },
+  { key: "external", accountType: "external" },
 ];
 
 async function signIn(account) {
@@ -41,15 +41,28 @@ async function signIn(account) {
 
   const { data: profile, error: profileError } = await client
     .from("profiles")
-    .select("id, role, age, school_id")
+    .select("id, account_type, account_status, age, school_id")
     .eq("id", data.user.id)
     .single();
   if (profileError || !profile) {
     throw new Error(`Could not load runtime profile: ${account.key}`);
   }
 
-  assert(profile.role === account.role, `${account.key} fixture has unexpected role`);
-  return { client, profile };
+  assert(profile.account_type === account.accountType, `${account.key} fixture has unexpected account type`);
+  assert(profile.account_status === "active", `${account.key} fixture is not active`);
+
+  let studentProfile = null;
+  if (account.key === "student") {
+    const { data: studentData, error } = await client
+      .from("student_profiles")
+      .select("school_id, student_stage")
+      .eq("profile_id", data.user.id)
+      .single();
+    if (error || !studentData) throw new Error("Could not load canonical student fixture");
+    studentProfile = studentData;
+  }
+
+  return { client, profile, studentProfile };
 }
 
 async function checkHealth() {
@@ -69,10 +82,11 @@ const accounts = Object.fromEntries(
 
 const { client: companyClient, profile: company } = accounts.company;
 const { client: schoolClient, profile: school } = accounts.school;
-const { client: minorClient, profile: minor } = accounts.minor;
+const { client: studentClient, profile: student, studentProfile } = accounts.student;
 
-assert(minor.age === null || minor.age < 18, "minor fixture must represent a minor student");
-assert(minor.school_id === school.id, "minor fixture must belong to the school fixture");
+assert(student.age === null || student.age < 18, "student fixture must represent a minor student");
+assert(studentProfile?.school_id === school.id, "student fixture must belong to the school fixture");
+assert(["enrolled", "internship", "graduated"].includes(studentProfile?.student_stage), "student fixture has an invalid student stage");
 
 const { data: companyRequest, error: companyRequestError } = await companyClient
   .from("contact_requests")
@@ -90,7 +104,7 @@ const { data: schoolRequest, error: schoolRequestError } = await schoolClient
   .single();
 assert(!schoolRequestError && schoolRequest, "school cannot read the pending contact request");
 assert(schoolRequest.school_id === school.id, "contact request is outside the school fixture scope");
-assert(schoolRequest.student_id === minor.id, "contact request is outside the minor fixture scope");
+assert(schoolRequest.student_id === student.id, "contact request is outside the student fixture scope");
 
 const { error: evidenceSchemaError } = await schoolClient
   .from("profile_evidence")
@@ -98,15 +112,15 @@ const { error: evidenceSchemaError } = await schoolClient
   .limit(1);
 assert(!evidenceSchemaError, "profile evidence schema is not available in staging");
 
-const { data: minorPendingRequests, error: minorRequestError } = await minorClient
+const { data: studentPendingRequests, error: studentRequestError } = await studentClient
   .from("contact_requests")
   .select("id")
   .eq("id", pendingContactRequestId)
   .eq("status", "pending");
-assert(!minorRequestError, "minor contact request query failed unexpectedly");
-assert(minorPendingRequests.length === 0, "minor student can see a pending contact request");
+assert(!studentRequestError, "student contact request query failed unexpectedly");
+assert(studentPendingRequests.length === 0, "student can see a pending contact request");
 
 const healthChecked = await checkHealth();
 console.log(
-  `verify:runtime-supabase passed: ${accountConfig.length} roles, contact-request RLS scope, minor pending visibility${healthChecked ? ", and health endpoint" : ""}.`,
+  `verify:runtime-supabase passed: ${accountConfig.length} account types, contact-request RLS scope, minor pending visibility${healthChecked ? ", and health endpoint" : ""}.`,
 );

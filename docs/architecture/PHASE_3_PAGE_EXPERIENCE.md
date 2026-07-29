@@ -14,6 +14,7 @@
 - Added editable External profile data.
 - Set the demo Alan profile as explicitly public in the seed fixture; production defaults remain private.
 - Added dedicated route entry points for the full Student, Company and School navigation trees, reusing tested legacy surfaces during extraction.
+- Aligned the External dashboard, opportunities, proposals and profile surfaces with the shared light shell and responsive navigation.
 
 ## Verification
 
@@ -24,7 +25,7 @@
 
 ## Next UX slice
 
-- Extract feature components behind the dedicated Student, Company and School routes instead of re-exporting legacy pages.
+- Continue splitting feature-owned components by persona and move remaining resource queries off shared role-aware code.
 - Add real profile editing for Student, Company and School.
 - Add shared empty/error/loading primitives instead of route-local markup.
 - Run keyboard, mobile viewport and screen-reader checks against all four persona journeys.

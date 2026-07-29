@@ -87,19 +87,19 @@ const LINKS = [
     path: "/messages",
     label: "Mensajes",
     icon: MessageCircle,
-    visibleFor: ["student", "company", "school"] as AccountType[],
+    visibleFor: ["student", "company", "school", "external"] as AccountType[],
   },
   {
     path: "/notifications",
     label: "Notificaciones",
     icon: Bell,
-    visibleFor: ["student", "company", "school"] as AccountType[],
+    visibleFor: ["student", "company", "school", "external"] as AccountType[],
   },
   {
     path: "/profile",
     label: "Mi Perfil",
     icon: User,
-    visibleFor: ["student", "company", "school"] as AccountType[],
+    visibleFor: ["student", "company", "school", "external"] as AccountType[],
   },
 ];
 
@@ -114,10 +114,10 @@ const CANONICAL_ROUTES: Record<string, Partial<Record<AccountType, string>>> = {
   "/muro": { student: "/student/feed" },
   "/talent": { company: "/company/talent" },
   "/empleos": { student: "/student/opportunities", company: "/company/jobs" },
-  "/messages": { student: "/student/messages", company: "/company/messages", school: "/school/messages" },
-  "/notifications": { student: "/student/notifications", company: "/company/notifications", school: "/school/notifications" },
-  "/profile": { student: "/student/profile", company: "/company/profile", school: "/school/profile" },
-  "/settings": { student: "/student/settings", company: "/company/settings", school: "/school/settings" },
+  "/messages": { student: "/student/messages", company: "/company/messages", school: "/school/messages", external: "/external/messages" },
+  "/notifications": { student: "/student/notifications", company: "/company/notifications", school: "/school/notifications", external: "/external/notifications" },
+  "/profile": { student: "/student/profile", company: "/company/profile", school: "/school/profile", external: "/external/profile" },
+  "/settings": { student: "/student/settings", company: "/company/settings", school: "/school/settings", external: "/external/settings" },
 };
 
 function canonicalRoute(path: string, accountType: AccountType) {

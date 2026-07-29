@@ -9,14 +9,18 @@
 - 2026-07-26: `git diff --check` passed before integration.
 - 2026-07-26: Phase 0 and Phase 1 branch validation passed before local merges; CI workflow added but not yet run remotely.
 - 2026-07-26: Phase 2 evidence and Phase 3 readiness/security validations passed locally; Supabase schema and policy migrations were applied and verified remotely.
-- 2026-07-26: Phase 1 canonical identity migrations are applied to Supabase staging; focused authenticated RLS checks pass, while the complete negative matrix remains pending.
+- 2026-07-26: Phase 1 canonical identity migrations are applied to Supabase production; focused authenticated RLS checks pass, while the complete negative matrix remains pending.
 - 2026-07-26: Common opportunities migration backfilled 3 company opportunities and 1 application link; external runtime publishing fixtures are still pending.
 - 2026-07-27: Freelance proposals and institutional internship mappings are deployed structurally; runtime proposal tests require running the seed fixture with `cliente@demo.cr`.
 - 2026-07-27: `verify:runtime-security` and the manual `Runtime Security Smoke Tests` workflow are available; staging fixture secrets have not yet been configured, so the full matrix remains unexecuted.
+- 2026-07-28: Supabase RLS helpers were moved to the non-exposed `private` schema; security advisors now report only the Auth leaked-password setting.
+- 2026-07-29: Production has no separate staging project; the free staging setup is documented in `docs/technical/STAGING_SETUP.md` and has not been provisioned yet.
+- 2026-07-29: Production feed RPCs were restored through three tracked forward migrations; authenticated write smoke testing remains pending because no staging project exists.
+- 2026-07-29: Feed RPC security was hardened in production; only the Auth leaked-password protection advisor warning remains.
 
 ## External Verification Pending
 
-- Supabase schema alignment is complete, but authenticated staging fixtures have not yet exercised RLS, evidence review, timeline triggers and interview transitions end to end.
+- Supabase schema alignment is complete for the reviewed production sections, but no separate staging project currently exercises RLS, evidence review, timeline triggers and interview transitions end to end.
 - Deployment configuration must define `SEED_SECRET`; `/api/seed` now returns `503` outside local development when the secret is missing.
 - The current GitHub OAuth token lacks the `workflow` scope, so `git push origin main` is rejected while publishing `.github/workflows/ci.yml`.
 
@@ -26,9 +30,9 @@
 - The dependency tree previously reported 21 vulnerabilities. They were not auto-fixed to avoid unplanned upgrades.
 - `apps/web/src/app/profile/page.tsx` remains a large role-aware route and needs a separate decomposition effort.
 - There is no disposable Supabase integration test suite yet; current scripts are hermetic structural/domain checks.
-- Runtime Supabase smoke testing is now available as an opt-in manual workflow, but staging fixtures and GitHub environment secrets still need to be configured.
+- Runtime Supabase smoke testing is now available as an opt-in manual workflow, but the free staging project, fixtures and GitHub environment secrets still need to be configured.
 - The local Supabase CLI is unavailable (`supabase: command not found`); remote migration execution currently uses Supabase MCP.
-- Supabase security advisors still report intentionally exposed authenticated `SECURITY DEFINER` helpers (`can_converse` and the school reviewer) plus leaked-password protection disabled; the helper grants are restricted and the Auth setting requires dashboard configuration.
+- Supabase Auth leaked-password protection remains disabled and requires a dashboard setting change: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
 - The student profile route remains large despite the persistence and actionable-anchor improvements; keep its decomposition separate from product UX changes.
 
 ## Phase 0 Four-Persona Findings (2026-07-26)

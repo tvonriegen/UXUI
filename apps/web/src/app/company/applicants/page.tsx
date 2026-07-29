@@ -1,1 +1,1 @@
-export { default } from "@/app/empleos/page";
+export { default } from "@/components/opportunities/OpportunitiesPage";

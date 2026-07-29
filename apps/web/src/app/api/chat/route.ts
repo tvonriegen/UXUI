@@ -20,8 +20,10 @@ export const dynamic = "force-dynamic";
 // set to anything other than "true") to keep the endpoint disabled.
 const CHAT_ENABLED = process.env.ENABLE_AI_CHAT === "true";
 
-// ── Anthropic client (singleton across warm invocations) ──────────
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+function createAnthropicClient() {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  return apiKey ? new Anthropic({ apiKey }) : null;
+}
 
 // ── System prompts (cached) ───────────────────────────────────────
 
@@ -295,7 +297,8 @@ async function runSchoolTool(
 // ── Route handler ─────────────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
-  if (!CHAT_ENABLED) {
+  const anthropic = CHAT_ENABLED ? createAnthropicClient() : null;
+  if (!anthropic) {
     return NextResponse.json(
       { error: "El asistente IA no está habilitado en este entorno." },
       { status: 503 }

@@ -77,6 +77,8 @@ export default function TopNavBar() {
     .slice(0, 2)
     .join("")
     .toUpperCase() ?? "?";
+  const profilePath = accountType === "external" ? "/external/profile" : "/profile";
+  const settingsPath = accountType === "external" ? "/external/settings" : "/settings";
 
   return (
     <nav className="fixed top-0 w-full z-50 bg-white/85 backdrop-blur-xl border-b border-slate-200/60 shadow-sm">
@@ -219,7 +221,7 @@ export default function TopNavBar() {
                 </div>
 
                 <Link
-                  href="/profile"
+                  href={profilePath}
                   onClick={() => setUserDdOpen(false)}
                   className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
                 >
@@ -228,7 +230,7 @@ export default function TopNavBar() {
                 </Link>
 
                 <Link
-                  href="/settings"
+                  href={settingsPath}
                   onClick={() => setUserDdOpen(false)}
                   className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
                 >

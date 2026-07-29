@@ -26,24 +26,24 @@ const ALL_LINKS = [
   { path: "/company/dashboard", label: "Inicio", icon: LayoutDashboard, accountTypes: ["company"] as AccountType[], badge: false },
   { path: "/school/dashboard", label: "Inicio", icon: LayoutDashboard, accountTypes: ["school"] as AccountType[], badge: false },
   { path: "/external/dashboard", label: "Inicio", icon: LayoutDashboard, accountTypes: ["external"] as AccountType[], badge: false },
+  { path: "/external/jobs", label: "Encargos", icon: Briefcase, accountTypes: ["external"] as AccountType[], badge: false },
   { path: "/muro", label: "Muro", icon: Newspaper, accountTypes: ["student", "company", "school"] as AccountType[], badge: false },
   { path: "/administracion", label: "Admin", icon: LayoutGrid, accountTypes: ["school"] as AccountType[], badge: false },
   { path: "/talent", label: "Talento", icon: Users, accountTypes: ["company"] as AccountType[], badge: false },
   { path: "/empleos", label: "Empleos", icon: Briefcase, accountTypes: ["student", "company"] as AccountType[], badge: false },
   { path: "/external/proposals", label: "Propuestas", icon: Users, accountTypes: ["external"] as AccountType[], badge: false },
-  { path: "/messages", label: "Chat", icon: MessageCircle, accountTypes: ["student", "company", "school"] as AccountType[], badge: true },
-  { path: "/notifications", label: "Avisos", icon: Bell, accountTypes: ["student", "company", "school"] as AccountType[], badge: true },
-  { path: "/profile", label: "Perfil", icon: User, accountTypes: ["student", "company", "school"] as AccountType[], badge: false },
-  { path: "/external/profile", label: "Perfil", icon: User, accountTypes: ["external"] as AccountType[], badge: false },
+  { path: "/messages", label: "Chat", icon: MessageCircle, accountTypes: ["student", "company", "school", "external"] as AccountType[], badge: true },
+  { path: "/notifications", label: "Avisos", icon: Bell, accountTypes: ["student", "company", "school", "external"] as AccountType[], badge: true },
+  { path: "/profile", label: "Perfil", icon: User, accountTypes: ["student", "company", "school", "external"] as AccountType[], badge: false },
 ];
 
 const CANONICAL_ROUTES: Record<string, Partial<Record<AccountType, string>>> = {
   "/muro": { student: "/student/feed" },
   "/talent": { company: "/company/talent" },
   "/empleos": { student: "/student/opportunities", company: "/company/jobs" },
-  "/messages": { student: "/student/messages", company: "/company/messages", school: "/school/messages" },
-  "/notifications": { student: "/student/notifications", company: "/company/notifications", school: "/school/notifications" },
-  "/profile": { student: "/student/profile", company: "/company/profile", school: "/school/profile" },
+  "/messages": { student: "/student/messages", company: "/company/messages", school: "/school/messages", external: "/external/messages" },
+  "/notifications": { student: "/student/notifications", company: "/company/notifications", school: "/school/notifications", external: "/external/notifications" },
+  "/profile": { student: "/student/profile", company: "/company/profile", school: "/school/profile", external: "/external/profile" },
 };
 
 function canonicalRoute(path: string, accountType: AccountType) {

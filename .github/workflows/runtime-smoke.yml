@@ -19,7 +19,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           cache-dependency-path: apps/web/package-lock.json
 
@@ -37,7 +37,7 @@ jobs:
           RUNTIME_COMPANY_PASSWORD: ${{ secrets.RUNTIME_COMPANY_PASSWORD }}
           RUNTIME_SCHOOL_EMAIL: ${{ secrets.RUNTIME_SCHOOL_EMAIL }}
           RUNTIME_SCHOOL_PASSWORD: ${{ secrets.RUNTIME_SCHOOL_PASSWORD }}
-          RUNTIME_MINOR_EMAIL: ${{ secrets.RUNTIME_MINOR_EMAIL }}
-          RUNTIME_MINOR_PASSWORD: ${{ secrets.RUNTIME_MINOR_PASSWORD }}
-          RUNTIME_GRADUATE_EMAIL: ${{ secrets.RUNTIME_GRADUATE_EMAIL }}
-          RUNTIME_GRADUATE_PASSWORD: ${{ secrets.RUNTIME_GRADUATE_PASSWORD }}
+          RUNTIME_STUDENT_EMAIL: ${{ secrets.RUNTIME_STUDENT_EMAIL }}
+          RUNTIME_STUDENT_PASSWORD: ${{ secrets.RUNTIME_STUDENT_PASSWORD }}
+          RUNTIME_EXTERNAL_EMAIL: ${{ secrets.RUNTIME_EXTERNAL_EMAIL }}
+          RUNTIME_EXTERNAL_PASSWORD: ${{ secrets.RUNTIME_EXTERNAL_PASSWORD }}

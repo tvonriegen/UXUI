@@ -1,1 +1,1 @@
-export { default } from "@/app/messages/page";
+export { default } from "@/components/messaging/MessagesPage";

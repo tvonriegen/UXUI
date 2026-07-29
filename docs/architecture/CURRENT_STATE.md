@@ -27,5 +27,6 @@ The live Supabase database retains the wide `profiles` table and legacy `job_pos
 - `internship_requests` is still separate from common opportunities.
 - `profile/page.tsx` is 2,951 lines; other high-risk routes are also oversized.
 - Focused runtime RLS tests pass; the complete cross-persona negative matrix remains pending.
-- Supabase advisors report callable `SECURITY DEFINER` helpers and disabled leaked-password protection.
+- Supabase RLS helpers now live in a non-exposed `private` schema; only leaked-password protection remains as an Auth dashboard warning.
+- The connected Supabase project is production; no separate staging project currently exists. Feed RPC restoration is applied through three tracked forward migrations, while authenticated write smoke testing remains pending.
 - AI chat is optional and must remain disabled unless flags and keys are intentionally configured.

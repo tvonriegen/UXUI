@@ -1,1 +1,1 @@
-export { default } from "@/app/talent/page";
+export { default } from "@/components/talent/TalentPage";

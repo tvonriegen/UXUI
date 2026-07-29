@@ -1,5 +1,5 @@
-const base = process.env.SUPABASE_URL;
-const key = process.env.SUPABASE_PUBLISHABLE_KEY;
+const base = process.env.RUNTIME_SUPABASE_URL;
+const key = process.env.RUNTIME_SUPABASE_ANON_KEY;
 const studentEmail = process.env.RUNTIME_STUDENT_EMAIL;
 const studentPassword = process.env.RUNTIME_STUDENT_PASSWORD;
 const externalEmail = process.env.RUNTIME_EXTERNAL_EMAIL;
@@ -7,7 +7,7 @@ const externalPassword = process.env.RUNTIME_EXTERNAL_PASSWORD;
 const companyEmail = process.env.RUNTIME_COMPANY_EMAIL;
 const companyPassword = process.env.RUNTIME_COMPANY_PASSWORD;
 
-const required = { SUPABASE_URL: base, SUPABASE_PUBLISHABLE_KEY: key, RUNTIME_STUDENT_EMAIL: studentEmail, RUNTIME_STUDENT_PASSWORD: studentPassword, RUNTIME_EXTERNAL_EMAIL: externalEmail, RUNTIME_EXTERNAL_PASSWORD: externalPassword, RUNTIME_COMPANY_EMAIL: companyEmail, RUNTIME_COMPANY_PASSWORD: companyPassword };
+const required = { RUNTIME_SUPABASE_URL: base, RUNTIME_SUPABASE_ANON_KEY: key, RUNTIME_STUDENT_EMAIL: studentEmail, RUNTIME_STUDENT_PASSWORD: studentPassword, RUNTIME_EXTERNAL_EMAIL: externalEmail, RUNTIME_EXTERNAL_PASSWORD: externalPassword, RUNTIME_COMPANY_EMAIL: companyEmail, RUNTIME_COMPANY_PASSWORD: companyPassword };
 const missing = Object.entries(required).filter(([, value]) => !value).map(([name]) => name);
 if (missing.length) {
   console.error(`verify:runtime-opportunities skipped: missing ${missing.join(", ")}`);

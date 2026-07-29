@@ -8,6 +8,13 @@
 4. Verify the site is responding at `/api/health`
 5. Alert the team in the project Slack/chat channel
 
+## First Vercel Deploy
+
+1. Import the repository with the project root as the Vercel Root Directory, or keep the repository root and use the committed `vercel.json`.
+2. Configure `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_APP_URL`, `SUPABASE_SERVICE_ROLE_KEY` and `SEED_SECRET` in the Production environment. Keep `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY` and `SENTRY_AUTH_TOKEN` server-only; never prefix them with `NEXT_PUBLIC_`.
+3. Leave `ENABLE_AI_CHAT` and `NEXT_PUBLIC_ENABLE_AI_CHAT` set to `false` until Anthropic credentials and the feature are intentionally enabled.
+4. Deploy a preview, check `/api/health`, then promote only after the staging runtime matrix passes.
+
 ## Rollback a Supabase Migration
 
 1. Open Supabase Dashboard → SQL Editor
@@ -22,23 +29,31 @@
 All schema changes must go through migration files in `supabase/migrations/`. Never edit the schema directly in the Supabase dashboard for production changes.
 
 ```bash
-# Apply a migration (run in Supabase SQL Editor, or via CLI):
+# Apply a reviewed forward migration in the target environment (never replay
+# the historical directory against production):
 supabase db push
 
 # Create a new migration file:
 # Name format: YYYYMMDDHHMMSS_description.sql
 ```
 
+## Free Staging Project
+
+The connected Supabase project is production. Create a second free project for staging instead of using a production branch or production fixtures. Follow `docs/technical/STAGING_SETUP.md` for the project, baseline, fixture and GitHub environment sequence.
+
+Supabase Branching requires Pro and is not the free staging path. The Free plan provides up to two active projects per organization, subject to its usage limits and inactivity pause.
+
 ## Authenticated Staging Smoke Test
 
-1. Apply the pending migrations to Supabase staging in chronological order.
-2. Create or select dedicated staging fixtures for Empresa, Colegio, Estudiante menor and Egresado.
+1. Apply the reviewed schema baseline to Supabase staging, then apply only forward migrations not already represented by that baseline.
+2. Create or select dedicated staging fixtures for Company, School, a minor Student and External.
 3. Create one pending `contact_requests` row and record its UUID as `RUNTIME_PENDING_CONTACT_REQUEST_ID`.
-4. Add the documented `RUNTIME_*` values as GitHub Actions secrets in the `staging` environment.
-5. Run the manual GitHub Actions workflow `Runtime Supabase Smoke`.
-6. Confirm the company and school can read the request while the minor student cannot see the pending row.
+4. Select one disposable feed post and record its UUID as `RUNTIME_FEED_POST_ID`.
+5. Add the documented `RUNTIME_*` values as GitHub Actions secrets in the `staging` environment.
+6. Run the manual GitHub Actions workflow `Runtime Supabase Smoke`.
+7. Confirm the company and school can read the request while the minor student cannot see the pending row, and confirm the feed RPC smoke test cleans up its temporary comment and restores the like state.
 
-The smoke test is intentionally read-only after fixture creation. Do not point it at production accounts or production data.
+The security smoke test uses rejected writes and reads. The feed RPC smoke test performs temporary writes and cleanup. Do not point either workflow at production accounts or production data.
 
 ## Uptime Monitoring (UptimeRobot)
 

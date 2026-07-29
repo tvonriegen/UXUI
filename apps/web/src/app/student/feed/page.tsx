@@ -1,1 +1,1 @@
-export { default } from "@/app/muro/page";
+export { default } from "@/components/feed/FeedPage";

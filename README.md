@@ -21,6 +21,8 @@ scripts       Repository maintenance scripts
 
 ## Quick Start
 
+Requires Node.js 22+ and npm 10+.
+
 ```bash
 npm run install:web
 cp .env.example apps/web/.env.local
@@ -42,9 +44,10 @@ The web app runs at `http://localhost:3000` by default.
 - Requirements: `docs/requirements/`
 - Architecture: `docs/architecture/`
 - Technical debt and known issues: `docs/technical/`
+- Free Supabase staging setup: `docs/technical/STAGING_SETUP.md`
 - Git workflow: `docs/git/`
 - QA: `docs/qa/`
 
 ## Current Status
 
-`main` contains the normalized TalentHub workspace, standardized product surfaces, explainable matching, assisted application readiness and privacy hardening. Some legacy ClassLink naming can remain in historical migrations until it is safe to remove without losing traceability. Supabase staging smoke tests remain required before production deployment.
+`main` contains the normalized TalentHub workspace, standardized product surfaces, explainable matching, assisted application readiness and privacy hardening. Some legacy ClassLink naming can remain in historical migrations until it is safe to remove without losing traceability. A separate free Supabase staging project and authenticated smoke tests remain required before production deployment.

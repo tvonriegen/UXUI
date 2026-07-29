@@ -11,6 +11,7 @@
 - [ ] `npm run lint`
 - [ ] `npm run typecheck`
 - [ ] `npm run build`
+- [ ] `npm run verify:release`
 - [ ] Desktop smoke test for main role dashboards.
 - [ ] Mobile smoke test for navigation and main flows.
 
@@ -21,3 +22,4 @@
 - [ ] Jobs page loads.
 - [ ] Application or contact restrictions match role expectations.
 - [ ] Health endpoint returns expected response.
+- [ ] Vercel environment variables are configured from `.env.example` without service keys in `NEXT_PUBLIC_*`.

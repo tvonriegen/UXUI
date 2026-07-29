@@ -7,7 +7,7 @@ const migration = readFileSync(
   "utf8",
 );
 const jobsPage = readFileSync(
-  resolve(rootDir, "apps/web/src/app/empleos/page.tsx"),
+  resolve(rootDir, "apps/web/src/components/opportunities/OpportunitiesPage.tsx"),
   "utf8",
 );
 const timeline = readFileSync(
