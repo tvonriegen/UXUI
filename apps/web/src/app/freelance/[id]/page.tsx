@@ -5,6 +5,7 @@ import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { submitProposalFromForm } from "@/app/actions/opportunities";
 import { getCurrentAccount } from "@/lib/auth-server";
 import type { Opportunity } from "@/lib/types";
+import TrackAnalyticsEvent from "@/components/analytics/TrackAnalyticsEvent";
 
 export default async function FreelanceDetailPage({ params, searchParams }: { params: { id: string }; searchParams?: { error?: string; submitted?: string } }) {
   const supabase = createServerSupabaseClient(await cookies() as any); // eslint-disable-line
@@ -22,6 +23,7 @@ export default async function FreelanceDetailPage({ params, searchParams }: { pa
           <h1 className="mt-4 text-4xl font-black">{opportunity.title}</h1>
           <p className="mt-5 leading-7 text-slate-600">{opportunity.description}</p>
           <div className="mt-8 flex flex-wrap gap-3 text-sm font-bold text-slate-700"><span className="rounded-full bg-amber-100 px-4 py-2">{opportunity.location || "Remoto"}</span>{opportunity.compensation_max != null && <span className="rounded-full bg-amber-100 px-4 py-2">Hasta {opportunity.compensation_max}</span>}</div>
+          {searchParams?.submitted && <TrackAnalyticsEvent eventName="submit_proposal" />}
           {searchParams?.submitted && <p className="mt-8 rounded-2xl bg-emerald-100 px-4 py-3 text-sm font-bold text-emerald-900">Tu propuesta fue enviada.</p>}
           {searchParams?.error && <p className="mt-8 rounded-2xl bg-rose-100 px-4 py-3 text-sm font-bold text-rose-900">{searchParams.error}</p>}
           {account?.accountType === "student" ? (

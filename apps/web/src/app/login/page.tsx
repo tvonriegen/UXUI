@@ -10,6 +10,7 @@ import { useAuth } from "@/lib/auth-context";
 import CursorGlow  from "@/components/layout/CursorGlow";
 import { Eye, EyeOff, LogIn, AlertCircle, Zap } from "lucide-react";
 import { loginSchema } from "@/lib/schemas";
+import { trackAnalyticsEvent } from "@/lib/analytics";
 
 const DEMO_ACCOUNTS = [
   { label: "🏫 Colegio",    email: "colegio@demo.cr",  role: "Colegio"    },
@@ -51,6 +52,7 @@ export default function LoginPage() {
 
     const { error: authError } = await login(email.trim(), password);
     if (!authError) {
+      trackAnalyticsEvent("login", { method: "password" });
       router.replace("/");
     } else {
       setError("Correo o contraseña incorrectos.");
@@ -63,6 +65,7 @@ export default function LoginPage() {
     setDemoLoading(demoEmail);
     const { error: authError } = await login(demoEmail, DEMO_PASSWORD);
     if (!authError) {
+      trackAnalyticsEvent("login", { method: "demo" });
       router.replace("/");
     } else {
       setError(`No se pudo acceder a la cuenta demo. Asegúrate de haber ejecutado /api/seed primero.`);

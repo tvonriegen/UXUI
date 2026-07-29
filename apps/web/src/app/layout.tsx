@@ -21,6 +21,7 @@ import { ToastProvider }   from "@/components/ui/Toast";
 import { ConfirmProvider } from "@/components/ui/ConfirmDialog";
 import CursorGlow          from "@/components/layout/CursorGlow";
 import ChatWidget           from "@/components/chat/ChatWidget";
+import GoogleAnalytics      from "@/components/analytics/GoogleAnalytics";
 
 export const metadata: Metadata = {
   title:       "TalentHub",
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es" className="light">
       <body className="bg-cl-surface text-cl-on-surface font-manrope min-h-screen antialiased">
+        <GoogleAnalytics />
         {/* Ambient cursor-tracking gradient — sits at z-0 behind all content */}
         <CursorGlow />
 

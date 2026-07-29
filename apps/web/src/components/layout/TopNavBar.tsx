@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { useRole } from "@/lib/role-context";
 import { useAuth } from "@/lib/auth-context";
 import { Bell, X, LogOut, User as UserIcon, Search, Plus } from "lucide-react";
+import { trackAnalyticsEvent } from "@/lib/analytics";
 
 export default function TopNavBar() {
   const { notifications, unreadCount, markRead, markAllRead } = useRole();
@@ -61,6 +62,7 @@ export default function TopNavBar() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQ.trim()) {
+      trackAnalyticsEvent("search", { account_type: accountType });
       const target = accountType === "student"
         ? "/student/opportunities"
         : accountType === "company"

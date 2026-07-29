@@ -13,6 +13,7 @@ import CursorGlow   from "@/components/layout/CursorGlow";
 import type { AccountType } from "@/lib/types";
 import { Eye, EyeOff, UserPlus, AlertCircle, CheckCircle } from "lucide-react";
 import { registerSchema } from "@/lib/schemas";
+import { trackAnalyticsEvent } from "@/lib/analytics";
 
 // Students are created by schools and Colegio access is controlled.
 const ACCOUNT_TYPES: { value: AccountType; label: string; emoji: string }[] = [
@@ -63,6 +64,7 @@ export default function RegisterPage() {
       setError(result.error);
       setIsSubmitting(false);
     } else {
+      trackAnalyticsEvent("sign_up", { account_type: accountType });
       setSuccess(true);
       // Give Supabase a moment to persist the session, then redirect
       setTimeout(() => router.replace("/"), 1500);

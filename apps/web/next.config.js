@@ -7,6 +7,7 @@ const nextConfig = {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     NEXT_PUBLIC_APP_URL:           process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_SENTRY_DSN:        process.env.NEXT_PUBLIC_SENTRY_DSN,
+    NEXT_PUBLIC_GA_MEASUREMENT_ID: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
   },
 
   images: {
@@ -30,11 +31,11 @@ const nextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' https://browser.sentry-cdn.com",
+              "script-src 'self' 'unsafe-inline' https://browser.sentry-cdn.com https://www.googletagmanager.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
-              "img-src 'self' data: blob: https://images.unsplash.com https://*.supabase.co",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://sentry.io",
+              "img-src 'self' data: blob: https://images.unsplash.com https://*.supabase.co https://www.google-analytics.com",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://sentry.io https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com",
               "frame-ancestors 'none'",
             ].join("; "),
           },
