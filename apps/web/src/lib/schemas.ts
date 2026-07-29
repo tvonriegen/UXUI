@@ -87,7 +87,7 @@ export const createStudentSchema = z.object({
   lastName:     z.string().min(2, "Apellido muy corto").max(50),
   email:        z.string().email("Email inválido"),
   tempPassword: z.string()
-    .min(8,  "Mínimo 8 caracteres")
+    .min(6,  "Mínimo 6 caracteres")
     .max(72, "Máximo 72 caracteres"),
   rut:          rutSchema,
   gender:       z.enum(["Masculino","Femenino","Otro","Prefiero no decir"], {

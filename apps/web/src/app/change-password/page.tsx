@@ -13,7 +13,7 @@ import { supabase } from "@/lib/supabase";
 import { clearMustChangePassword } from "@/app/actions/school";
 import { Eye, EyeOff, KeyRound, AlertCircle, CheckCircle } from "lucide-react";
 
-const MIN_LENGTH = 8;
+const MIN_LENGTH = 6;
 
 function getStrength(pwd: string): { score: number; label: string; color: string } {
   let score = 0;

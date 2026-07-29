@@ -2820,7 +2820,7 @@ export default function ProfilePage() {
             <div>
               <label className="text-xs font-bold text-slate-500 mb-1 block">Contraseña temporal *</label>
               <input type="password" value={newStPassword} onChange={(e) => setNewStPassword(e.target.value)}
-                placeholder="Mín. 8 caracteres" className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-amber-200 outline-none" />
+                placeholder="Mín. 6 caracteres" className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-amber-200 outline-none" />
               <p className="text-[10px] text-slate-400 mt-1">El alumno deberá cambiarla en su primer inicio de sesión.</p>
             </div>
             <div className="grid grid-cols-2 gap-3">

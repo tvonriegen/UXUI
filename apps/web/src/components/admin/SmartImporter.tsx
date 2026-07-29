@@ -51,7 +51,7 @@ const FIELD_PLACEHOLDERS: Record<FieldKey, string> = {
   firstName:    "Ej: Juan",
   lastName:     "Ej: Pérez",
   email:        "Ej: juan@colegio.cl",
-  tempPassword: "Mín. 8 caracteres",
+  tempPassword: "Mín. 6 caracteres",
   rut:          "Ej: 12.345.678-9",
   gender:       "Masculino / Femenino / Otro",
   cellphone:    "Ej: +56912345678",
@@ -201,7 +201,7 @@ function validateRow(
   else if (!EMAIL_RE.test(get("email"))) errors.email = "Correo inválido";
 
   if (!get("tempPassword")) errors.tempPassword = "Requerido";
-  else if (get("tempPassword").length < 8) errors.tempPassword = "Mínimo 8 caracteres";
+  else if (get("tempPassword").length < 6) errors.tempPassword = "Mínimo 6 caracteres";
 
   if (!get("rut")) errors.rut = "Requerido";
   else if (!isValidRut(get("rut"))) errors.rut = "RUT inválido";
