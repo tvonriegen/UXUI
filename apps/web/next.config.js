@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const isDevelopment = process.env.NODE_ENV !== "production";
+
 const nextConfig = {
   // Expose only NEXT_PUBLIC_ vars to the browser (default Next.js behaviour)
   // The service role key must NEVER have NEXT_PUBLIC_ prefix.
@@ -31,7 +33,7 @@ const nextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' https://browser.sentry-cdn.com https://www.googletagmanager.com",
+              `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""} https://browser.sentry-cdn.com https://www.googletagmanager.com`,
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https://images.unsplash.com https://*.supabase.co https://www.google-analytics.com",

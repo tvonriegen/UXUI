@@ -84,7 +84,7 @@ export default function ChangePasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-cl-surface flex items-center justify-center p-4">
       <div className="w-full max-w-sm bg-white rounded-3xl shadow-xl border border-slate-200/60 overflow-hidden">
 
         {/* Header */}

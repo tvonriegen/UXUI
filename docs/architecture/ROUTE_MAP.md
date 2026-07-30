@@ -18,7 +18,7 @@ Protected dashboard and compatibility routes validate account type server-side. 
 | `/freelance/[id]` | anonymous | implemented with student proposal form |
 | `/how-it-works` | anonymous | target |
 | `/login` | anonymous | existing |
-| `/register` | anonymous | existing, registration rules need correction |
+| `/register` | anonymous | implemented for Student and Company; external client signup paused |
 | `/privacy` | anonymous | target |
 | `/terms` | anonymous | target |
 

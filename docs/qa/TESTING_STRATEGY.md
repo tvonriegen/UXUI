@@ -2,7 +2,17 @@
 
 ## Current Baseline
 
-The project currently relies on lint, TypeScript and manual smoke checks. Automated tests should be added around the highest-risk domain logic first.
+The project uses Vitest for pure logic and component state, Playwright for browser hydration and public-flow smoke tests, plus the existing runtime Supabase checks for staging authorization.
+
+Local commands:
+
+```bash
+npm run test
+npm run test:e2e:chromium
+npm run test:e2e
+```
+
+The browser suite requires the local web environment from `.env.example`. It uses no real account for public-flow tests.
 
 ## Priority Test Areas
 
@@ -10,11 +20,14 @@ The project currently relies on lint, TypeScript and manual smoke checks. Automa
 - Application readiness checks.
 - Supabase authorization-sensitive API routes.
 - Profile evidence and validation flows.
+- Login and registration hydration, including Estudiante and Empresa selection.
+- Public route rendering without browser runtime errors.
 
 ## Suggested Tooling
 
 - Unit tests for pure utilities.
 - Component tests for critical UI state transitions.
+- Playwright E2E tests for browser hydration, responsive public routes and auth form interaction.
 - Lightweight integration checks for API routes where feasible.
 - CI running lint, typecheck and build before merge.
 

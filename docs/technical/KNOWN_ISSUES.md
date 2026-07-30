@@ -34,6 +34,8 @@
 - The local Supabase CLI is unavailable (`supabase: command not found`); remote migration execution currently uses Supabase MCP.
 - Supabase Auth leaked-password protection remains disabled and requires a dashboard setting change: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
 - The student profile route remains large despite the persistence and actionable-anchor improvements; keep its decomposition separate from product UX changes.
+- Public self-registration temporarily sets `email_confirm = true` so users can log in immediately; restore email verification before production hardening.
+- Public registration is temporarily limited to Estudiante and Empresa; external client routes remain reserved and are not exposed by the signup form.
 
 ## Phase 0 Four-Persona Findings (2026-07-26)
 

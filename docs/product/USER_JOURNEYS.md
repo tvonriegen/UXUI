@@ -4,7 +4,7 @@
 
 1. Opens the landing page or public exploration.
 2. Reviews only public student profiles, validated skills, public portfolios and freelance opportunities.
-3. Signs in or registers as an Externo before publishing or responding.
+3. Signs in or registers as an Estudiante or Empresa according to the intended journey.
 
 ## Estudiante
 
@@ -36,7 +36,7 @@
 
 ## Externo
 
-1. Registers with a basic profile and verifies email.
+1. Existing external client access remains reserved while public signup is paused.
 2. Publishes a freelance opportunity with budget, modality, location and deadline.
 3. Reviews proposals and communicates only through permitted privacy paths.
 4. Cannot access company ATS or institutional administration.

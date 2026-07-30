@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import Link       from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import CursorGlow  from "@/components/layout/CursorGlow";
+import PublicShell from "@/components/layout/PublicShell";
 import { Eye, EyeOff, LogIn, AlertCircle, Zap } from "lucide-react";
 import { loginSchema } from "@/lib/schemas";
 import { trackAnalyticsEvent } from "@/lib/analytics";
@@ -74,8 +74,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-cl-surface flex items-center justify-center p-4 relative overflow-hidden">
-      <CursorGlow />
+    <PublicShell contentClassName="relative flex items-center justify-center overflow-hidden px-4 py-10 sm:py-14">
 
       {/* Decorative blobs */}
       <div
@@ -94,15 +93,9 @@ export default function LoginPage() {
         <div className="bg-white rounded-3xl shadow-2xl shadow-slate-200/60 border border-slate-200/60 overflow-hidden">
 
           {/* Gradient header */}
-          <div className="primary-gradient px-8 pt-8 pb-10 relative overflow-hidden">
+          <div className="primary-gradient px-8 py-8 relative overflow-hidden">
             <div className="absolute inset-0 opacity-10 hero-pattern" />
             <div className="relative">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-sm">
-                  <span className="text-white font-black text-base">TH</span>
-                </div>
-                <span className="text-white font-bold text-xl tracking-tight">TalentHub</span>
-              </div>
               <h1 className="text-2xl font-extrabold text-white tracking-tight">
                 Bienvenido de vuelta
               </h1>
@@ -123,11 +116,12 @@ export default function LoginPage() {
             )}
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+               <label htmlFor="login-email" className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
                 Correo electrónico
               </label>
               <input
                 type="email"
+                id="login-email"
                 required
                 autoComplete="email"
                 value={email}
@@ -138,12 +132,13 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+               <label htmlFor="login-password" className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
                 Contraseña
               </label>
               <div className="relative">
                 <input
                   type={showPass ? "text" : "password"}
+                  id="login-password"
                   required
                   autoComplete="current-password"
                   value={password}
@@ -232,10 +227,7 @@ export default function LoginPage() {
           </div>}
         </div>
 
-        <p className="text-center text-[11px] text-slate-400 mt-4">
-          TalentHub © 2026 — Plataforma vocacional
-        </p>
       </div>
-    </div>
+    </PublicShell>
   );
 }

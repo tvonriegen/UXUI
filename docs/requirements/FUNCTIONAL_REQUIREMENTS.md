@@ -6,7 +6,7 @@
 - FR-002: `graduated` is a student stage, not an account type.
 - FR-003: A single email/password login resolves account type on the server and redirects to the correct persona space.
 - FR-004: Students are created or invited by a school and must change a temporary password on first access.
-- FR-005: Companies and externals may self-register with email verification; school access requires controlled invitation or approval.
+- FR-005: Students and companies may self-register temporarily; school access requires controlled invitation or approval, while external client signup remains paused.
 - FR-006: Anonymous visitors are read-only.
 
 ## Profiles and evidence

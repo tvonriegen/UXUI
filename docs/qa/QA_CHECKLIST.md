@@ -10,7 +10,9 @@
 
 - [ ] `npm run lint`
 - [ ] `npm run typecheck`
+- [ ] `npm run test`
 - [ ] `npm run build`
+- [ ] `npm run test:e2e:chromium`
 - [ ] `npm run verify:release`
 - [ ] Desktop smoke test for main role dashboards.
 - [ ] Mobile smoke test for navigation and main flows.

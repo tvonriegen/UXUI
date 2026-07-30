@@ -1,0 +1,74 @@
+name: Web Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-anon-key
+  SUPABASE_SERVICE_ROLE_KEY: ci-service-role-key
+  NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+  NEXT_PUBLIC_GA_MEASUREMENT_ID: ""
+
+jobs:
+  static:
+    name: Lint, typecheck, unit tests and build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install workspace dependencies
+        run: npm ci
+
+      - name: Install web dependencies
+        run: npm ci --prefix apps/web
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit and component tests
+        run: npm run test
+
+      - name: Production build
+        run: npm run build
+
+  browser:
+    name: Chromium public-flow E2E
+    runs-on: ubuntu-latest
+    needs: static
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install workspace dependencies
+        run: npm ci
+
+      - name: Install web dependencies
+        run: npm ci --prefix apps/web
+
+      - name: Install Chromium
+        run: npx --prefix apps/web playwright install --with-deps chromium
+
+      - name: Public-flow E2E tests
+        run: npm run test:e2e:chromium

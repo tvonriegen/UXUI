@@ -9,16 +9,16 @@ import Link        from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth }  from "@/lib/auth-context";
 import { registerAccount } from "@/app/actions/auth";
-import CursorGlow   from "@/components/layout/CursorGlow";
+import PublicShell from "@/components/layout/PublicShell";
 import type { AccountType } from "@/lib/types";
 import { Eye, EyeOff, UserPlus, AlertCircle, CheckCircle } from "lucide-react";
 import { registerSchema } from "@/lib/schemas";
 import { trackAnalyticsEvent } from "@/lib/analytics";
 
-// Students are created by schools and Colegio access is controlled.
+// Colegio access is controlled; public registration is currently for students and companies.
 const ACCOUNT_TYPES: { value: AccountType; label: string; emoji: string }[] = [
+  { value: "student", label: "Estudiante", emoji: "🎓" },
   { value: "company", label: "Empresa", emoji: "🏢" },
-  { value: "external", label: "Externo", emoji: "👤" },
 ];
 
 export default function RegisterPage() {
@@ -29,7 +29,7 @@ export default function RegisterPage() {
   const [email,        setEmail]        = useState("");
   const [password,     setPassword]     = useState("");
   const [confirm,      setConfirm]      = useState("");
-  const [accountType,  setAccountType]  = useState<AccountType>("company");
+  const [accountType,  setAccountType]  = useState<AccountType>("student");
   const [showPass,     setShowPass]     = useState(false);
   const [error,        setError]        = useState("");
   const [success,      setSuccess]      = useState(false);
@@ -72,8 +72,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-cl-surface flex items-center justify-center p-4 relative overflow-hidden">
-      <CursorGlow />
+    <PublicShell contentClassName="relative flex items-center justify-center overflow-hidden px-4 py-10 sm:py-14">
 
       <div
         aria-hidden="true"
@@ -90,20 +89,14 @@ export default function RegisterPage() {
         <div className="bg-white rounded-3xl shadow-2xl shadow-slate-200/60 border border-slate-200/60 overflow-hidden">
 
           {/* Header */}
-          <div className="primary-gradient px-8 pt-8 pb-10 relative overflow-hidden">
+          <div className="primary-gradient px-8 py-8 relative overflow-hidden">
             <div className="absolute inset-0 opacity-10 hero-pattern" />
             <div className="relative">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-sm">
-                  <span className="text-white font-black text-base">TH</span>
-                </div>
-                <span className="text-white font-bold text-xl tracking-tight">TalentHub</span>
-              </div>
               <h1 className="text-2xl font-extrabold text-white tracking-tight">
                 Crear cuenta
               </h1>
               <p className="text-sky-100 text-sm mt-1">
-                Empresas y Externos pueden registrarse aquí
+                Estudiantes y Empresas pueden registrarse aquí
               </p>
             </div>
           </div>
@@ -127,11 +120,12 @@ export default function RegisterPage() {
 
             {/* Name */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+              <label htmlFor="register-name" className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
                 Nombre completo
               </label>
               <input
                 type="text"
+                id="register-name"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -142,11 +136,12 @@ export default function RegisterPage() {
 
             {/* Email */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+              <label htmlFor="register-email" className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
                 Correo electrónico
               </label>
               <input
                 type="email"
+                id="register-email"
                 required
                 autoComplete="email"
                 value={email}
@@ -158,15 +153,16 @@ export default function RegisterPage() {
 
             {/* Role selector */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+              <label id="register-account-type-label" className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
                 Tipo de usuario
               </label>
-              <div className="grid grid-cols-2 gap-2">
+              <div aria-labelledby="register-account-type-label" className="grid grid-cols-2 gap-2">
                 {ACCOUNT_TYPES.map((r) => (
                   <button
                     key={r.value}
                     type="button"
                     onClick={() => setAccountType(r.value)}
+                    aria-pressed={accountType === r.value}
                     className={`
                       flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all
                       ${accountType === r.value
@@ -183,12 +179,13 @@ export default function RegisterPage() {
 
             {/* Password */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+              <label htmlFor="register-password" className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
                 Contraseña
               </label>
               <div className="relative">
                 <input
                   type={showPass ? "text" : "password"}
+                  id="register-password"
                   required
                   autoComplete="new-password"
                   value={password}
@@ -209,11 +206,12 @@ export default function RegisterPage() {
 
             {/* Confirm password */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+              <label htmlFor="register-confirm-password" className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
                 Confirmar contraseña
               </label>
               <input
                 type={showPass ? "text" : "password"}
+                id="register-confirm-password"
                 required
                 autoComplete="new-password"
                 value={confirm}
@@ -255,10 +253,7 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        <p className="text-center text-[11px] text-slate-400 mt-4">
-          TalentHub © 2026 — Plataforma vocacional
-        </p>
       </div>
-    </div>
+    </PublicShell>
   );
 }
