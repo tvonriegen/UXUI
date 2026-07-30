@@ -17,6 +17,7 @@
 - 2026-07-29: Production has no separate staging project; the free staging setup is documented in `docs/technical/STAGING_SETUP.md` and has not been provisioned yet.
 - 2026-07-29: Production feed RPCs were restored through three tracked forward migrations; authenticated write smoke testing remains pending because no staging project exists.
 - 2026-07-29: Feed RPC security was hardened in production; only the Auth leaked-password protection advisor warning remains.
+- 2026-07-30: The GitHub Supabase Preview check fails before deployment because remote migration versions are not present under the local filenames; do not run `db push` or `migration repair` until the reviewed baseline strategy in `SUPABASE_FEED_RUNTIME_RECONCILIATION.md` is completed.
 
 ## External Verification Pending
 
@@ -32,6 +33,7 @@
 - There is no disposable Supabase integration test suite yet; current scripts are hermetic structural/domain checks.
 - Runtime Supabase smoke testing is now available as an opt-in manual workflow, but the free staging project, fixtures and GitHub environment secrets still need to be configured.
 - The local Supabase CLI is unavailable (`supabase: command not found`); remote migration execution currently uses Supabase MCP.
+- The current Vercel integration reports one failed `uxui-sxfl` deployment while the primary `uxui` and `uxui-jad2` checks succeed; this appears to be an external project-specific deployment issue and requires Vercel access to diagnose.
 - Supabase Auth leaked-password protection remains disabled and requires a dashboard setting change: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
 - The student profile route remains large despite the persistence and actionable-anchor improvements; keep its decomposition separate from product UX changes.
 - Public self-registration temporarily sets `email_confirm = true` so users can log in immediately; restore email verification before production hardening.
