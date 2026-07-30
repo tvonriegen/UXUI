@@ -38,6 +38,12 @@ export function updateAnalyticsConsent(consent: AnalyticsConsent): void {
   });
 }
 
+export function restoreAnalyticsConsent(): AnalyticsConsent | null {
+  const consent = readAnalyticsConsent();
+  if (consent !== null) updateAnalyticsConsent(consent);
+  return consent;
+}
+
 export function saveAnalyticsConsent(consent: AnalyticsConsent): void {
   if (typeof window === "undefined") return;
 

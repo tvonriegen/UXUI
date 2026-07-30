@@ -7,6 +7,7 @@ import {
   GA_MEASUREMENT_ID,
   isAnalyticsConfigured,
   readAnalyticsConsent,
+  restoreAnalyticsConsent,
   saveAnalyticsConsent,
   trackPageView,
   type AnalyticsConsent,
@@ -95,7 +96,7 @@ export default function GoogleAnalytics() {
       setConsent(readAnalyticsConsent());
     };
 
-    syncConsent();
+    setConsent(restoreAnalyticsConsent());
     window.addEventListener("talenthub:analytics-consent", syncConsent);
     return () => window.removeEventListener("talenthub:analytics-consent", syncConsent);
   }, []);
