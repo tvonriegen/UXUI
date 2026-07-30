@@ -50,4 +50,4 @@ The web app runs at `http://localhost:3000` by default.
 
 ## Current Status
 
-`main` contains the normalized TalentHub workspace, standardized product surfaces, explainable matching, assisted application readiness and privacy hardening. Some legacy ClassLink naming can remain in historical migrations until it is safe to remove without losing traceability. A separate free Supabase staging project and authenticated smoke tests remain required before production deployment.
+`main` contains the normalized TalentHub workspace, standardized product surfaces, explainable matching, assisted application readiness and privacy hardening. Historical migrations remain traceable while the active product consistently uses TalentHub naming. A separate free Supabase staging project and authenticated smoke tests remain required before production deployment.

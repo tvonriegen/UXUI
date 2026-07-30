@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════════
--- ClassLink – Rubric Feature Migration (2026-04-13)
+-- TalentHub – Rubric Feature Migration (2026-04-13)
 -- Adds: saved_posts, company_follows, skill_validations
 --       + institutional badge columns
 -- Run: Supabase Dashboard → SQL Editor → paste & RUN

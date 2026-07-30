@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════════
--- ClassLink – Job Visibility Fix + Activity Results (2026-04-13)
+-- TalentHub – Job Visibility Fix + Activity Results (2026-04-13)
 -- ═══════════════════════════════════════════════════════════════════
 -- ROOT CAUSE: The 20260331 migration created a policy referencing
 -- the column "active" BEFORE audit_fixes renamed "is_open" → "active".
