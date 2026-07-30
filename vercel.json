@@ -1,6 +1,6 @@
 {
   "framework": "nextjs",
-  "installCommand": "npm ci --prefix apps/web",
+  "installCommand": "npm apps/web",
   "buildCommand": "npm run build",
   "devCommand": "npm run dev"
 }
