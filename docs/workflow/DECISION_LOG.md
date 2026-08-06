@@ -299,3 +299,23 @@ The repository had accumulated a workspace foundation, privacy work, feature-bou
 - The final local workflow is simpler and has one integration target.
 - Direct status mutations cannot bypass the interview lifecycle rules through a browser client or server action.
 - A live Supabase staging smoke test is still required because structural verification cannot prove deployed RLS behavior.
+
+## ADR-004 — Identity, organizations and resource ownership
+
+- Status: **Accepted**
+- Date: 2026-08-05
+- Branch: `stabilization/release-readiness`
+- Owner acceptance quote: “Apruebo ADR-004 rev. 4.2.”
+- Auditor verdicts carried forward: Gap **APPROVED**; ADR **APPROVED**; Owner **READY**; B1 **READY**; B2 / C / D **BLOCKED**.
+
+### Decision
+
+The owner accepts ADR-004 rev. 4.2 as the conceptual identity, organizations, memberships, resource-ownership and authorization/audit-separation contract. D-01..D-43 are fixed inputs and remain closed to re-debate. D-OD-1..D-OD-7 remain deferred and open under their respective gates; D-OD-1 remains the exclusive decisional blocker for Gate C.
+
+The canonical sequence remains **A → B1 → C → B2 → D**. B1 Core schema design is **READY / OPENED DOCUMENTALLY** only and is not implemented. B2 Core migration readiness remains **BLOCKED**. C Interactions remains **BLOCKED exclusively by D-OD-1**. Gate D, executable migrations and implementation remain **BLOCKED**. Publishing remains **READY WITH DEFERRED ITEMS**.
+
+This acceptance is conceptual only. It authorizes no SQL, Supabase change, runtime grant/RLS change, migration, staging action, production action, code, test or implementation. Supabase remains unchanged.
+
+### Documentary versioning scope
+
+The acceptance/versioning commit contains only these seven files: the two ADR-004 architecture documents plus `docs/workflow/STATUS.md`, `NEXT_ACTIONS.md`, `OPEN_QUESTIONS.md`, `SESSION_LOG.md` and this `DECISION_LOG.md`. The unrelated `apps/web/src/test/setup.ts`, `docs/workflow/HANDOFF.md` and `docs/technical/KNOWN_ISSUES.md` changes are excluded. B1 is READY / OPENED DOCUMENTALLY; B2, C and D remain blocked, and Supabase is unchanged.
