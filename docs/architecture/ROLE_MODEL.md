@@ -1,40 +1,43 @@
 # Canonical Role Model
 
-## Decision
+- **Verdict:** ROLE **APPROVED**.
+- **Authority:** ADR-004 rev. 4.2, accepted 2026-08-05.
+- **Scope:** this document distinguishes the audited current state from the conceptual target. It authorizes no code, SQL, migration, runtime policy or Supabase change.
 
-The canonical account types are `student`, `company`, `school` and `external`. `Egresado` is not an account type or an authorization role. It is a value of `student_stage` in the student profile.
+## Identity Contract
 
-```text
-profiles.account_type: student | company | school | external
-student_profiles.student_stage: enrolled | internship | graduated
-school_members.member_role: owner | admin | teacher | reviewer
-```
+`profiles` represents human persons only. It is not an organization table. The four account types are `student`, `company`, `school` and `external`. `graduated` is a `student_stage`, not a persona, role or second identity.
 
-## Identity and profile separation
+| Field | Contract |
+| --- | --- |
+| `profiles.account_type` | `student | company | school | external`; used for routing and onboarding only. |
+| `profiles.account_status` | Lifecycle eligibility; inactive states do not receive normal protected access. |
+| `student_profiles.student_stage` | `enrolled | internship | graduated`; a graduated person remains a student. |
+| `profiles.role` | Legacy display label only; never a future authorization source. `Egresado` is a display alias for `graduated`. |
 
-- `profiles` owns identity, account type, lifecycle status, email and safe display fields.
-- `student_profiles` owns school link, academic stage, professional data, age-aware attributes and public visibility.
-- `company_profiles` owns company information and verification state.
-- `schools` owns institution identity and status.
-- `school_members` owns institution membership and authorization role.
-- `external_profiles` owns the basic client profile and verification state.
+Organizations of kind `school` or `company` do not authenticate. They have no `auth.users` identity and no organization row in `profiles`. A human account authenticates and acts for an organization only through an active organization membership. No shared credentials are permitted.
 
-The existing `profiles.role` and role-specific nullable columns are legacy compatibility data. They remain readable during migration but must not become the long-term authorization source.
+## Current State
 
-## Authorization rules
+- `profiles` currently combines identity, account metadata and some legacy role-specific fields.
+- `schools`, `school_members` and `company_profiles` are physical compatibility structures. Their legacy person back-references are not the conceptual organization authority.
+- `external_profiles` is already a personal extension and has no organization baseline.
+- Some legacy guards still read `role` or account type. Those reads are transitional evidence, not the target contract.
 
-- A session does not select its role. The server resolves `account_type` from the database.
-- Student stage never changes the account type or creates a second identity.
-- School access requires active membership in the target school.
-- Company and external ownership are resource-scoped, not inferred from a client-supplied type.
-- A school member may only exercise permissions granted by `member_role`.
-- Disabled, unverified or pending accounts do not receive normal dashboard access.
+## Conceptual Target
 
-## Compatibility transition
+- `profiles` owns the person and account lifecycle.
+- `student_profiles` owns the student's profile, academic stage, evidence relationship and privacy settings. The school does not own the student profile.
+- `organizations` represents schools and companies without a canonical `profile_id`.
+- `organization_memberships` is the authority for acting on behalf of an organization. School roles are `owner | admin | teacher | reviewer`; company roles remain deferred under D-OD-5.
+- `external_profiles` remains personal, with no `organization_id` and no organization membership.
 
-1. Inventory and reconcile legacy `profiles.role` values.
-2. Add canonical account columns and mapping constraints without deleting legacy data.
-3. Backfill students as `account_type = student`; map `Egresado` to `student_stage = graduated`.
-4. Create explicit school and organization records/memberships.
-5. Move server guards and RLS to canonical columns.
-6. Remove legacy role reads only after runtime and staging verification.
+The server resolves the account from the authenticated session and trusted database metadata. A client cannot choose a role, publisher type, organization ID or authorization scope. Account type may select the initial route and onboarding flow, but membership, ownership, resource state, enrollment and domain relationships decide capability.
+
+## Compatibility Direction
+
+The transition retains legacy role labels and physical adapters while consumers are inventoried. Students remain `account_type = student`; `Egresado` maps to `student_stage = graduated`. New authorization sources move to active memberships and resource ownership. Legacy role reads are retired only after the staged verification required by ADR-004.
+
+## Gate Posture
+
+ROLE **APPROVED**. B1 documentary design is **READY / APPROVED**. B2 is **BLOCKED**; C is **BLOCKED exclusively by D-OD-1**; D is **BLOCKED**. Supabase is unchanged.
