@@ -46,11 +46,46 @@ async function getCallerCompany(supabase: ReturnType<typeof createServerSupabase
   if (!caller) return null;
   const { data } = await supabase
     .from("profiles")
-    .select("id, account_type, name, company_name")
+    .select("id, account_type, account_status, name, company_name")
     .eq("id", caller.id)
     .single();
-  if (!data || data.account_type !== "company") return null;
+  if (!data || data.account_type !== "company" || data.account_status !== "active") return null;
   return { ...data, userId: caller.id };
+}
+
+type AuthorizedApplication = {
+  id: string;
+  applicant_id: string;
+  job_id: string;
+  job_postings: { company_id: string; title: string; max_candidates: number | null } | null;
+};
+
+/** Resolve the application and posting under the authenticated caller's authority. */
+async function getAuthorizedApplication(
+  supabase: ReturnType<typeof createServerSupabaseClient>,
+  companyId: string,
+  applicationId: string,
+  jobId?: string,
+) {
+  let query = supabase
+    .from("job_applications")
+    .select("id, applicant_id, job_id, job_postings!inner(company_id, title, max_candidates)")
+    .eq("id", applicationId)
+    .eq("job_postings.company_id", companyId);
+  if (jobId) query = query.eq("job_id", jobId);
+
+  const { data } = await query.single();
+  const app = data as AuthorizedApplication | null;
+  if (!app || app.job_postings?.company_id !== companyId) return null;
+  return app;
+}
+
+const ATS_STATUSES: readonly AtsStatus[] = [
+  "pending", "reviewing", "interviewing", "accepted", "rejected", "hired",
+];
+
+function isAtsStatus(value: unknown): value is AtsStatus {
+  return typeof value === "string" && ATS_STATUSES.includes(value as AtsStatus);
 }
 
 // ── updateApplicationStatus (legacy: accept/reject only) ─
@@ -61,39 +96,38 @@ export async function updateApplicationStatus(
   studentId:     string,
   jobTitle:      string
 ) {
+  if (!applicationId || !isAtsStatus(newStatus) || !["accepted", "rejected"].includes(newStatus)) {
+    return { error: "Parámetros inválidos." };
+  }
+
   const cookieStore = await cookies();
   const supabase = createServerSupabaseClient(cookieStore as any); // eslint-disable-line
   const company = await getCallerCompany(supabase);
   if (!company) return { error: "Acceso denegado." };
 
-  // Verify this application belongs to one of the company's job postings
-  const { data: app } = await supabase
-    .from("job_applications")
-    .select("id, job_postings!inner(company_id)")
-    .eq("id", applicationId)
-    .single();
-
-  if (!app) return { error: "Aplicación no encontrada." };
-  // eslint-disable-next-line
-  if ((app.job_postings as any)?.company_id !== company.userId) return { error: "Acceso denegado." };
+  const app = await getAuthorizedApplication(supabase, company.userId, applicationId);
+  if (!app) return { error: "Aplicación no encontrada o acceso denegado." };
 
   const admin = createAdminClient();
   const now = new Date().toISOString();
 
-  const { error: updateErr } = await admin
+  const { data: updatedRows, error: updateErr } = await supabase
     .from("job_applications")
     .update({ status: newStatus, updated_at: now })
-    .eq("id", applicationId);
+    .eq("id", applicationId)
+    .eq("job_id", app.job_id)
+    .select("id");
 
   if (updateErr) return { error: updateErr.message };
+  if (!updatedRows || updatedRows.length !== 1) return { error: "No se pudo actualizar la aplicación." };
 
   const display = company.company_name || company.name || "La empresa";
   const notifCopy = ATS_NOTIF[newStatus];
   if (notifCopy) {
     await admin.from("notifications").insert({
-      user_id:    studentId,
+      user_id:    app.applicant_id,
       title:      notifCopy.title,
-      body:       notifCopy.body(display, jobTitle),
+      body:       notifCopy.body(display, app.job_postings?.title ?? "la vacante"),
       type:       "application",
       link:       "/empleos",
       created_at: now,
@@ -111,22 +145,16 @@ export async function updateApplicationStatusSA(
   jobId:         string,
   newStatus:     AtsStatus
 ) {
-  if (!applicationId || !jobId) return { error: "Parámetros inválidos." };
+  if (!applicationId || !jobId || !isAtsStatus(newStatus)) return { error: "Parámetros inválidos." };
 
   const cookieStore = await cookies();
   const supabase = createServerSupabaseClient(cookieStore as any); // eslint-disable-line
   const company = await getCallerCompany(supabase);
   if (!company) return { error: "Acceso denegado." };
 
-  // Verify the job belongs to this company; fetch title + max_candidates
-  const { data: posting } = await supabase
-    .from("job_postings")
-    .select("company_id, max_candidates, title")
-    .eq("id", jobId)
-    .eq("company_id", company.userId)
-    .single();
-
-  if (!posting) return { error: "Vacante no encontrada o acceso denegado." };
+  const app = await getAuthorizedApplication(supabase, company.userId, applicationId, jobId);
+  if (!app || !app.job_postings) return { error: "Vacante no encontrada o acceso denegado." };
+  const posting = app.job_postings;
 
   // Enforce max_candidates cap only when accepting
   if (newStatus === "accepted" && posting.max_candidates != null) {
@@ -143,32 +171,29 @@ export async function updateApplicationStatusSA(
     }
   }
 
-  const admin = createAdminClient();
   const now = new Date().toISOString();
 
-  // Fetch applicant_id before updating (needed for notification)
-  const { data: appRow } = await admin
-    .from("job_applications")
-    .select("applicant_id")
-    .eq("id", applicationId)
-    .single();
-
-  const { error } = await admin
+  const { data: updatedRows, error } = await supabase
     .from("job_applications")
     .update({ status: newStatus, updated_at: now })
-    .eq("id", applicationId);
+    .eq("id", applicationId)
+    .eq("job_id", jobId)
+    .select("id");
 
   if (error) return { error: error.message };
+  if (!updatedRows || updatedRows.length !== 1) return { error: "No se pudo actualizar la aplicación." };
+
+  const admin = createAdminClient();
 
   // Notify the student of every meaningful status transition
-  if (appRow?.applicant_id) {
+  if (app.applicant_id) {
     const display   = company.company_name || company.name || "La empresa";
-    const jobTitle  = (posting as any).title ?? "la vacante";
+    const jobTitle  = posting.title ?? "la vacante";
     const notifCopy = ATS_NOTIF[newStatus];
 
     if (notifCopy) {
       await admin.from("notifications").insert({
-        user_id:    appRow.applicant_id,
+        user_id:    app.applicant_id,
         title:      notifCopy.title,
         body:       notifCopy.body(display, jobTitle),
         type:       "application",
