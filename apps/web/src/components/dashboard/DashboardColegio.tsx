@@ -47,13 +47,12 @@ export default function DashboardColegio() {
   useEffect(() => {
     if (!user?.id) return;
 
-    const profilePromise = supabase
-      .from("profiles")
-      .select("name, avatar, school_name, location, student_count, alliance_count, employability_rate")
-      .eq("id", user.id)
-      .single()
-      .then(({ data }) => {
-        if (data) setProfile(data as DashProfile);
+    const profilePromise = supabase.rpc("get_school_dashboard").then(({ data }) => {
+        if (data?.[0]) {
+          const dashboard = data[0] as DashProfile & { specialties: SpecialtyStat[] };
+          setProfile(dashboard);
+          setSpecialties(dashboard.specialties ?? []);
+        }
       });
 
     const queuePromise = supabase
@@ -74,23 +73,8 @@ export default function DashboardColegio() {
         );
       });
 
-    const specialtyPromise = supabase
-      .from("profiles")
-      .select("specialty")
-      .eq("school_id", user.id)
-      .eq("role", "Estudiante")
-      .then(({ data }: { data: { specialty: string | null }[] | null }) => {
-        const counts: Record<string, number> = {};
-        (data ?? []).forEach((r: { specialty: string | null }) => {
-          const key = r.specialty ?? "Sin especialidad";
-          counts[key] = (counts[key] ?? 0) + 1;
-        });
-        setSpecialties(
-          Object.entries(counts)
-            .map(([specialty, count]) => ({ specialty, count }))
-            .sort((a, b) => b.count - a.count)
-        );
-      });
+    // Student profile details are intentionally fail-closed outside the RPC.
+    const specialtyPromise = Promise.resolve();
 
     const contactPromise = supabase
       .from("contact_requests")

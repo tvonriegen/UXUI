@@ -26,17 +26,39 @@ Supabase Branching is not the free alternative: preview branches require Pro and
 
 The local migration directory is not a replayable copy of production history. Do not run all historical migrations against a new project without first reviewing a schema baseline.
 
-## Required Fixtures
+## Required S1 Fixtures
 
-Create email-confirmed, active staging accounts for:
+S1 requires email-confirmed, active staging accounts for this fixed catalogue:
 
-- `student`: minor student linked to the staging school.
-- `company`: company account.
-- `school`: school owner or administrator.
-- `external`: external account with one open freelance opportunity.
-- Optional second school and student for cross-school isolation.
+- `StudentMinorA`: minor student linked to `SchoolA` (`age < 18`).
+- `StudentAdultA`: adult student linked to `SchoolA` (`age >= 18`).
+- `StudentSchoolB`: student linked to `SchoolB`.
+- `SchoolA`: active school owner or administrator.
+- `SchoolB`: active second-school owner or administrator.
+- `CompanyA`: active company account.
+- `CompanyB`: second active company account.
+- `ExternalA`: active external account.
+- `Suspended`: suspended account used to prove exclusion.
 
-Create one pending contact request linked to the company, school and minor student. Select one disposable feed post for `RUNTIME_FEED_POST_ID`.
+The second school/student pair and suspended account are mandatory for S1.
+
+### Operator-only fixture provisioning
+
+After the S1 baseline and profile hotfix are applied to the confirmed disposable
+staging project, provision fixtures locally with:
+
+```bash
+RUNTIME_SUPABASE_URL="https://<confirmed-staging-project>.supabase.co" \
+RUNTIME_SUPABASE_SERVICE_ROLE_KEY="<local-only-service-role-key>" \
+RUNTIME_SUPABASE_STAGING_CONFIRMATION=staging-only \
+node scripts/provision-runtime-profile-fixtures.mjs
+```
+
+The utility creates or refreshes synthetic Auth users identified by an email
+marker, then upserts only S1 profiles, schools, memberships, skills and evidence.
+Passwords are generated at runtime and credentials/IDs are printed only to local
+stdout. Do not run it in GitHub Actions, against production, or with a committed
+key. The service-role variable is intentionally absent from the GitHub environment.
 
 ## GitHub Environment
 
@@ -47,25 +69,32 @@ Store these values in the GitHub `staging` environment only:
 - `RUNTIME_SUPABASE_ANON_KEY`.
 - `RUNTIME_PENDING_CONTACT_REQUEST_ID`.
 - `RUNTIME_FEED_POST_ID`.
-- `RUNTIME_STUDENT_EMAIL` and `RUNTIME_STUDENT_PASSWORD`.
-- `RUNTIME_COMPANY_EMAIL` and `RUNTIME_COMPANY_PASSWORD`.
-- `RUNTIME_SCHOOL_EMAIL` and `RUNTIME_SCHOOL_PASSWORD`.
-- `RUNTIME_EXTERNAL_EMAIL` and `RUNTIME_EXTERNAL_PASSWORD`.
-- Optional second-school and second-student credentials.
+- `RUNTIME_STUDENT_MINOR_A_EMAIL` and `RUNTIME_STUDENT_MINOR_A_PASSWORD` (required; active, `age < 18`).
+- `RUNTIME_STUDENT_ADULT_A_EMAIL` and `RUNTIME_STUDENT_ADULT_A_PASSWORD` (required; active, `age >= 18`).
+- `RUNTIME_STUDENT_SCHOOL_B_EMAIL` and `RUNTIME_STUDENT_SCHOOL_B_PASSWORD` (required; StudentSchoolB).
+- `RUNTIME_SCHOOL_A_EMAIL` and `RUNTIME_SCHOOL_A_PASSWORD` (required; SchoolA).
+- `RUNTIME_SCHOOL_B_EMAIL` and `RUNTIME_SCHOOL_B_PASSWORD` (required; SchoolB).
+- `RUNTIME_COMPANY_A_EMAIL` and `RUNTIME_COMPANY_A_PASSWORD` (required; CompanyA).
+- `RUNTIME_COMPANY_B_EMAIL` and `RUNTIME_COMPANY_B_PASSWORD` (required; CompanyB).
+- `RUNTIME_EXTERNAL_A_EMAIL` and `RUNTIME_EXTERNAL_A_PASSWORD` (required; ExternalA).
+- `RUNTIME_SUSPENDED_EMAIL` and `RUNTIME_SUSPENDED_PASSWORD` (required; Suspended, `account_status=suspended`).
 
 Never store production passwords or the Supabase service role key in these runtime smoke secrets.
 
 ## Local Execution
 
-Run only against the staging project:
+Run only against the staging project. This is the S1 profile-boundary sequence:
 
 ```bash
-npm run verify:runtime-supabase
-npm run verify:runtime-security
-npm run verify:runtime-feed-rpcs
+npm run verify:authenticated-profile-boundary
+npm run verify:profile-evidence
+npm run verify:runtime-profile-boundary
 ```
 
-The feed RPC smoke test performs a temporary like and comment mutation, restores the like state and deletes the comment. It is prohibited against production.
+The runtime profile verifier performs temporary allowlisted/protected profile
+updates and evidence review/resubmission, restoring the fixture state before exit.
+S2 runtime checks for opportunities, proposals, contact requests and feed are
+deliberately not invoked here.
 
 ## Vercel Preview
 

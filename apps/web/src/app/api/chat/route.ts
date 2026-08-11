@@ -59,7 +59,7 @@ const COMPANY_TOOLS: Anthropic.Tool[] = [
   },
   {
     name: "list_applicants",
-    description: "Lista los postulantes de una vacante específica. Devuelve nombre, email, estado de la postulación y fecha.",
+    description: "Lista los postulantes de una vacante específica. Devuelve nombre, estado de la postulación y fecha.",
     input_schema: {
       type: "object",
       properties: {
@@ -101,7 +101,7 @@ const SCHOOL_TOOLS: Anthropic.Tool[] = [
   },
   {
     name: "get_student_profile",
-    description: "Obtiene el perfil completo de un estudiante del colegio: datos personales, habilidades, historial académico y postulaciones.",
+    description: "Obtiene el perfil permitido de un estudiante del colegio: especialidad, progreso, habilidades, historial académico y postulaciones. No incluye datos de contacto ni identificadores personales.",
     input_schema: {
       type: "object",
       properties: {
@@ -152,7 +152,7 @@ async function runCompanyTool(
 
     const { data, error } = await admin
       .from("job_applications")
-      .select("id, status, created_at, profiles!job_applications_applicant_id_fkey(name, specialty)")
+      .select("id, applicant_id, status, created_at")
       .eq("job_id", jobId)
       .order("created_at", { ascending: false })
       .limit(100);
@@ -176,7 +176,7 @@ async function runCompanyTool(
 
     const { data, error } = await admin
       .from("profiles")
-      .select("name, email, specialty, title, xp, level, availability, bio, location, reputation_score")
+      .select("specialty, title, xp, level, availability, bio, location, reputation_score")
       .eq("id", applicantId)
       .single();
     if (error || !data) return "Perfil no encontrado.";
@@ -231,13 +231,35 @@ async function runSchoolTool(
 ): Promise<string> {
   const admin = createAdminClient();
 
+  // The service client is used only after the authenticated school profile is
+  // mapped to an active school membership. This keeps the roster fail-closed
+  // without granting API roles direct access to private profile columns.
+  const { data: school } = await admin
+    .from("schools")
+    .select("id")
+    .eq("profile_id", schoolId)
+    .eq("status", "active")
+    .maybeSingle();
+  if (!school) return "No se pudo verificar el colegio autenticado.";
+
+  const { data: membership } = await admin
+    .from("school_members")
+    .select("school_id")
+    .eq("school_id", school.id)
+    .eq("profile_id", schoolId)
+    .eq("status", "active")
+    .in("member_role", ["owner", "admin", "teacher", "reviewer"])
+    .maybeSingle();
+  if (!membership) return "No tienes una membresía activa para consultar este roster.";
+
   if (toolName === "list_students") {
     let query = admin
-      .from("profiles")
-      .select("id, name, specialty, class_name, availability, reputation_score, age, gender")
-      .eq("school_id", schoolId)
-      .eq("account_type", "student")
-      .order("name");
+      .from("student_profiles")
+      .select("profile_id, specialty, availability, profiles!inner(account_type, account_status, class_name, reputation_score)")
+      .eq("school_id", school.id)
+      .eq("profiles.account_type", "student")
+      .eq("profiles.account_status", "active")
+      .order("specialty");
 
     if (input.specialty) query = query.eq("specialty", String(input.specialty));
     if (input.available_only) query = query.eq("availability", "Disponible");
@@ -254,11 +276,12 @@ async function runSchoolTool(
 
     // Verify student belongs to this school
     const { data: student, error } = await admin
-      .from("profiles")
-      .select("id, name, email, rut, gender, cellphone, class_name, age, specialty, grade, attendance, availability, xp, level, reputation_score, bio")
-      .eq("id", studentId)
-      .eq("school_id", schoolId)
-      .eq("account_type", "student")
+      .from("student_profiles")
+        .select("profile_id, specialty, availability, profiles!inner(account_type, account_status, class_name, grade, attendance, xp, level, reputation_score, bio)")
+      .eq("profile_id", studentId)
+      .eq("school_id", school.id)
+      .eq("profiles.account_type", "student")
+      .eq("profiles.account_status", "active")
       .single();
 
     if (error || !student) return "Estudiante no encontrado o no pertenece a este colegio.";
@@ -282,8 +305,8 @@ async function runSchoolTool(
   if (toolName === "list_internship_requests") {
     const { data, error } = await admin
       .from("internship_requests")
-      .select("id, title, description, specialty, slots, status, urgent, created_at, profiles!internship_requests_company_id_fkey(name, company_name)")
-      .eq("school_id", schoolId)
+      .select("id, company_id, title, description, specialty, slots, status, urgent, created_at")
+      .eq("school_id", school.id)
       .order("created_at", { ascending: false })
       .limit(50);
     if (error) return `Error al consultar solicitudes: ${error.message}`;
@@ -316,11 +339,11 @@ export async function POST(request: NextRequest) {
   // 2. Load the trusted canonical account type
   const { data: profile, error: profileErr } = await supabase
     .from("profiles")
-    .select("id, account_type, name, company_name, school_name")
+    .select("id, account_type, account_status, name, company_name, school_name")
     .eq("id", user.id)
     .single();
 
-  if (profileErr || !profile) {
+  if (profileErr || !profile || profile.account_status !== "active") {
     return NextResponse.json({ error: "Perfil no encontrado." }, { status: 403 });
   }
 

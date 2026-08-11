@@ -4,6 +4,7 @@ import PageLayout from "@/components/layout/PageLayout";
 import Modal from "@/components/ui/Modal";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
+import { unwrapOwnProfile } from "@/lib/own-profile";
 import { profileEditSchema, THEME_COLORS, type ThemeColor } from "@/lib/schemas";
 import { createStudent, graduateStudent, updateStudentProfile, upsertSchoolReport } from "@/app/actions/school";
 import { updateApplicationStatus, updateInternshipRequest, createInternshipRequest } from "@/app/actions/company";
@@ -64,10 +65,8 @@ interface UserBadge {
 }
 
 interface SchoolProfileData {
-  id: string;
   name: string;
   avatar: string;
-  school_name: string;
   location: string;
 }
 
@@ -213,8 +212,8 @@ export default function ProfilePage() {
   const fetchProfile = useCallback(async () => {
     if (!user?.id) return;
     setLoading(true); setError(null);
-    const { data: ownProfile, error: err } = await supabase.rpc("get_own_profile");
-    const data = (ownProfile as { profile?: Profile } | null)?.profile;
+    const { data: ownProfileRows, error: err } = await supabase.rpc("get_own_profile");
+    const data = unwrapOwnProfile(ownProfileRows as Array<{ profile: Profile }> | null);
     if (err || !data) { setError("No se pudo cargar el perfil."); setLoading(false); return; }
     setProfile(data);
     setLoading(false);
@@ -263,12 +262,7 @@ export default function ProfilePage() {
   const fetchStudents = useCallback(async () => {
     if (!user?.id) return;
     setStudentsLoading(true);
-    const { data } = await supabase
-      .from("profiles")
-      .select("id, name, email, avatar, specialty, grade, attendance, availability, soft_skills")
-      .eq("school_id", user.id)
-      .eq("role", "Estudiante")
-      .order("name");
+    const { data } = await supabase.rpc("get_school_students");
     setDbStudents((data ?? []) as DbStudent[]);
     setStudentsLoading(false);
   }, [user?.id]);
@@ -361,13 +355,9 @@ export default function ProfilePage() {
   }, [user?.id]);
 
   // Fetch the origin school data for a student profile (Aval Institucional)
-  const fetchSchoolProfile = useCallback(async (schoolId: string) => {
-    const { data } = await supabase
-      .from("profiles")
-      .select("id, name, avatar, school_name, location")
-      .eq("id", schoolId)
-      .single();
-    setSchoolProfile((data as SchoolProfileData | null) ?? null);
+  const fetchSchoolProfile = useCallback(async () => {
+    const { data } = await supabase.rpc("get_own_school_profile");
+    setSchoolProfile((data?.[0] as SchoolProfileData | undefined) ?? null);
   }, []);
 
   const fetchInternshipRequests = useCallback(async () => {
@@ -415,7 +405,7 @@ export default function ProfilePage() {
     if (profile.role === "Estudiante" || profile.role === "Egresado") {
       fetchSchoolReport();
       fetchUserSkills();
-      if (profile.school_id) fetchSchoolProfile(profile.school_id);
+      if (profile.school_id) fetchSchoolProfile();
     }
   }, [profile?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -1401,12 +1391,12 @@ export default function ProfilePage() {
                     />
                   ) : (
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-black text-lg shrink-0 shadow-sm">
-                      {(schoolProfile.school_name || schoolProfile.name).charAt(0).toUpperCase()}
+                      schoolProfile.name.charAt(0).toUpperCase()
                     </div>
                   )}
                   <div className="min-w-0">
                     <p className="text-sm font-bold text-slate-800 truncate leading-tight">
-                      {schoolProfile.school_name || schoolProfile.name}
+                        {schoolProfile.name}
                     </p>
                     {profile.specialty && (
                       <p className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1">

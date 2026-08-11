@@ -137,12 +137,7 @@ export default function AdministracionPage() {
   const fetchStudents = useCallback(async () => {
     if (!user?.id) return;
     setStudentsLoading(true);
-    const { data } = await supabase
-      .from("profiles")
-      .select("id, name, email, avatar, specialty, grade, attendance, availability, soft_skills, rut, gender, cellphone, class_name, age")
-      .eq("school_id", user.id)
-      .eq("role", "Estudiante")
-      .order("name");
+    const { data } = await supabase.rpc("get_school_students");
     setDbStudents((data ?? []) as DbStudent[]);
     setStudentsLoading(false);
   }, [user?.id]);

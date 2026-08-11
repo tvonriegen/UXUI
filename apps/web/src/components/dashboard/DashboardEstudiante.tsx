@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { useRole } from "@/lib/role-context";
 import { supabase } from "@/lib/supabase";
+import { unwrapOwnProfile } from "@/lib/own-profile";
 import {
   Star, Trophy, Zap, ArrowRight, BookOpen, Briefcase,
   Bell, MessageSquare, ChevronRight, Clock, Lock, Flame,
@@ -24,7 +25,7 @@ import TechRadarCard         from "@/components/radar/TechRadarCard";
 
 interface DashProfile {
   name: string; avatar: string; level: number; xp: number;
-  streak: number; gpa: number | null; specialty: string;
+  streak: number; specialty: string;
   reputation_score: number;
   attendance: number | null;
   xp_tier: XpTier;
@@ -64,11 +65,7 @@ export default function DashboardEstudiante() {
 
     const load = async () => {
       const [pRes, ubRes, bRes, postsRes] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("name, avatar, level, xp, streak, gpa, specialty, reputation_score, attendance, xp_tier, longest_streak, last_active_date")
-          .eq("id", user.id)
-          .single(),
+        supabase.rpc("get_own_profile"),
         supabase.from("user_badges").select("badge_id, earned_at").eq("user_id", user.id),
         supabase.from("badges").select("id, name, icon, description"),
         supabase
@@ -78,15 +75,17 @@ export default function DashboardEstudiante() {
           .limit(3),
       ]);
 
-      if (pRes.data) {
-        const p = pRes.data as Partial<DashProfile>;
+      const ownProfile = unwrapOwnProfile<Partial<DashProfile>>(
+        pRes.data as { profile: Partial<DashProfile> }[] | null,
+      );
+      if (ownProfile) {
+        const p = ownProfile;
         const next: DashProfile = {
           name:             p.name ?? "",
           avatar:           p.avatar ?? "",
           level:            p.level ?? 1,
           xp:               p.xp ?? 0,
           streak:           p.streak ?? 0,
-          gpa:              p.gpa ?? null,
           specialty:        p.specialty ?? "",
           reputation_score: p.reputation_score ?? 0,
           attendance:       p.attendance ?? null,
@@ -182,7 +181,7 @@ export default function DashboardEstudiante() {
   const displayName  = user?.name ?? profile.name;
 
   const trustData = {
-    academica:   Math.min(100, Math.round((profile.gpa ?? 0) * 10)),
+    academica:   Math.min(100, Math.round(profile.attendance ?? 0)),
     profesional: Math.min(100, Math.round((profile.reputation_score ?? 0) / 5)),
     social:      Math.min(100, earnedBadges.length * 12 + (profile.streak ?? 0) * 2),
   };

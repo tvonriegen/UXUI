@@ -1,71 +1,103 @@
-# Staging Profile Baseline
+# Staging Profile Boundary Baseline
 
-**Estado:** manifiesto operativo `current-runtime` para un staging vacío. No se ha aplicado ni validado en ningún runtime.
+**S1 estado:** `READY FOR REVIEW`
+**S2 estado:** `BLOCKED`
+**Aplicación/validación:** pendientes; este manifiesto no declara ningún runtime aplicado ni validado.
+**Conteo local:** 1 baseline S1, 1 hotfix de perfil y 1 follow-up de grants; 0 ejecuciones remotas declaradas.
 
-## Alcance y referencias
+## Propósito y destino
 
-- Este perfil describe únicamente la provisión de staging sin organizaciones objetivo (`target organizations: none`).
-- **Referencia del runtime actual (MCP):** `uwkigsomnkhwjcfrgdts` — evidencia actual disponible; el rol y la equivalencia operativa no están confirmados.
-- **Referencia histórica de producción / GitHub Supabase Preview:** `eghskwwupruomiactvji` — evidencia histórica; el rol, la procedencia y la equivalencia con staging no están confirmados.
-- Ambas referencias están marcadas **UNCONFIRMED**. No deben interpretarse como credenciales, destinos de despliegue ni autorización para operar sobre esos proyectos.
+S1 es un artefacto local, staging-only y reproducible para validar únicamente el
+límite de perfiles en un staging vacío confirmado. El destino indicado es
+`uwkigsomnkhwjcfrgdts`; producción (`eghskwwupruomiactvji`) queda totalmente
+fuera de alcance. La confirmación del destino no autoriza SQL remoto, uso de
+credenciales, fixtures ni carga de datos.
 
-## Baseline de objetos
+El artefacto es `supabase/staging/profile-runtime-baseline.sql`. No está bajo
+`supabase/migrations` para evitar un `db push` accidental y debe fallar si
+detecta objetos baseline-owned en `public` o `private`.
 
-Los objetos se agrupan en bloques independientes para hacer explícitas las dependencias. El orden de aplicación es obligatorio:
+## Alcance S1
 
-| Bloque | Objetos incluidos | Dependencia operativa |
-| --- | --- | --- |
-| **B0 — Control** | Perfil, inventario de migraciones, convenciones de nombres, extensiones requeridas y registro de versión | Ninguna |
-| **B1 — Identidad y adapters** | Identidad actual como adapters existentes: `profiles`, `account_type/status`, `schools`, `school_members`, `student_profiles`, `company_profiles`, `external_profiles` | B0 |
-| **B2 — Catálogos** | Instituciones, ubicaciones, competencias, tipos de contrato y demás catálogos referenciados | B0, B1 |
-| **B3 — Oportunidades** | La entidad canónica de oportunidad/oferta, estado, metadatos y relaciones de catálogo | B1, B2 |
-| **B4 — Evidencia y postulantes** | Perfiles estudiantiles, evidencias, competencias, validaciones y datos de applicant | B1, B2 |
-| **B5 — Aplicaciones** | Aplicaciones, estados, compatibilidad explicable, preparación y auditoría de cambios | B3, B4 |
-| **B6 — Operación** | Índices, políticas/RLS, triggers, funciones, jobs, vistas y smoke checks de runtime | B0–B5 |
+Incluye solamente las dependencias del límite de perfil:
 
-Aplicar siempre `B0 → B1 → B2 → B3 → B4 → B5 → B6`. No ejecutar bloques posteriores si el bloque previo no tiene evidencia de aceptación.
+- `profiles`, con identidad Auth, columnas usadas por `get_own_profile`, el
+  hotfix y los campos de identidad/estado;
+- `schools`, `school_members`, `student_profiles`, `company_profiles` y
+  `external_profiles`;
+- `skills`, `user_skills`, `skill_validations`, `profile_evidence` y
+  `profile_evidence_events` mínimos para
+  `public_student_profiles`;
+- `auth.uid()` en guards/predicados mínimos, RLS, grants de mínimo privilegio,
+  `public_student_profiles` y sus dependencias. Las vistas públicas usan
+  `security_invoker` y `security_barrier`; los helpers de proyección quedan en
+  `private` y no tienen ejecución para roles API.
 
-`organizations`, `organization_memberships` y `student_enrollments` son entidades objetivo del ADR-004 y quedan fuera de este baseline `current-runtime`; no forman parte de la implementación de B1.
+S1 no crea organizaciones, memberships target, enrollments, backfills, Auth
+users, fixtures ni datos de producción. No abre `SELECT` sensible ni `INSERT`
+de `profiles`. La proyección pública es una allowlist y no contiene email, rut,
+age, cellphone, gender ni `school_id`. La evidencia pública S1 es únicamente el
+agregado booleano `has_verified_evidence`; no publica filas, URLs ni notas. El
+directorio autenticado y el RPC de owner son creados/endurecidos por el hotfix
+secuencial. `profile_evidence.validation_note` y los eventos de auditoría no
+tienen lectura para `authenticated`.
 
-## Conflictos de nomenclatura y mapeo
+Las policies públicas son deliberadamente no circulares: `student_profiles`
+solo evalúa `public_visibility`; únicamente la policy pública de `profiles`
+consulta esa relación para comprobar visibilidad. `student_profiles.school_id`
+no se concede a `authenticated`, aunque se conserva como adapter interno para
+los paths escolares del hotfix.
 
-Antes de aplicar cualquier migración debe existir un mapeo aprobado y versionado para estos conflictos:
+## Orden obligatorio
 
-1. **`job_postings` vs `opportunities`:** seleccionar una única entidad canónica de staging y documentar cualquier alias, vista de compatibilidad o transformación. No duplicar ambas tablas por inferencia.
-2. **`student_id` vs `applicant_id`:** definir si `applicant_id` referencia al perfil de usuario, al perfil estudiantil o a una entidad de postulante independiente; declarar las cardinalidades y las restricciones resultantes.
-3. **`job_id` vs `opportunity_id`:** establecer la columna canónica y una política explícita de compatibilidad para datos, APIs, índices, FKs y nombres de eventos.
+Aplicar en un staging vacío, después de revisión explícita:
 
-Mientras esos tres puntos no estén resueltos, **B3–B5 quedan bloqueados**.
+1. `supabase/staging/profile-runtime-baseline.sql` (S1).
+2. `supabase/migrations/20260810000001_harden_authenticated_profiles.sql` (hotfix;
+   reemplaza las policies de evidence y recrea el guard de actualización).
+3. `supabase/staging/profile-boundary-grants-followup.sql` (follow-up forward-only;
+   corrige grants observados, reafirma policies/grants scoped de evidence y añade
+   únicamente índices FK mínimos).
+4. Crear usuarios Auth y cargar fixtures sintéticos **fuera de estos SQL**, solo
+   para la verificación autorizada.
+5. Ejecutar `npm run verify:runtime-profile-boundary` con las variables de
+   fixtures sintéticos.
 
-## Migraciones y estrategia de provisión
+El paso 2 depende de que S1 ya exista: conserva las policies de actualización,
+reemplaza `school_can_manage_student`, crea `get_own_profile`, aplica grants
+allowlist y crea `authenticated_profile_directory` y
+`company_profile_directory` sin exponer campos sensibles.
 
-- Las migraciones legacy se consideran **no replayables** hasta demostrar lo contrario. No se deben reproducir automáticamente sobre el staging vacío.
-- La línea base debe construirse con una secuencia nueva, forward-only, idempotente donde sea posible y con referencias explícitas a la versión de origen.
-- No se asume que el historial de producción ni el Preview histórico sea aplicable al runtime actual. La evidencia debe separarse entre estructura observada, intención histórica y comportamiento validado.
-- Las semillas de organizaciones, vacantes, usuarios o aplicaciones están fuera de alcance: staging comienza vacío respecto de organizaciones objetivo.
+El paso 3 es obligatorio después de observar grants residuales en el staging
+aplicado. Es staging-only y no debe copiarse a `supabase/migrations`, producción,
+S2 ni fixtures; este repositorio no lo aplica remotamente desde el agente.
 
-## Rollback y reprovisionamiento
+## S2 bloqueado
 
-- La estrategia normal es **forward-only**: corregir mediante una migración posterior, sin editar ni reordenar migraciones ya registradas.
-- No se promete rollback lógico de cambios de esquema salvo que una migración lo defina y pruebe expresamente.
-- Para un staging vacío, el rollback operativo preferido es destruir y reprovisionar el entorno desde la línea base aprobada, preservando únicamente artefactos de diagnóstico autorizados.
-- No aplicar esta estrategia a producción ni a un entorno con datos no reproducibles sin un plan independiente de respaldo y restauración.
+S2 no forma parte de este artefacto y permanece **`BLOCKED`**. Incluye el
+runtime de `job_postings`, `opportunities`, `applications`, `proposals`,
+`contact_requests`, `conversations`, `messages` y feed. Se bloquea hasta resolver
+los conflictos de alias y ownership (`job_postings`/`opportunities`,
+`student_id`/`applicant_id`, `job_id`/`opportunity_id`) y revisar sus adapters.
+No se debe provisionar S2 como dependencia indirecta de S1.
 
-## Criterios de aceptación
+El baseline histórico B0–B6 fue **descartado/no aplicable**: intentaba
+provisionar runtime incompatible de aplicaciones, conversaciones, evidence y
+adapters, además de oportunidades/contact/feed. No se debe replayar ni reparar
+ese baseline.
 
-El perfil solo puede pasar a `READY` cuando exista evidencia verificable de que:
+## Guard, rollback y aceptación
 
-- el destino de staging está identificado y su rol confirmado;
-- ambas referencias (`uwkigsomnkhwjcfrgdts` y `eghskwwupruomiactvji`) fueron contrastadas sin asumir equivalencia;
-- el mapeo de los tres conflictos de nombres fue aprobado;
-- el inventario B0–B6 y el orden de dependencias están versionados;
-- las migraciones seleccionadas son replayables o fueron reemplazadas por una secuencia forward-only;
-- RLS, FKs, índices, triggers, funciones y jobs de B6 tienen checks definidos;
-- se ejecutaron smoke checks autenticados sobre el runtime de staging y se registraron resultados;
-- se confirmó que no se cargaron organizaciones objetivo ni datos de producción.
+El guard S1 es exhaustivo para el espacio que administra: requiere `public` y
+`private` sin tablas, vistas, secuencias, rutinas, tipos ni objetos equivalentes.
+No inspecciona `auth` ni crea usuarios. Si hay drift, se detiene antes de crear
+objetos.
 
-## Bloqueo previo a la aplicación
+El rollback operativo es destruir y reprovisionar el staging descartable desde
+el artefacto aprobado. No hay `DROP`/repair sobre producción ni rollback lógico
+prometido para un entorno con datos.
 
-**Bloqueado (`NOT READY`).** No aplicar migraciones, semillas ni jobs hasta resolver los criterios anteriores y obtener una revisión explícita del perfil. En particular, este documento no autoriza SQL remoto, operaciones sobre producción, uso de credenciales ni promoción de artefactos.
-
-**Última declaración:** este manifiesto no constituye evidencia de aplicación ni de validación de runtime; ambas permanecen pendientes.
+`READY FOR REVIEW` significa que el diseño y el SQL están listos para revisión;
+no significa aplicado, smoke-tested ni runtime validado. La promoción requiere
+revisión del orden, aplicación controlada en el staging vacío y evidencia del
+verificador, sin mezclar S2.

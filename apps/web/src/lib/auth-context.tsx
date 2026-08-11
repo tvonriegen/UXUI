@@ -23,6 +23,7 @@ import React, {
 import { supabase } from "./supabase";
 import type { AccountType, Role, StudentStage } from "./types";
 import { resolveAuthRole } from "./auth-role";
+import { unwrapOwnProfile } from "./own-profile";
 
 // ── Shapes ────────────────────────────────────────────────
 
@@ -46,6 +47,17 @@ interface AuthContextValue {
   logout:   () => Promise<void>;
 }
 
+interface OwnProfile {
+  id: string;
+  name: string;
+  email?: string | null;
+  avatar?: string | null;
+  account_type: AccountType;
+  account_status: AuthUser["accountStatus"];
+  availability?: string | null;
+  student_stage?: StudentStage | null;
+}
+
 // ── Context ───────────────────────────────────────────────
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -61,20 +73,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * and store it in React state.
    */
   const loadProfile = useCallback(async (supabaseUserId: string) => {
-    const [{ data }, { data: studentProfile }, { data: { session } }] = await Promise.all([
+    const [{ data: ownProfileRows }, { data: { session } }] = await Promise.all([
       supabase.rpc("get_own_profile"),
-      supabase.from("student_profiles").select("student_stage").eq("profile_id", supabaseUserId).maybeSingle(),
       supabase.auth.getSession(),
     ]);
 
-    const ownProfile = (data as { profile?: typeof data } | null)?.profile ?? data;
+    const ownProfile = unwrapOwnProfile(ownProfileRows as Array<{ profile: OwnProfile }> | null);
     if (ownProfile && (ownProfile.account_type === "student" || ownProfile.account_type === "company" || ownProfile.account_type === "school" || ownProfile.account_type === "external")) {
-      const role = resolveAuthRole(ownProfile.account_type, studentProfile?.student_stage);
+      const role = resolveAuthRole(ownProfile.account_type, ownProfile.student_stage);
       const studentStage = ownProfile.account_type !== "student"
         ? null
-        : studentProfile?.student_stage === "graduated"
+        : ownProfile.student_stage === "graduated"
           ? "graduated"
-          : studentProfile?.student_stage === "internship" || ownProfile.availability === "En prácticas" ? "internship" : "enrolled";
+          : ownProfile.student_stage === "internship" || ownProfile.availability === "En prácticas" ? "internship" : "enrolled";
       setUser({
         id:                 ownProfile.id,
         name:               ownProfile.name,

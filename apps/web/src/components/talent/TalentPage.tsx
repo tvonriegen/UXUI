@@ -5,6 +5,7 @@ import { useRole } from "@/lib/role-context";
 import { useAuth } from "@/lib/auth-context";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { unwrapOwnProfile } from "@/lib/own-profile";
 import { TP_SPECIALTIES } from "@/lib/specialties";
 import ContactTalentButton from "@/components/contact-routing/ContactTalentButton";
 import SkillAssessmentActivity from "@/components/talent/SkillAssessmentActivity";
@@ -12,7 +13,7 @@ import TechQuizActivity       from "@/components/talent/TechQuizActivity";
 import CareerMatchActivity    from "@/components/talent/CareerMatchActivity";
 import { useContactTalent } from "@/lib/hooks/useContactTalent";
 import {
-  Search, SlidersHorizontal, MapPin, Award, Star,
+  Search, SlidersHorizontal, MapPin, Star,
   CheckCircle, Clock, XCircle, ChevronDown, X,
   Loader2, Zap, Trophy, Flame, Lock,
   BookOpen, Code, Wrench, Lightbulb, Target, Shield, Brain, Compass, Cpu,
@@ -55,7 +56,7 @@ function ActivitiesPlayground() {
       supabase.rpc("get_own_profile"),
       supabase.from("user_badges").select("badge_id").eq("user_id", user.id),
     ]).then(([pRes, bRes]) => {
-      const ownProfile = (pRes.data as { profile?: { xp?: number; level?: number; streak?: number } } | null)?.profile;
+      const ownProfile = unwrapOwnProfile(pRes.data as Array<{ profile: { xp?: number; level?: number; streak?: number } }> | null);
       if (ownProfile) {
         setProfile({
           xp:     ownProfile.xp     ?? 0,
@@ -350,7 +351,6 @@ const AVAILABILITY_FILTERS = ["Todos", "Disponible", "En prácticas", "No dispon
 const SORT_OPTIONS = [
   { value: "level", label: "Mayor nivel" },
   { value: "name",  label: "Nombre A-Z" },
-  { value: "gpa",   label: "Mayor promedio" },
 ] as const;
 
 const AVAIL_CONFIG: Record<string, { color: string; icon: LucideIcon; bg: string }> = {
@@ -362,7 +362,7 @@ const AVAIL_CONFIG: Record<string, { color: string; icon: LucideIcon; bg: string
 interface TalentProfile {
   id: string; name: string; role: string; avatar: string;
   bio: string; location: string; specialty: string; title: string;
-  xp: number; level: number; gpa: number | null; availability: string;
+  xp: number; level: number; availability: string;
   years_experience: number;
 }
 
@@ -404,7 +404,7 @@ export default function TalentPage() {
     const buildQuery = () => {
       let query = supabase
         .from("authenticated_profile_directory")
-        .select("id,name,role,avatar,bio,location,specialty,title,xp,level,gpa,availability,years_experience", { count: "exact" })
+        .select("id,name,role,avatar,bio,location,specialty,title,xp,level,availability,years_experience", { count: "exact" })
         .in("role", ["Estudiante", "Egresado"])
         .range(pageNum * PAGE_SIZE, (pageNum + 1) * PAGE_SIZE - 1);
 
@@ -421,7 +421,6 @@ export default function TalentPage() {
       switch (sortBy) {
         case "level": query = query.order("level", { ascending: false }); break;
         case "name":  query = query.order("name", { ascending: true }); break;
-        case "gpa":   query = query.order("gpa", { ascending: false, nullsFirst: false }); break;
       }
       return query;
     };
@@ -612,7 +611,6 @@ export default function TalentPage() {
                       <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
                         {t.location && <span className="flex items-center gap-1"><MapPin size={11} />{t.location}</span>}
                         <span className="flex items-center gap-1"><Star size={11} />Niv. {t.level}</span>
-                        {t.gpa && <span className="flex items-center gap-1"><Award size={11} />{t.gpa.toFixed(1)}</span>}
                       </div>
                     </div>
                   </div>
@@ -623,7 +621,6 @@ export default function TalentPage() {
                       <div className="flex flex-wrap gap-2 text-xs">
                         {t.specialty && <span className="bg-sky-50 text-sky-700 px-2.5 py-1 rounded-lg font-semibold">{t.specialty}</span>}
                         {t.years_experience > 0 && <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg">{t.years_experience} {t.years_experience === 1 ? "año exp." : "años exp."}</span>}
-                        {t.gpa && <span className="bg-amber-50 text-amber-700 px-2.5 py-1 rounded-lg font-semibold">Promedio {t.gpa.toFixed(1)}</span>}
                       </div>
                     </div>
                   )}

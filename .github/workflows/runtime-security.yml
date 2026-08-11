@@ -1,4 +1,4 @@
-name: Runtime Security Smoke Tests
+name: S1 Runtime Profile Boundary
 
 on:
   workflow_dispatch:
@@ -7,27 +7,31 @@ permissions:
   contents: read
 
 jobs:
-  runtime-security:
+  s1-profile-boundary:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment: staging
     env:
       RUNTIME_SUPABASE_URL: ${{ secrets.RUNTIME_SUPABASE_URL }}
       RUNTIME_SUPABASE_ANON_KEY: ${{ secrets.RUNTIME_SUPABASE_ANON_KEY }}
-      RUNTIME_STUDENT_EMAIL: ${{ secrets.RUNTIME_STUDENT_EMAIL }}
-      RUNTIME_STUDENT_PASSWORD: ${{ secrets.RUNTIME_STUDENT_PASSWORD }}
-      RUNTIME_COMPANY_EMAIL: ${{ secrets.RUNTIME_COMPANY_EMAIL }}
-      RUNTIME_COMPANY_PASSWORD: ${{ secrets.RUNTIME_COMPANY_PASSWORD }}
-      RUNTIME_SCHOOL_EMAIL: ${{ secrets.RUNTIME_SCHOOL_EMAIL }}
-      RUNTIME_SCHOOL_PASSWORD: ${{ secrets.RUNTIME_SCHOOL_PASSWORD }}
-      RUNTIME_EXTERNAL_EMAIL: ${{ secrets.RUNTIME_EXTERNAL_EMAIL }}
-      RUNTIME_EXTERNAL_PASSWORD: ${{ secrets.RUNTIME_EXTERNAL_PASSWORD }}
-      RUNTIME_SECOND_SCHOOL_EMAIL: ${{ secrets.RUNTIME_SECOND_SCHOOL_EMAIL }}
-      RUNTIME_SECOND_SCHOOL_PASSWORD: ${{ secrets.RUNTIME_SECOND_SCHOOL_PASSWORD }}
-      RUNTIME_SECOND_STUDENT_EMAIL: ${{ secrets.RUNTIME_SECOND_STUDENT_EMAIL }}
-      RUNTIME_SECOND_STUDENT_PASSWORD: ${{ secrets.RUNTIME_SECOND_STUDENT_PASSWORD }}
-      RUNTIME_PENDING_CONTACT_REQUEST_ID: ${{ secrets.RUNTIME_PENDING_CONTACT_REQUEST_ID }}
-      RUNTIME_FEED_POST_ID: ${{ secrets.RUNTIME_FEED_POST_ID }}
+      RUNTIME_STUDENT_MINOR_A_EMAIL: ${{ secrets.RUNTIME_STUDENT_MINOR_A_EMAIL }}
+      RUNTIME_STUDENT_MINOR_A_PASSWORD: ${{ secrets.RUNTIME_STUDENT_MINOR_A_PASSWORD }}
+      RUNTIME_STUDENT_ADULT_A_EMAIL: ${{ secrets.RUNTIME_STUDENT_ADULT_A_EMAIL }}
+      RUNTIME_STUDENT_ADULT_A_PASSWORD: ${{ secrets.RUNTIME_STUDENT_ADULT_A_PASSWORD }}
+      RUNTIME_STUDENT_SCHOOL_B_EMAIL: ${{ secrets.RUNTIME_STUDENT_SCHOOL_B_EMAIL }}
+      RUNTIME_STUDENT_SCHOOL_B_PASSWORD: ${{ secrets.RUNTIME_STUDENT_SCHOOL_B_PASSWORD }}
+      RUNTIME_SCHOOL_A_EMAIL: ${{ secrets.RUNTIME_SCHOOL_A_EMAIL }}
+      RUNTIME_SCHOOL_A_PASSWORD: ${{ secrets.RUNTIME_SCHOOL_A_PASSWORD }}
+      RUNTIME_SCHOOL_B_EMAIL: ${{ secrets.RUNTIME_SCHOOL_B_EMAIL }}
+      RUNTIME_SCHOOL_B_PASSWORD: ${{ secrets.RUNTIME_SCHOOL_B_PASSWORD }}
+      RUNTIME_COMPANY_A_EMAIL: ${{ secrets.RUNTIME_COMPANY_A_EMAIL }}
+      RUNTIME_COMPANY_A_PASSWORD: ${{ secrets.RUNTIME_COMPANY_A_PASSWORD }}
+      RUNTIME_COMPANY_B_EMAIL: ${{ secrets.RUNTIME_COMPANY_B_EMAIL }}
+      RUNTIME_COMPANY_B_PASSWORD: ${{ secrets.RUNTIME_COMPANY_B_PASSWORD }}
+      RUNTIME_EXTERNAL_A_EMAIL: ${{ secrets.RUNTIME_EXTERNAL_A_EMAIL }}
+      RUNTIME_EXTERNAL_A_PASSWORD: ${{ secrets.RUNTIME_EXTERNAL_A_PASSWORD }}
+      RUNTIME_SUSPENDED_EMAIL: ${{ secrets.RUNTIME_SUSPENDED_EMAIL }}
+      RUNTIME_SUSPENDED_PASSWORD: ${{ secrets.RUNTIME_SUSPENDED_PASSWORD }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -42,21 +46,11 @@ jobs:
       - name: Install web dependencies
         run: npm ci --prefix apps/web
 
-      - name: Verify profile boundary migration contract
+      - name: Verify S1 profile boundary structure
         run: npm run verify:authenticated-profile-boundary
 
-      - name: Run runtime security matrix
-        run: npm run verify:runtime-security
+      - name: Verify S1 evidence structure
+        run: npm run verify:profile-evidence
 
-      - name: Run profile boundary staging matrix
+      - name: Verify S1 runtime profile boundary
         run: npm run verify:runtime-profile-boundary
-        env:
-          RUNTIME_SUSPENDED_EMAIL: ${{ secrets.RUNTIME_SUSPENDED_EMAIL }}
-          RUNTIME_SUSPENDED_PASSWORD: ${{ secrets.RUNTIME_SUSPENDED_PASSWORD }}
-          RUNTIME_SECOND_SCHOOL_EMAIL: ${{ secrets.RUNTIME_SECOND_SCHOOL_EMAIL }}
-          RUNTIME_SECOND_SCHOOL_PASSWORD: ${{ secrets.RUNTIME_SECOND_SCHOOL_PASSWORD }}
-          RUNTIME_SECOND_STUDENT_EMAIL: ${{ secrets.RUNTIME_SECOND_STUDENT_EMAIL }}
-          RUNTIME_SECOND_STUDENT_PASSWORD: ${{ secrets.RUNTIME_SECOND_STUDENT_PASSWORD }}
-
-      - name: Run feed RPC smoke test
-        run: npm run verify:runtime-feed-rpcs

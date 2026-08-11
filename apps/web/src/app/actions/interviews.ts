@@ -83,6 +83,17 @@ export async function proposeInterview(args: ProposeArgs) {
     return { error: "Acceso denegado." };
   }
 
+  // S1 deliberately has no third-party student_stage/age/school projection.
+  // Interview mediation remains fail-closed until it is moved behind an
+  // explicitly scoped RPC; do not reintroduce direct profile reads here.
+  return {
+    error: "La mediación de entrevistas no está disponible bajo el límite de perfil S1.",
+    interviewId: "",
+    conversationId: "",
+    requiresSchoolApproval: false,
+  };
+
+  /* Legacy interview implementation intentionally disabled for S1.
   const { data: applicant } = await supabase
     .from("profiles")
     .select("id, account_type, age, school_id")
@@ -199,6 +210,7 @@ export async function proposeInterview(args: ProposeArgs) {
     .in("status", ["pending", "reviewing"]);
 
   return { success: true, interviewId: interview.id, conversationId: convoId, requiresSchoolApproval: false };
+  */
 }
 
 // ── Student: respond to a proposal (accept / decline) ────

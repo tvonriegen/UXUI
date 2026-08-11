@@ -21,7 +21,7 @@ export function ProfileEvidenceReviewPanel({ studentId }: ProfileEvidenceReviewP
     setLoading(true);
     const { data } = await supabase
       .from("profile_evidence")
-      .select("id, evidence_type, title, description, url, issuer, status, validation_note, reviewed_at, created_at")
+      .select("id, evidence_type, title, description, url, issuer, status, reviewed_at, created_at")
       .eq("owner_id", studentId)
       .order("created_at", { ascending: false });
     setItems((data ?? []) as ProfileEvidenceRow[]);

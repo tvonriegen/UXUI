@@ -29,17 +29,17 @@ function makeClient() {
   });
 }
 
-async function signIn(key) {
+async function signIn(key, fixtureKey = key) {
   const client = makeClient();
   const { data, error } = await client.auth.signInWithPassword({
-    email: required(`RUNTIME_${key.toUpperCase()}_EMAIL`),
-    password: required(`RUNTIME_${key.toUpperCase()}_PASSWORD`),
+    email: required(`RUNTIME_${fixtureKey.toUpperCase()}_EMAIL`),
+    password: required(`RUNTIME_${fixtureKey.toUpperCase()}_PASSWORD`),
   });
   if (error || !data.user) throw new Error(`Could not authenticate ${key} fixture`);
 
   const { data: profile, error: profileError } = await client
     .from("profiles")
-    .select("id, account_type, account_status, school_id, age")
+    .select("id, account_type, account_status")
     .eq("id", data.user.id)
     .single();
   if (profileError || !profile) throw new Error(`Could not load ${key} canonical profile`);
@@ -56,10 +56,10 @@ async function expectError(promise, message) {
 async function run() {
   const anonymous = makeClient();
   const [student, company, school, external] = await Promise.all([
-    signIn("student"),
-    signIn("company"),
-    signIn("school"),
-    signIn("external"),
+    signIn("student", "student_adult_a"),
+    signIn("company", "company_a"),
+    signIn("school", "school_a"),
+    signIn("external", "external_a"),
   ]);
 
   const { data: publicStudents, error: publicStudentsError } = await anonymous
@@ -132,10 +132,10 @@ async function run() {
   const { error: externalProposalReadError } = await external.client.from("opportunity_proposals").select("id");
   assert(!externalProposalReadError, "external cannot read proposals for own opportunities");
 
-  const secondSchoolEmail = optional("RUNTIME_SECOND_SCHOOL_EMAIL");
-  const secondSchoolPassword = optional("RUNTIME_SECOND_SCHOOL_PASSWORD");
-  const secondStudentEmail = optional("RUNTIME_SECOND_STUDENT_EMAIL");
-  const secondStudentPassword = optional("RUNTIME_SECOND_STUDENT_PASSWORD");
+  const secondSchoolEmail = required("RUNTIME_SCHOOL_B_EMAIL");
+  const secondSchoolPassword = required("RUNTIME_SCHOOL_B_PASSWORD");
+  const secondStudentEmail = required("RUNTIME_STUDENT_SCHOOL_B_EMAIL");
+  const secondStudentPassword = required("RUNTIME_STUDENT_SCHOOL_B_PASSWORD");
   if (secondSchoolEmail && secondSchoolPassword && secondStudentEmail && secondStudentPassword) {
     const secondSchool = await signInWithCredentials(secondSchoolEmail, secondSchoolPassword, "second school");
     const secondStudent = await signInWithCredentials(secondStudentEmail, secondStudentPassword, "second student");
@@ -164,7 +164,7 @@ async function signInWithCredentials(email, password, label) {
   const client = makeClient();
   const { data, error } = await client.auth.signInWithPassword({ email, password });
   if (error || !data.user) throw new Error(`Could not authenticate ${label} fixture`);
-  const { data: profile, error: profileError } = await client.from("profiles").select("id, account_type, account_status, school_id, age").eq("id", data.user.id).single();
+  const { data: profile, error: profileError } = await client.from("profiles").select("id, account_type, account_status").eq("id", data.user.id).single();
   if (profileError || !profile) throw new Error(`Could not load ${label} profile`);
   return { client, user: data.user, profile };
 }

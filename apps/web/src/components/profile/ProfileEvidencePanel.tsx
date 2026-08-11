@@ -14,7 +14,6 @@ export interface ProfileEvidenceRow {
   url: string;
   issuer: string;
   status: ProfileEvidenceStatus;
-  validation_note: string;
   reviewed_at: string | null;
   created_at: string;
 }
@@ -100,7 +99,7 @@ export function ProfileEvidencePanel({
     setLoading(true);
     const { data } = await supabase
       .from("profile_evidence")
-      .select("id, evidence_type, title, description, url, issuer, status, validation_note, reviewed_at, created_at")
+      .select("id, evidence_type, title, description, url, issuer, status, reviewed_at, created_at")
       .eq("owner_id", profileId)
       .order("created_at", { ascending: false });
     setEvidence((data ?? []) as ProfileEvidenceRow[]);
@@ -222,7 +221,6 @@ export function ProfileEvidencePanel({
                       {item.issuer && <span>{item.issuer}</span>}
                       {item.url && <a href={item.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sky-600 hover:underline"><ExternalLink size={10} /> Ver enlace</a>}
                     </div>
-                    {item.validation_note && <p className="mt-2 rounded-lg bg-rose-50 px-2.5 py-1.5 text-[11px] text-rose-700">{item.validation_note}</p>}
                   </div>
                   <div className="shrink-0">
                     {item.status === "verified" ? <CheckCircle2 size={16} className="text-emerald-500" />

@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "./supabase-server";
+import { unwrapOwnProfile } from "./own-profile";
 import type { AccountType, Role, StudentStage } from "./types";
 
 export type AccountStatus = "active" | "pending" | "suspended" | "disabled";
@@ -52,17 +53,14 @@ export async function getCurrentAccount(): Promise<CurrentAccount | null> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data: ownProfile, error } = await supabase.rpc("get_own_profile");
-  const profile = (ownProfile as { profile?: {
+  const { data: ownProfileRows, error } = await supabase.rpc("get_own_profile");
+  const profile = unwrapOwnProfile(ownProfileRows as Array<{ profile: {
     id: string; email?: string | null; name?: string | null; role?: unknown;
-    account_type?: unknown; account_status?: unknown; availability?: unknown;
-  } } | null)?.profile;
+     account_type?: unknown; account_status?: unknown; availability?: unknown;
+     student_stage?: unknown;
+  } }> | null);
 
   if (error || !profile || !isAccountType(profile.account_type)) return null;
-
-  const { data: studentProfile } = profile.account_type === "student"
-    ? await supabase.from("student_profiles").select("student_stage").eq("profile_id", user.id).maybeSingle()
-    : { data: null };
 
   const accountStatus = isAccountStatus(profile.account_status) ? profile.account_status : "pending";
   return {
@@ -72,7 +70,7 @@ export async function getCurrentAccount(): Promise<CurrentAccount | null> {
     accountType: profile.account_type,
     accountStatus,
     legacyRole: toLegacyRole(profile.account_type, profile.role),
-    studentStage: toStudentStage(profile.account_type, studentProfile?.student_stage, profile.availability),
+    studentStage: toStudentStage(profile.account_type, profile.student_stage, profile.availability),
     dashboardPath: DASHBOARD_PATHS[profile.account_type],
   };
 }

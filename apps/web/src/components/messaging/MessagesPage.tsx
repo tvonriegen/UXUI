@@ -173,12 +173,7 @@ export default function MessagesPage() {
   const fetchStudents = useCallback(async () => {
     if (!user?.id || role !== "Colegio") return;
     setLoadingStudents(true);
-    const { data } = await supabase
-      .from("profiles")
-      .select("id, name, avatar, specialty, class_name")
-      .eq("school_id", user.id)
-      .eq("role", "Estudiante")
-      .order("name");
+    const { data } = await supabase.rpc("get_school_students");
     setStudents((data ?? []) as StudentDirectoryEntry[]);
     setLoadingStudents(false);
   }, [user?.id, role]);

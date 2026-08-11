@@ -39,9 +39,7 @@ export async function submitProfileEvidence(input: {
   }
 
   const { error } = await auth.supabase.from("profile_evidence").insert({
-    owner_id: auth.user.id,
     ...parsed.data,
-    status: "pending",
   });
   return error ? { error: error.message } : { success: true };
 }
