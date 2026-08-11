@@ -52,11 +52,11 @@ export async function getCurrentAccount(): Promise<CurrentAccount | null> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data: profile, error } = await supabase
-    .from("profiles")
-    .select("id, email, name, role, account_type, account_status, availability")
-    .eq("id", user.id)
-    .single();
+  const { data: ownProfile, error } = await supabase.rpc("get_own_profile");
+  const profile = (ownProfile as { profile?: {
+    id: string; email?: string | null; name?: string | null; role?: unknown;
+    account_type?: unknown; account_status?: unknown; availability?: unknown;
+  } } | null)?.profile;
 
   if (error || !profile || !isAccountType(profile.account_type)) return null;
 

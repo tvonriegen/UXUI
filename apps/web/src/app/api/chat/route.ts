@@ -152,7 +152,7 @@ async function runCompanyTool(
 
     const { data, error } = await admin
       .from("job_applications")
-      .select("id, status, created_at, profiles!job_applications_applicant_id_fkey(name, email, specialty)")
+      .select("id, status, created_at, profiles!job_applications_applicant_id_fkey(name, specialty)")
       .eq("job_id", jobId)
       .order("created_at", { ascending: false })
       .limit(100);

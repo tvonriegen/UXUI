@@ -169,17 +169,12 @@ export async function graduateStudent(studentId: string) {
     return { error: "Solo un Colegio puede graduar estudiantes." };
   }
 
-  const { data: studentProfile } = await supabase
-    .from("profiles")
-    .select("school_id, account_type")
-    .eq("id", studentId)
-    .single();
-
-  if (!studentProfile || studentProfile.school_id !== callerProfile.id) {
+  const { data: ownsStudent, error: ownershipError } = await supabase.rpc(
+    "school_can_manage_student",
+    { p_student_id: studentId },
+  );
+  if (ownershipError || ownsStudent !== true) {
     return { error: "Estudiante no pertenece a este centro." };
-  }
-  if (studentProfile.account_type !== "student") {
-    return { error: "Este perfil no es una cuenta de estudiante." };
   }
 
   const admin = createAdminClient();
@@ -328,9 +323,11 @@ async function verifySchoolOwnsStudent(
     .from("profiles").select("account_type, id").eq("id", caller.id).single();
   if (!school || school.account_type !== "school") return { error: "Acceso denegado." };
 
-  const { data: student } = await supabase
-    .from("profiles").select("school_id").eq("id", studentId).single();
-  if (!student || student.school_id !== school.id) return { error: "Estudiante no pertenece a este centro." };
+  const { data: ownsStudent, error: ownershipError } = await supabase.rpc(
+    "school_can_manage_student",
+    { p_student_id: studentId },
+  );
+  if (ownershipError || ownsStudent !== true) return { error: "Estudiante no pertenece a este centro." };
 
   return { schoolId: school.id };
 }
@@ -487,14 +484,13 @@ export async function validateStudentSkill(
     return { error: "Solo un Colegio puede validar habilidades." };
   }
 
-  // Confirm the student belongs to this school
-  const { data: studentProfile } = await supabase
-    .from("profiles")
-    .select("school_id")
-    .eq("id", studentId)
-    .single();
-
-  if (!studentProfile || studentProfile.school_id !== schoolProfile.id) {
+  // Ownership is resolved by a school-scoped boolean RPC. It currently
+  // adapts legacy student_profiles.school_id until enrollment is canonical.
+  const { data: ownsStudent, error: ownershipError } = await supabase.rpc(
+    "school_can_manage_student",
+    { p_student_id: studentId },
+  );
+  if (ownershipError || ownsStudent !== true) {
     return { error: "El estudiante no pertenece a este centro." };
   }
 

@@ -17,6 +17,7 @@ describe("decideContactPath", () => {
 
   it("rejects minor contact without a school", () => {
     expect(decideContactPath({ ...base, talentSchoolId: null })).toEqual({ kind: "missing_school" });
+    expect(decideContactPath({ ...base, talentAge: undefined, talentSchoolId: undefined })).toEqual({ kind: "missing_school" });
   });
 
   it("allows direct company contact with adults and graduates", () => {

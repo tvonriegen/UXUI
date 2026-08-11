@@ -22,8 +22,6 @@ interface CompanyProfile {
   industry: string | null;
   employee_count: string | null;
   website: string | null;
-  email: string;
-  rut: string | null;
   benefits:   string[] | null;
   tech_stack: string[] | null;
 }
@@ -161,10 +159,9 @@ export default function EmpresaProfilePage() {
 
     const [profileRes, jobsRes, followersRes] = await Promise.all([
       supabase
-        .from("profiles")
-        .select("id, name, company_name, bio, avatar, location, industry, employee_count, website, email, rut, benefits, tech_stack")
+        .from("company_profile_directory")
+        .select("id, name, company_name, bio, avatar, location, industry, employee_count, website, benefits, tech_stack")
         .eq("id", id)
-        .eq("role", "Empresa")
         .single(),
       supabase
         .from("job_postings")

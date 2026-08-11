@@ -22,6 +22,7 @@ import React, {
 } from "react";
 import { supabase } from "./supabase";
 import type { AccountType, Role, StudentStage } from "./types";
+import { resolveAuthRole } from "./auth-role";
 
 // ── Shapes ────────────────────────────────────────────────
 
@@ -61,33 +62,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    */
   const loadProfile = useCallback(async (supabaseUserId: string) => {
     const [{ data }, { data: studentProfile }, { data: { session } }] = await Promise.all([
-      supabase.from("profiles").select("id, name, email, role, avatar, account_type, account_status, availability").eq("id", supabaseUserId).single(),
+      supabase.rpc("get_own_profile"),
       supabase.from("student_profiles").select("student_stage").eq("profile_id", supabaseUserId).maybeSingle(),
       supabase.auth.getSession(),
     ]);
 
-    if (data && (data.account_type === "student" || data.account_type === "company" || data.account_type === "school" || data.account_type === "external")) {
-      const role = data.account_type === "company"
-        ? "Empresa"
-        : data.account_type === "school"
-          ? "Colegio"
-          : data.account_type === "external"
-            ? "Externo"
-          : studentProfile?.student_stage === "graduated" ? "Egresado" : "Estudiante";
-      const studentStage = data.account_type !== "student"
+    const ownProfile = (data as { profile?: typeof data } | null)?.profile ?? data;
+    if (ownProfile && (ownProfile.account_type === "student" || ownProfile.account_type === "company" || ownProfile.account_type === "school" || ownProfile.account_type === "external")) {
+      const role = resolveAuthRole(ownProfile.account_type, studentProfile?.student_stage);
+      const studentStage = ownProfile.account_type !== "student"
         ? null
         : studentProfile?.student_stage === "graduated"
           ? "graduated"
-          : studentProfile?.student_stage === "internship" || data.availability === "En prácticas" ? "internship" : "enrolled";
+          : studentProfile?.student_stage === "internship" || ownProfile.availability === "En prácticas" ? "internship" : "enrolled";
       setUser({
-        id:                 data.id,
-        name:               data.name,
-        email:              data.email,
-        role:               role as Role,
-        accountType:        data.account_type,
-        accountStatus:      data.account_status as AuthUser["accountStatus"],
+        id:                 ownProfile.id,
+        name:               ownProfile.name,
+        email:              ownProfile.email ?? session?.user.email ?? "",
+        role,
+        accountType:        ownProfile.account_type,
+        accountStatus:      ownProfile.account_status as AuthUser["accountStatus"],
         studentStage,
-        avatar:             data.avatar ?? "",
+        avatar:             ownProfile.avatar ?? "",
         mustChangePassword: session?.user.app_metadata?.must_change_password === true,
       });
     }

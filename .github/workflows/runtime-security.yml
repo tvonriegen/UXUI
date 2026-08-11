@@ -10,6 +10,7 @@ jobs:
   runtime-security:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    environment: staging
     env:
       RUNTIME_SUPABASE_URL: ${{ secrets.RUNTIME_SUPABASE_URL }}
       RUNTIME_SUPABASE_ANON_KEY: ${{ secrets.RUNTIME_SUPABASE_ANON_KEY }}
@@ -41,8 +42,21 @@ jobs:
       - name: Install web dependencies
         run: npm ci --prefix apps/web
 
+      - name: Verify profile boundary migration contract
+        run: npm run verify:authenticated-profile-boundary
+
       - name: Run runtime security matrix
         run: npm run verify:runtime-security
+
+      - name: Run profile boundary staging matrix
+        run: npm run verify:runtime-profile-boundary
+        env:
+          RUNTIME_SUSPENDED_EMAIL: ${{ secrets.RUNTIME_SUSPENDED_EMAIL }}
+          RUNTIME_SUSPENDED_PASSWORD: ${{ secrets.RUNTIME_SUSPENDED_PASSWORD }}
+          RUNTIME_SECOND_SCHOOL_EMAIL: ${{ secrets.RUNTIME_SECOND_SCHOOL_EMAIL }}
+          RUNTIME_SECOND_SCHOOL_PASSWORD: ${{ secrets.RUNTIME_SECOND_SCHOOL_PASSWORD }}
+          RUNTIME_SECOND_STUDENT_EMAIL: ${{ secrets.RUNTIME_SECOND_STUDENT_EMAIL }}
+          RUNTIME_SECOND_STUDENT_PASSWORD: ${{ secrets.RUNTIME_SECOND_STUDENT_PASSWORD }}
 
       - name: Run feed RPC smoke test
         run: npm run verify:runtime-feed-rpcs

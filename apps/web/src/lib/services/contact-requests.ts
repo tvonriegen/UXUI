@@ -1,24 +1,10 @@
 import type { User } from "@supabase/supabase-js";
-import { decideContactPath } from "@/lib/services/contact-policy";
-import { ensureConversation, type SupabaseRlsClient } from "@/lib/services/conversations";
+import type { SupabaseRlsClient } from "@/lib/services/conversations";
 
 type ContactProfile = {
   id: string;
   account_type: string | null;
 };
-
-type ContactTalentProfile = ContactProfile & {
-  age: number | null;
-  school_id: string | null;
-  student_stage?: string | null;
-};
-
-function legacyRoleForContact(accountType: string | null, studentStage?: string | null) {
-  if (accountType === "company") return "Empresa";
-  if (accountType === "school") return "Colegio";
-  if (accountType === "external") return "Externo";
-  return studentStage === "graduated" ? "Egresado" : "Estudiante";
-}
 
 export type RequestContactWithTalentResult =
   | {
@@ -58,73 +44,15 @@ export async function requestContactWithTalentService(
     .single();
 
   const { data: talent } = await supabase
-    .from("profiles")
-    .select("id, account_type, age, school_id")
+    .from("authenticated_profile_directory")
+    .select("id, account_type, role")
     .eq("id", talentId)
     .single();
 
   if (!caller || !talent) return { error: "Perfil no encontrado." };
 
-  const { data: talentStage } = await supabase
-    .from("student_profiles")
-    .select("student_stage")
-    .eq("profile_id", talentId)
-    .maybeSingle();
-
-  const contactPath = decideContactPath({
-    callerId: user.id,
-    callerRole: legacyRoleForContact((caller as ContactProfile).account_type),
-    talentId,
-    talentRole: legacyRoleForContact((talent as ContactTalentProfile).account_type, talentStage?.student_stage),
-    talentAge: (talent as ContactTalentProfile).age,
-    talentSchoolId: (talent as ContactTalentProfile).school_id,
-  });
-
-  if (contactPath.kind === "self") return { error: "No puedes contactarte a ti mismo." };
-
-  if (contactPath.kind === "missing_school") {
-    return { error: "El perfil requiere mediación escolar, pero no tiene colegio asignado." };
-  }
-
-  if (contactPath.kind === "needs_school_approval") {
-    const { data: existing } = await supabase
-      .from("contact_requests")
-      .select("id, status")
-      .eq("company_id", user.id)
-      .eq("student_id", talentId)
-      .in("status", ["pending", "approved"])
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (existing?.status === "approved") {
-      const conversationId = await ensureConversation(supabase, user.id, talentId);
-      if (!conversationId) return { error: "No se pudo abrir la conversación aprobada." };
-      return { success: true, conversationId, requiresSchoolApproval: false as const };
-    }
-
-    if (existing?.id) {
-      return { success: true, contactRequestId: existing.id as string, requiresSchoolApproval: true as const };
-    }
-
-    const { data: created, error } = await supabase
-      .from("contact_requests")
-      .insert({
-        company_id: user.id,
-        student_id: talentId,
-        school_id: contactPath.schoolId,
-        message,
-      })
-      .select("id")
-      .single();
-
-    if (error || !created) return { error: error?.message ?? "No se pudo crear la solicitud." };
-    return { success: true, contactRequestId: created.id as string, requiresSchoolApproval: true as const };
-  }
-
-  // Preserve the previous server-action behavior: non-mediated paths attempt the
-  // conversation insert and leave allow/deny enforcement to RLS.
-  const conversationId = await ensureConversation(supabase, user.id, talentId);
-  if (!conversationId) return { error: "No se pudo abrir la conversación." };
-  return { success: true, conversationId, requiresSchoolApproval: false as const };
+  // Age and school ownership are intentionally not client-readable. Until the
+  // domain authorization RPC is present in staging, do not guess either value
+  // or create a conversation/contact request on an unverified path.
+  return { error: "El contacto requiere autorización de dominio en staging." };
 }

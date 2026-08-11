@@ -213,13 +213,10 @@ export default function ProfilePage() {
   const fetchProfile = useCallback(async () => {
     if (!user?.id) return;
     setLoading(true); setError(null);
-    const { data, error: err } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
+    const { data: ownProfile, error: err } = await supabase.rpc("get_own_profile");
+    const data = (ownProfile as { profile?: Profile } | null)?.profile;
     if (err || !data) { setError("No se pudo cargar el perfil."); setLoading(false); return; }
-    setProfile(data as Profile);
+    setProfile(data);
     setLoading(false);
   }, [user?.id]);
 

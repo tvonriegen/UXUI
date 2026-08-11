@@ -52,14 +52,15 @@ function ActivitiesPlayground() {
   useEffect(() => {
     if (!user?.id) return;
     Promise.all([
-      supabase.from("profiles").select("xp, level, streak").eq("id", user.id).single(),
+      supabase.rpc("get_own_profile"),
       supabase.from("user_badges").select("badge_id").eq("user_id", user.id),
     ]).then(([pRes, bRes]) => {
-      if (pRes.data) {
+      const ownProfile = (pRes.data as { profile?: { xp?: number; level?: number; streak?: number } } | null)?.profile;
+      if (ownProfile) {
         setProfile({
-          xp:     pRes.data.xp     ?? 0,
-          level:  pRes.data.level  ?? 1,
-          streak: pRes.data.streak ?? 0,
+          xp:     ownProfile.xp     ?? 0,
+          level:  ownProfile.level  ?? 1,
+          streak: ownProfile.streak ?? 0,
           badges: (bRes.data ?? []).length,
         });
       }
@@ -400,29 +401,35 @@ export default function TalentPage() {
     else setLoadingMore(true);
     setError(null);
 
-    let query = supabase
-      .from("profiles")
-      .select("id,name,role,avatar,bio,location,specialty,title,xp,level,gpa,availability,years_experience", { count: "exact" })
-      .in("role", ["Estudiante", "Egresado"])
-      .range(pageNum * PAGE_SIZE, (pageNum + 1) * PAGE_SIZE - 1);
+    const buildQuery = () => {
+      let query = supabase
+        .from("authenticated_profile_directory")
+        .select("id,name,role,avatar,bio,location,specialty,title,xp,level,gpa,availability,years_experience", { count: "exact" })
+        .in("role", ["Estudiante", "Egresado"])
+        .range(pageNum * PAGE_SIZE, (pageNum + 1) * PAGE_SIZE - 1);
 
-    if (specialty !== "Todas") query = query.eq("specialty", specialty);
-    if (roleFilter !== "Todos") query = query.eq("role", roleFilter);
-    if (availability !== "Todos") query = query.eq("availability", availability);
-    const safeSearch = search.trim().replace(/[(),%]/g, " ").slice(0, 80);
-    if (safeSearch) {
-      query = query.or(
-        `name.ilike.%${safeSearch}%,specialty.ilike.%${safeSearch}%,title.ilike.%${safeSearch}%`
-      );
-    }
+      if (specialty !== "Todas") query = query.eq("specialty", specialty);
+      if (roleFilter !== "Todos") query = query.eq("role", roleFilter);
+      if (availability !== "Todos") query = query.eq("availability", availability);
+      const safeSearch = search.trim().replace(/[(),%]/g, " ").slice(0, 80);
+      if (safeSearch) {
+        query = query.or(
+          `name.ilike.%${safeSearch}%,specialty.ilike.%${safeSearch}%,title.ilike.%${safeSearch}%`
+        );
+      }
 
-    switch (sortBy) {
-      case "level": query = query.order("level", { ascending: false }); break;
-      case "name":  query = query.order("name", { ascending: true }); break;
-      case "gpa":   query = query.order("gpa", { ascending: false, nullsFirst: false }); break;
-    }
+      switch (sortBy) {
+        case "level": query = query.order("level", { ascending: false }); break;
+        case "name":  query = query.order("name", { ascending: true }); break;
+        case "gpa":   query = query.order("gpa", { ascending: false, nullsFirst: false }); break;
+      }
+      return query;
+    };
 
-    const { data, error: err, count } = await query;
+    // The directory is a required schema contract. A missing view must fail
+    // closed; falling back to profiles would reopen third-party exposure.
+    const result = await buildQuery();
+    const { data, error: err, count } = result;
     if (err || !data) {
       setError("No se pudo cargar el directorio.");
     } else {
