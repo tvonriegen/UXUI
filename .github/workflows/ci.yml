@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, stabilization/release-readiness]
   pull_request:
 
 permissions:
@@ -22,31 +22,13 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: apps/web/package-lock.json
+          cache-dependency-path: package-lock.json
+
+      - name: Install workspace dependencies
+        run: npm ci
 
       - name: Install web dependencies
         run: npm ci --prefix apps/web
 
-      - name: Run domain verification
-        run: |
-          npm run verify:is-minor
-          npm run verify:contact-policy
-          npm run verify:interviews-privacy-rls
-          npm run verify:explainable-match
-          npm run verify:application-readiness
-          npm run verify:readiness-timeline
-          npm run verify:profile-evidence
-          npm run verify:phase3-security
-          npm run verify:function-grants
-          npm run verify:feed-rpcs
-          npm run verify:identity-access
-          npm run verify:opportunities
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Typecheck
-        run: npm run typecheck
-
-      - name: Production build
-        run: npm run build
+      - name: Run release verification gate
+        run: npm run verify:release
