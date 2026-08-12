@@ -104,6 +104,9 @@ export default function TopNavBar() {
           <Search size={15} className="text-slate-400 shrink-0" />
           <input
             id="global-search"
+            aria-label={accountType === "student"
+              ? "Buscar oportunidades"
+              : accountType === "external" ? "Buscar mis encargos" : "Buscar talento por nombre o especialidad"}
             value={searchQ}
             onChange={(e) => setSearchQ(e.target.value)}
             placeholder={accountType === "student"

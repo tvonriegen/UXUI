@@ -6,25 +6,23 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import {
+  mergeApplicationTimelineEvents,
+  resolveApplicationTimeline,
+  type ApplicationTimelineEvent,
+  type LegacyApplicationProgress,
+} from "@/lib/services/application-timeline";
+import {
   Send, Eye, ClipboardList, ClipboardCheck, Mic, Trophy, XCircle, CheckCircle2, Clock, Loader2,
 } from "lucide-react";
 
-export type AtsEventType =
-  | "readiness_checked" | "applied" | "viewed" | "reviewing" | "interviewing"
-  | "accepted" | "rejected" | "hired" | "note";
+export type AtsEventType = ApplicationTimelineEvent["event_type"];
 
 interface TimelineProps {
   applicationId: string;
   compact?:      boolean;
 }
 
-interface EventRow {
-  id:         string;
-  event_type: AtsEventType;
-  created_at: string;
-  note:       string;
-  metadata?:  Record<string, unknown> | null;
-}
+type EventRow = ApplicationTimelineEvent;
 
 // Static classes so Tailwind JIT always includes them
 const STEP_DONE_STYLE: Record<string, string> = {
@@ -73,8 +71,22 @@ export default function ApplicationTimeline({ applicationId, compact = false }: 
         .select("id, event_type, created_at, note")
         .eq("application_id", applicationId)
         .order("created_at", { ascending: true });
+
+      let timelineEvents = (data ?? []) as EventRow[];
+      if (timelineEvents.length === 0) {
+        const { data: legacyApplication } = await supabase
+          .from("job_applications")
+          .select("status, created_at")
+          .eq("id", applicationId)
+          .maybeSingle();
+        timelineEvents = resolveApplicationTimeline(
+          timelineEvents,
+          legacyApplication as LegacyApplicationProgress | null,
+        );
+      }
+
       if (!cancelled) {
-        setEvents((data ?? []) as EventRow[]);
+        setEvents(timelineEvents);
         setLoading(false);
       }
     };
@@ -87,10 +99,10 @@ export default function ApplicationTimeline({ applicationId, compact = false }: 
         schema: "public",
         table:  "application_events",
         filter: `application_id=eq.${applicationId}`,
-      }, (payload) => {
-        const row = payload.new as EventRow;
-        setEvents((prev) => prev.some((e) => e.id === row.id) ? prev : [...prev, row]);
-      })
+       }, (payload) => {
+         const row = payload.new as EventRow;
+         setEvents((prev) => mergeApplicationTimelineEvents(prev, row));
+       })
       .subscribe();
 
     return () => { cancelled = true; supabase.removeChannel(channel); };

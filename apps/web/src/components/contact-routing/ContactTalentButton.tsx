@@ -19,7 +19,7 @@ export default function ContactTalentButton({
   onClick,
 }: ContactTalentButtonProps) {
   const hasContacted = Boolean(contactedState);
-  // Fail closed until the domain contact RPC is available in staging.
+  // Prepared for the server contract, but intentionally disabled until S1 closes.
   const temporarilyUnavailable = !hasContacted;
 
   return (

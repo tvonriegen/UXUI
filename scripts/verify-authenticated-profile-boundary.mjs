@@ -230,7 +230,7 @@ if (publicReviewerDrop === -1 || policyRewrite === -1 || publicReviewerDrop < po
 
 const criticalConsumers = [
   ["apps/web/src/components/talent/TalentPage.tsx", "authenticated_profile_directory"],
-  ["apps/web/src/lib/services/contact-requests.ts", "requiere autorización de dominio en staging"],
+  ["apps/web/src/lib/services/contact-requests.ts", "can_request_student_contact"],
   ["apps/web/src/components/talent/TalentPage.tsx", 'rpc("get_own_profile")'],
   ["apps/web/src/components/dashboard/DashboardEstudiante.tsx", 'rpc("get_own_profile")'],
   ["apps/web/src/components/dashboard/DashboardColegio.tsx", 'rpc("get_school_dashboard")'],

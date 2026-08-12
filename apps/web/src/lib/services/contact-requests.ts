@@ -1,10 +1,4 @@
-import type { User } from "@supabase/supabase-js";
 import type { SupabaseRlsClient } from "@/lib/services/conversations";
-
-type ContactProfile = {
-  id: string;
-  account_type: string | null;
-};
 
 export type RequestContactWithTalentResult =
   | {
@@ -27,32 +21,40 @@ export type RequestContactWithTalentResult =
       requiresSchoolApproval: true;
       error?: undefined;
       conversationId?: undefined;
-    };
+  };
+
+export type ContactAuthorizationDecision = "ALLOW" | "MEDIATED" | "DENY";
+
+type ContactAuthorizationRow = {
+  decision: ContactAuthorizationDecision;
+  contact_request_id: string | null;
+  conversation_id: string | null;
+  school_id: string | null;
+};
+
+export function mapContactAuthorization(row: ContactAuthorizationRow | null): RequestContactWithTalentResult {
+  if (!row || row.decision === "DENY") return { error: "No tienes autorización para contactar este perfil." };
+  if (row.decision === "MEDIATED" && row.contact_request_id) {
+    return { success: true, contactRequestId: row.contact_request_id, requiresSchoolApproval: true };
+  }
+  if (row.decision === "ALLOW" && row.conversation_id) {
+    return { success: true, conversationId: row.conversation_id, requiresSchoolApproval: false };
+  }
+  return { error: "No se pudo resolver la autorización de contacto." };
+}
 
 export async function requestContactWithTalentService(
   supabase: SupabaseRlsClient,
-  user: User,
+  _user: { id: string },
   talentId: string,
   message = "",
 ): Promise<RequestContactWithTalentResult> {
-  if (user.id === talentId) return { error: "No puedes contactarte a ti mismo." };
+  const { data, error } = await supabase.rpc("can_request_student_contact", {
+    p_student_id: talentId,
+    p_message: message,
+  });
 
-  const { data: caller } = await supabase
-    .from("profiles")
-    .select("id, account_type")
-    .eq("id", user.id)
-    .single();
-
-  const { data: talent } = await supabase
-    .from("authenticated_profile_directory")
-    .select("id, account_type, role")
-    .eq("id", talentId)
-    .single();
-
-  if (!caller || !talent) return { error: "Perfil no encontrado." };
-
-  // Age and school ownership are intentionally not client-readable. Until the
-  // domain authorization RPC is present in staging, do not guess either value
-  // or create a conversation/contact request on an unverified path.
-  return { error: "El contacto requiere autorización de dominio en staging." };
+  if (error) return { error: "No se pudo resolver la autorización de contacto." };
+  const row = (Array.isArray(data) ? data[0] : data) as ContactAuthorizationRow | null;
+  return mapContactAuthorization(row);
 }

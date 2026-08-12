@@ -5,6 +5,7 @@
 
 import { cookies } from "next/headers";
 import { createAdminClient, createServerSupabaseClient } from "@/lib/supabase-server";
+import { resolveApplicationTarget } from "@/lib/services/opportunities";
 
 /** Full ATS pipeline status values (mirrors DB constraint) */
 export type AtsStatus =
@@ -56,8 +57,10 @@ async function getCallerCompany(supabase: ReturnType<typeof createServerSupabase
 type AuthorizedApplication = {
   id: string;
   applicant_id: string;
-  job_id: string;
+  job_id: string | null;
+  opportunity_id: string | null;
   job_postings: { company_id: string; title: string; max_candidates: number | null } | null;
+  opportunities: { publisher_id: string; title: string; max_candidates: number | null } | null;
 };
 
 /** Resolve the application and posting under the authenticated caller's authority. */
@@ -69,15 +72,17 @@ async function getAuthorizedApplication(
 ) {
   let query = supabase
     .from("job_applications")
-    .select("id, applicant_id, job_id, job_postings!inner(company_id, title, max_candidates)")
-    .eq("id", applicationId)
-    .eq("job_postings.company_id", companyId);
-  if (jobId) query = query.eq("job_id", jobId);
+    .select("id, applicant_id, job_id, opportunity_id, job_postings(company_id, title, max_candidates), opportunities(publisher_id, title, max_candidates)")
+    .eq("id", applicationId);
 
   const { data } = await query.single();
   const app = data as AuthorizedApplication | null;
-  if (!app || app.job_postings?.company_id !== companyId) return null;
-  return app;
+  const isLegacyOwned = app?.job_postings?.company_id === companyId;
+  const isCanonicalOwned = app?.opportunities?.publisher_id === companyId;
+  const target = app && resolveApplicationTarget(app);
+  if (!app || (!isLegacyOwned && !isCanonicalOwned) || !target) return null;
+  if (jobId && target.id !== jobId) return null;
+  return { ...app, target };
 }
 
 const ATS_STATUSES: readonly AtsStatus[] = [
@@ -115,7 +120,7 @@ export async function updateApplicationStatus(
     .from("job_applications")
     .update({ status: newStatus, updated_at: now })
     .eq("id", applicationId)
-    .eq("job_id", app.job_id)
+    .eq(app.target.column, app.target.id)
     .select("id");
 
   if (updateErr) return { error: updateErr.message };
@@ -153,15 +158,19 @@ export async function updateApplicationStatusSA(
   if (!company) return { error: "Acceso denegado." };
 
   const app = await getAuthorizedApplication(supabase, company.userId, applicationId, jobId);
-  if (!app || !app.job_postings) return { error: "Vacante no encontrada o acceso denegado." };
-  const posting = app.job_postings;
+  if (!app || (!app.job_postings && !app.opportunities)) return { error: "Vacante no encontrada o acceso denegado." };
+  const posting = app.job_postings ?? {
+    company_id: app.opportunities!.publisher_id,
+    title: app.opportunities!.title,
+    max_candidates: app.opportunities!.max_candidates,
+  };
 
   // Enforce max_candidates cap only when accepting
   if (newStatus === "accepted" && posting.max_candidates != null) {
     const { count } = await supabase
       .from("job_applications")
       .select("id", { count: "exact", head: true })
-      .eq("job_id", jobId)
+      .eq(app.target.column, app.target.id)
       .in("status", ["accepted", "hired"]);
 
     if ((count ?? 0) >= posting.max_candidates) {
@@ -177,7 +186,7 @@ export async function updateApplicationStatusSA(
     .from("job_applications")
     .update({ status: newStatus, updated_at: now })
     .eq("id", applicationId)
-    .eq("job_id", jobId)
+    .eq(app.target.column, app.target.id)
     .select("id");
 
   if (error) return { error: error.message };

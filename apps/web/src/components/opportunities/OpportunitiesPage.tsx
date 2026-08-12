@@ -32,8 +32,9 @@ import { useConfirm } from "@/components/ui/ConfirmDialog";
 import { useQuestProgress } from "@/lib/hooks/useQuestProgress";
 import ProposeInterviewModal from "@/components/ats/ProposeInterviewModal";
 import ApplicationTimeline from "@/components/ats/ApplicationTimeline";
-import { mergeOpportunitySources, type LegacyJobPosting } from "@/lib/services/opportunities";
+import { mergeOpportunitySources, resolveApplicationOpportunityId, type LegacyJobPosting } from "@/lib/services/opportunities";
 import type { Opportunity } from "@/lib/types";
+import { createOpportunity } from "@/app/actions/opportunities";
 
 // ── Types ─────────────────────────────────────────────────
 
@@ -46,7 +47,7 @@ interface JobPosting {
 }
 
 interface Applicant {
-  id: string; job_id: string; applicant_id: string;
+  id: string; job_id: string | null; opportunity_id: string | null; applicant_id: string;
   status: AtsStatus;
   priority: number; created_at: string;
   profile?: { id: string; name: string; avatar: string | null; specialty: string | null; };
@@ -223,9 +224,11 @@ export default function EmpleosPage() {
     if (!user?.id || isCompany) return;
     const { data } = await supabase
       .from("job_applications")
-      .select("job_id")
+      .select("job_id, opportunity_id")
       .eq("applicant_id", user.id);
-    setAppliedIds(new Set((data ?? []).map((a: any) => a.job_id)));
+    setAppliedIds(new Set((data ?? [])
+      .map((application: { job_id?: string | null; opportunity_id?: string | null }) => resolveApplicationOpportunityId(application))
+      .filter((id): id is string => Boolean(id))));
   }, [user?.id, isCompany]);
 
   const fetchMyFollows = useCallback(async () => {
@@ -354,8 +357,8 @@ export default function EmpleosPage() {
 
     const { data } = await supabase
       .from("job_applications")
-      .select("id, job_id, applicant_id, status, created_at, profiles!job_applications_student_id_fkey(id, name, avatar, specialty)")
-      .eq("job_id", jobId)
+      .select("id, job_id, opportunity_id, applicant_id, status, created_at, profiles!job_applications_student_id_fkey(id, name, avatar, specialty)")
+      .or(`job_id.eq.${jobId},opportunity_id.eq.${jobId}`)
       .order("created_at", { ascending: true });
 
     const raw = data ?? [];
@@ -395,7 +398,8 @@ export default function EmpleosPage() {
 
       return {
         id:           r.id,
-        job_id:       r.job_id,
+        job_id:       r.job_id ?? null,
+        opportunity_id: r.opportunity_id ?? null,
         applicant_id: r.applicant_id,
         status:       (["pending", "reviewing", "interviewing", "accepted", "rejected", "hired"].includes(r.status)
           ? r.status : "pending") as AtsStatus,
@@ -464,10 +468,26 @@ export default function EmpleosPage() {
         .eq("company_id", user.id);
       if (err) { setSaveError(err.message); setSaving(false); return; }
     } else {
-      const { error: err } = await supabase
-        .from("job_postings")
-        .insert({ title: fTitle, description: fDesc, location: fLocation, type: fType, specialty: fSpecialty, company_id: user.id, active: true, max_candidates: maxCand });
-      if (err) { setSaveError(err.message); setSaving(false); return; }
+      const canonicalResult = await createOpportunity({
+        opportunityType: fType === "pasantia" ? "internship" : "job",
+        title: fTitle,
+        description: fDesc,
+        specialty: fSpecialty,
+        location: fLocation || "Remoto",
+        maxCandidates: maxCand ?? undefined,
+      });
+      if (canonicalResult.error) {
+        setSaveError(canonicalResult.error);
+        setSaving(false);
+        return;
+      }
+
+      await fetchJobs();
+      await fetchCompanyStats();
+      setCreateOpen(false);
+      setSaving(false);
+      return;
+
     }
 
     await fetchJobs();

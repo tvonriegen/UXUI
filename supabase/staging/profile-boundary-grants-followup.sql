@@ -26,7 +26,8 @@ REVOKE ALL ON public.company_profiles, public.external_profiles,
 REVOKE ALL ON public.profiles FROM anon, authenticated;
 GRANT SELECT (
   id, name, avatar, bio, location, specialty, title, availability,
-  role, account_type, account_status
+  role, account_type, account_status, company_name, industry, employee_count,
+  website, benefits, tech_stack
 ) ON public.profiles TO anon;
 GRANT SELECT (
   id, name, role, avatar, bio, location, specialty, title, xp, level, streak,
@@ -38,6 +39,15 @@ GRANT UPDATE (
   name, bio, location, specialty, title, availability, website, industry,
   avatar, banner_url, theme_color, soft_skills, benefits, tech_stack, updated_at
 ) ON public.profiles TO authenticated;
+
+-- Keep the company directory an explicit public projection. The invoker view
+-- also needs its predicate columns on the base table, but no other profile
+-- columns are exposed to anon.
+REVOKE ALL ON public.company_profile_directory FROM PUBLIC, anon;
+GRANT SELECT (
+  id, name, company_name, bio, avatar, location, industry, employee_count,
+  website, benefits, tech_stack
+) ON public.company_profile_directory TO anon;
 
 -- Evidence remains owner/reviewer scoped. These ALTER POLICY statements
 -- reaffirm the already-created S1 policies without widening their rows.
