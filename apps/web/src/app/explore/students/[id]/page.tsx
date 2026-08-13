@@ -20,11 +20,11 @@ export default async function PublicStudentProfilePage({ params }: Props) {
   return (
     <PublicShell>
       <section className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-        <Link href="/explore/students" className="text-sm font-bold text-sky-600 hover:text-sky-700">Volver a estudiantes</Link>
+        <Link href="/explore/students" className="text-sm font-bold text-sky-700 hover:text-sky-800">Volver a estudiantes</Link>
         <article className="mt-8 rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm sm:p-10">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
             {student.avatar ? <img src={student.avatar} alt="" className="h-24 w-24 rounded-2xl object-cover" /> : <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-sky-50 text-3xl font-black text-sky-500">{student.name.charAt(0).toUpperCase()}</div>}
-            <div><p className="text-sm font-bold uppercase tracking-[0.2em] text-sky-600">Perfil público</p><h1 className="mt-2 text-4xl font-black tracking-tight">{student.name}</h1><p className="mt-2 font-semibold text-slate-500">{student.specialty || "Especialidad por definir"}</p></div>
+            <div><p className="text-sm font-bold uppercase tracking-[0.2em] text-sky-700">Perfil público</p><h1 className="mt-2 text-4xl font-black tracking-tight">{student.name}</h1><p className="mt-2 font-semibold text-slate-500">{student.specialty || "Especialidad por definir"}</p></div>
           </div>
           <p className="mt-10 text-lg leading-8 text-slate-600">{student.bio || "Este estudiante aún está completando su biografía."}</p>
           <div className="mt-8 flex flex-wrap gap-2 text-sm">

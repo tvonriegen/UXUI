@@ -52,9 +52,9 @@ export default function PublicShell({
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-6 text-xs text-slate-600 sm:px-6 lg:px-8">
           <span>TalentHub © 2026</span>
           <div className="flex flex-wrap gap-4">
-            <Link href="/privacy" className="transition-colors hover:text-sky-600">Privacidad</Link>
-            <Link href="/terms" className="transition-colors hover:text-sky-600">Términos</Link>
-            <Link href="/how-it-works" className="transition-colors hover:text-sky-600">Cómo funciona</Link>
+            <Link href="/privacy" className="transition-colors hover:text-sky-700">Privacidad</Link>
+            <Link href="/terms" className="transition-colors hover:text-sky-700">Términos</Link>
+            <Link href="/how-it-works" className="transition-colors hover:text-sky-700">Cómo funciona</Link>
           </div>
         </div>
       </footer>

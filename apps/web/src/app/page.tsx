@@ -15,7 +15,7 @@ export default async function HomePage() {
       <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
         <div className="grid gap-10 lg:grid-cols-[1.1fr_.9fr] lg:items-center">
           <div className="animate-fade-in-up">
-            <p className="mb-5 text-sm font-bold uppercase tracking-[0.24em] text-sky-600">ImpulsaTec</p>
+            <p className="mb-5 text-sm font-bold uppercase tracking-[0.24em] text-sky-700">ImpulsaTec</p>
             <h1 className="max-w-3xl text-5xl font-black leading-[0.98] tracking-tight text-slate-900 sm:text-7xl">
               Talento técnico con respaldo real.
             </h1>
@@ -23,7 +23,7 @@ export default async function HomePage() {
               TalentHub conecta estudiantes, colegios, empresas y clientes externos con evidencia verificable y privacidad por diseño.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
-              <Link href="/explore" className="inline-flex items-center gap-2 rounded-xl bg-sky-500 px-5 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-sky-600">
+              <Link href="/explore" className="inline-flex items-center gap-2 rounded-xl bg-sky-700 px-5 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-sky-800">
                 Explorar talento <ArrowRight size={16} />
               </Link>
               <Link href="/how-it-works" className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:border-sky-200 hover:text-sky-700">
@@ -52,7 +52,7 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <div className="relative mt-16 overflow-hidden rounded-2xl bg-gradient-to-br from-sky-500 via-indigo-500 to-sky-700 p-6 text-white shadow-lg shadow-sky-200/60 sm:p-8">
+        <div className="relative mt-16 overflow-hidden rounded-2xl bg-gradient-to-br from-sky-700 via-indigo-700 to-sky-800 p-6 text-white shadow-lg shadow-sky-200/60 sm:p-8">
           <div className="hero-pattern absolute inset-0 opacity-10" aria-hidden="true" />
           <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>

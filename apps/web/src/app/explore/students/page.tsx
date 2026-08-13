@@ -28,9 +28,9 @@ export default async function ExploreStudentsPage() {
   return (
     <PublicShell>
       <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-        <Link href="/explore" className="text-sm font-bold text-sky-600 hover:text-sky-700">Volver a explorar</Link>
+        <Link href="/explore" className="text-sm font-bold text-sky-700 hover:text-sky-800">Volver a explorar</Link>
         <div className="mt-8 animate-fade-in-up">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-sky-600">Talento público</p>
+          <p className="text-sm font-bold uppercase tracking-[0.2em] text-sky-700">Talento público</p>
           <h1 className="mt-3 text-4xl font-black tracking-tight text-slate-900">Estudiantes visibles públicamente</h1>
           <p className="mt-3 text-slate-500">Solo se muestran campos autorizados por cada estudiante.</p>
         </div>
@@ -42,7 +42,7 @@ export default async function ExploreStudentsPage() {
               <Link key={student.id} href={`/explore/students/${student.id}`} className={`rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-sky-200 hover:shadow-md animate-fade-in-up stagger-${Math.min(index + 1, 6)}`}>
                 <div className="flex items-center gap-4">
                   {student.avatar ? <img src={student.avatar} alt="" className="h-14 w-14 rounded-xl object-cover" /> : <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-sky-50 text-lg font-extrabold text-sky-500">{student.name.charAt(0).toUpperCase()}</div>}
-                  <div><h2 className="font-bold text-slate-900">{student.name}</h2><p className="text-sm text-sky-600">{student.specialty || "Especialidad por definir"}</p></div>
+                  <div><h2 className="font-bold text-slate-900">{student.name}</h2><p className="text-sm text-sky-700">{student.specialty || "Especialidad por definir"}</p></div>
                 </div>
                 <p className="mt-5 line-clamp-3 text-sm leading-6 text-slate-500">{student.bio || "Perfil profesional en construcción."}</p>
                 {student.school_name && <p className="mt-4 text-xs font-semibold text-slate-400">{student.school_name}</p>}
