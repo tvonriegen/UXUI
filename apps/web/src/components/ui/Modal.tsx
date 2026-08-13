@@ -45,16 +45,74 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
   // Ref on the overlay div so we can detect clicks that land directly on it
   // (not on the modal card itself) to trigger close-on-backdrop-click.
   const overlayRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
   const titleId = useId();
+
+  onCloseRef.current = onClose;
 
   /**
    * Lock body scroll while the modal is open to prevent the page behind
    * from scrolling. Cleans up on unmount or when `open` becomes false.
    */
   useEffect(() => {
-    if (open) document.body.style.overflow = "hidden";
-    else       document.body.style.overflow = "";
-    return () => { document.body.style.overflow = ""; };
+    if (!open) return;
+
+    const previouslyFocused = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const focusableSelector = [
+      "a[href]",
+      "button:not([disabled])",
+      "input:not([disabled])",
+      "select:not([disabled])",
+      "textarea:not([disabled])",
+      "[tabindex]:not([tabindex='-1'])",
+    ].join(",");
+
+    contentRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+
+      if (event.key !== "Tab" || !contentRef.current) return;
+
+      const focusable = Array.from(
+        contentRef.current.querySelectorAll<HTMLElement>(focusableSelector),
+      ).filter((element) => !element.hasAttribute("hidden") && element.getAttribute("aria-hidden") !== "true");
+
+      if (!focusable.length) {
+        event.preventDefault();
+        contentRef.current.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+
+      if (event.shiftKey && (active === first || active === contentRef.current)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      previouslyFocused?.focus();
+    };
   }, [open]);
 
   // Fully remove from DOM when closed — this also resets child state
@@ -76,11 +134,17 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
       }}
     >
       {/* Modal card */}
-      <div className="modal-content bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+      <div
+        ref={contentRef}
+        tabIndex={-1}
+        className="modal-content bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[90vh] overflow-hidden flex flex-col outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2"
+      >
 
         {/* ── Header ── */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">
-          <h2 id={titleId} className="text-base font-bold text-slate-900">{title}</h2>
+          <h2 id={titleId} className={title ? "text-base font-bold text-slate-900" : "sr-only"}>
+            {title || "Ventana de diálogo"}
+          </h2>
           <button
             onClick={onClose}
             className="p-1.5 hover:bg-slate-100 active:bg-slate-200 rounded-full transition-colors btn-press"
