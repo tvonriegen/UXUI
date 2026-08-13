@@ -292,7 +292,7 @@ export default function MuroPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const maxSize = 50 * 1024 * 1024; // 50 MB for videos, 5 MB for images enforced below
+    const maxSize = 10 * 1024 * 1024; // post-media bucket limit; images remain capped at 5 MB below
     const isVideoFile = file.type.startsWith("video/");
 
     if (!isVideoFile && file.size > 5 * 1024 * 1024) {
@@ -300,7 +300,7 @@ export default function MuroPage() {
       return;
     }
     if (isVideoFile && file.size > maxSize) {
-      setPostError("Los videos deben ser menores a 50MB.");
+      setPostError("Los videos deben ser menores a 10MB.");
       return;
     }
 
