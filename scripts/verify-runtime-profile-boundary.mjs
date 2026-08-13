@@ -119,11 +119,15 @@ async function checkFixtureStatus(label, fixture, expectedType, expectedStatus) 
 
 async function main() {
   const anonymous = client();
-  const [studentMinor, studentAdult, studentSchoolB, schoolA, schoolB, companyA, companyB, externalA, suspended] = await Promise.all([
-    signIn("STUDENT_MINOR_A"), signIn("STUDENT_ADULT_A"), signIn("STUDENT_SCHOOL_B"),
-    signIn("SCHOOL_A"), signIn("SCHOOL_B"), signIn("COMPANY_A"), signIn("COMPANY_B"),
-    signIn("EXTERNAL_A"), signIn("SUSPENDED"),
-  ]);
+  const authenticatedFixtures = [];
+  for (const key of [
+    "STUDENT_MINOR_A", "STUDENT_ADULT_A", "STUDENT_SCHOOL_B",
+    "SCHOOL_A", "SCHOOL_B", "COMPANY_A", "COMPANY_B",
+    "EXTERNAL_A", "SUSPENDED",
+  ]) {
+    authenticatedFixtures.push(await signIn(key));
+  }
+  const [studentMinor, studentAdult, studentSchoolB, schoolA, schoolB, companyA, companyB, externalA, suspended] = authenticatedFixtures;
   await Promise.all([
     checkFixtureStatus("StudentMinorA", studentMinor, "student", "active"),
     checkFixtureStatus("StudentAdultA", studentAdult, "student", "active"),

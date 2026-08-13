@@ -1,5 +1,5 @@
-import crypto from "node:crypto";
 import { createRequire } from "node:module";
+import { randomBytes } from "node:crypto";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -18,12 +18,18 @@ if (process.env.GITHUB_ACTIONS === "true") {
 if (process.env.RUNTIME_SUPABASE_STAGING_CONFIRMATION !== "staging-only") {
   throw new Error("Set RUNTIME_SUPABASE_STAGING_CONFIRMATION=staging-only after confirming the disposable staging project");
 }
+const parsedUrl = new URL(url);
+const local = ["localhost", "127.0.0.1", "::1"].includes(parsedUrl.hostname);
+const staging = parsedUrl.hostname.endsWith(".supabase.co") || parsedUrl.hostname.endsWith(".supabase.in");
+if (!local && !staging) throw new Error("fixture provisioning only permits explicit local or Supabase staging URLs");
+if (!local && process.env.RUNTIME_SUPABASE_STAGING_URL !== url) throw new Error("staging provisioning requires an explicit RUNTIME_SUPABASE_STAGING_URL allowlist entry");
+if (/prod|production|uwkigsomnkhwjcfrgdts/i.test(url) || process.env.RUNTIME_SUPABASE_CANARY === "true") throw new Error("refusing production/canary fixture provisioning");
 
 const admin = createClient(url, serviceRoleKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 const marker = "talenthub-s1-profile-boundary";
-const password = () => `S1-${crypto.randomBytes(24).toString("base64url")}`;
+const password = () => `local-${marker}-${randomBytes(18).toString("base64url")}!`;
 
 const fixtures = [
   { key: "STUDENT_MINOR_A", label: "StudentMinorA", type: "student", role: "Estudiante", name: "S1 Student Minor A", age: 16, school: "SCHOOL_A", stage: "enrolled" },
@@ -54,7 +60,7 @@ async function findMarkedUser(email) {
 
 async function ensureAuth(fixture) {
   const email = `${fixture.key.toLowerCase()}+${marker}@staging.invalid`;
-  const generatedPassword = password();
+  const generatedPassword = password(fixture);
   const existing = await findMarkedUser(email);
   const authData = existing
     ? await assertOk(await admin.auth.admin.updateUserById(existing.id, {
@@ -108,12 +114,9 @@ async function main() {
     }
   }
 
-  // SchoolB deliberately exercises the legacy owner relation without a
-  // school_members row. SchoolA retains the membership path.
-  for (const key of ["SCHOOL_A"]) {
+  for (const key of ["SCHOOL_A", "SCHOOL_B"]) {
     await upsert("school_members", { school_id: schools[key].id, profile_id: users[key].userId, member_role: "owner", status: "active" }, "school_id,profile_id", `upsert membership ${users[key].label}`);
   }
-  await assertOk(await admin.from("school_members").delete().eq("school_id", schools.SCHOOL_B.id), "remove SchoolB membership fixture");
   const skill = await upsert("skills", { name: `${marker}-sql`, category: "S1" }, "name", "upsert synthetic skill");
   for (const key of ["STUDENT_MINOR_A", "STUDENT_ADULT_A", "STUDENT_SCHOOL_B"]) {
     await upsert("user_skills", { user_id: users[key].userId, skill_id: skill.id }, "user_id,skill_id", `upsert skill ${users[key].label}`);
@@ -123,7 +126,12 @@ async function main() {
   await ensureEvidence(users.STUDENT_ADULT_A.userId, "pending", `${marker} adult pending`);
   await ensureEvidence(users.STUDENT_SCHOOL_B.userId, "rejected", `${marker} school B rejected`);
 
-  process.stdout.write(`${JSON.stringify({ stagingUrl: url, marker, fixtures: Object.fromEntries(Object.values(users).map((fixture) => [fixture.label, { id: fixture.userId, email: fixture.email, password: fixture.password }])), schools: Object.fromEntries(Object.entries(schools).map(([key, school]) => [key, { id: school.id }])) }, null, 2)}\n`);
+  const output = process.env.RUNTIME_FIXTURES_OUTPUT;
+  const contract = { env: Object.fromEntries(Object.values(users).map((fixture) => [`RUNTIME_${fixture.key}_ID`, fixture.userId])), marker, stagingUrl: url, fixtures: Object.fromEntries(Object.values(users).map((fixture) => [fixture.label, { id: fixture.userId, email: fixture.email, password: fixture.password }])), schools: Object.fromEntries(Object.entries(schools).map(([key, school]) => [key, { id: school.id }])) };
+  if (output) {
+    const { writeFileSync, chmodSync } = await import("node:fs");
+    writeFileSync(output, `${JSON.stringify(contract, null, 2)}\n`, { mode: 0o600 }); chmodSync(output, 0o600);
+  } else throw new Error("RUNTIME_FIXTURES_OUTPUT is required; refusing to print a secret contract");
 }
 
 main().catch((error) => {

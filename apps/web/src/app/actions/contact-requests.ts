@@ -28,12 +28,14 @@ export async function approveContactRequest(contactRequestId: string) {
   const { supabase, user } = await getServerClient();
   if (!user) return { error: "No autenticado." };
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("contact_requests")
     .update({ status: "approved" })
-    .eq("id", contactRequestId);
+    .eq("id", contactRequestId)
+    .select("id");
 
   if (error) return { error: error.message };
+  if (!data || data.length !== 1) return { error: "La solicitud no está disponible para aprobar." };
   revalidatePath("/dashboard");
   return { success: true };
 }
@@ -43,12 +45,14 @@ export async function rejectContactRequest(contactRequestId: string, rejectionRe
   const { supabase, user } = await getServerClient();
   if (!user) return { error: "No autenticado." };
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("contact_requests")
     .update({ status: "rejected", rejection_reason: rejectionReason })
-    .eq("id", contactRequestId);
+    .eq("id", contactRequestId)
+    .select("id");
 
   if (error) return { error: error.message };
+  if (!data || data.length !== 1) return { error: "La solicitud no está disponible para rechazar." };
   revalidatePath("/dashboard");
   return { success: true };
 }
@@ -58,12 +62,14 @@ export async function cancelContactRequest(contactRequestId: string) {
   const { supabase, user } = await getServerClient();
   if (!user) return { error: "No autenticado." };
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("contact_requests")
     .update({ status: "cancelled" })
-    .eq("id", contactRequestId);
+    .eq("id", contactRequestId)
+    .select("id");
 
   if (error) return { error: error.message };
+  if (!data || data.length !== 1) return { error: "La solicitud no está disponible para cancelar." };
   revalidatePath("/talent");
   return { success: true };
 }

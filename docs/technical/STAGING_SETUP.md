@@ -83,6 +83,22 @@ Never store production passwords or the Supabase service role key in these runti
 
 ## Local Execution
 
+The approved full-runtime local bootstrap is a cold two-run gate. Each run
+uses an isolated disposable workspace and removes it in cleanup; it is not run
+as part of the normal lint/typecheck gate because it requires Docker.
+
+```bash
+npm run bootstrap:runtime-full-local
+```
+
+El bootstrap local reserva cooperativamente un bloque alternativo de puertos en
+`127.0.0.1` mediante un lock atómico temporal. Cada ejecución genera su propio
+`config.toml` desechable, reporta únicamente el bloque/puertos asignados y
+libera la reserva al finalizar o recibir una señal. Así puede coexistir con
+otras instalaciones locales de Supabase; no detiene contenedores ajenos ni usa
+operaciones globales de Docker Compose. Si no puede reservar un bloque libre,
+falla de forma cerrada antes de iniciar el workdir.
+
 Run only against the staging project. This is the S1 profile-boundary sequence:
 
 ```bash
