@@ -19,6 +19,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useRef,
 } from "react";
 import { supabase } from "./supabase";
 import type { AccountType, Role, StudentStage } from "./types";
@@ -67,36 +68,62 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user,      setUser]      = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const sessionVersion = useRef(0);
+  const activeSessionId = useRef<string | null>(null);
+  const activeLoad = useRef<{ id: string; version: number; promise: Promise<void> } | null>(null);
 
   /**
    * Fetch the profile row for a given Supabase auth user ID
    * and store it in React state.
    */
   const loadProfile = useCallback(async (supabaseUserId: string) => {
-    const [{ data: ownProfileRows }, { data: { session } }] = await Promise.all([
-      supabase.rpc("get_own_profile"),
-      supabase.auth.getSession(),
-    ]);
+    const version = sessionVersion.current;
+    const existingLoad = activeLoad.current;
+    if (existingLoad?.id === supabaseUserId && existingLoad.version === version) {
+      return existingLoad.promise;
+    }
 
-    const ownProfile = unwrapOwnProfile(ownProfileRows as Array<{ profile: OwnProfile }> | null);
-    if (ownProfile && (ownProfile.account_type === "student" || ownProfile.account_type === "company" || ownProfile.account_type === "school" || ownProfile.account_type === "external")) {
-      const role = resolveAuthRole(ownProfile.account_type, ownProfile.student_stage);
-      const studentStage = ownProfile.account_type !== "student"
+    const promise = (async () => {
+      const [{ data: ownProfileRows, error: profileError }, { data: { session } }] = await Promise.all([
+        supabase.rpc("get_own_profile"),
+        supabase.auth.getSession(),
+      ]);
+
+      // A profile response may finish after logout (or after another account
+      // has logged in). Never let that stale response restore the old user.
+      if (version !== sessionVersion.current || session?.user?.id !== supabaseUserId) return;
+
+      const ownProfile = profileError
         ? null
-        : ownProfile.student_stage === "graduated"
-          ? "graduated"
-          : ownProfile.student_stage === "internship" || ownProfile.availability === "En prácticas" ? "internship" : "enrolled";
-      setUser({
-        id:                 ownProfile.id,
-        name:               ownProfile.name,
-        email:              ownProfile.email ?? session?.user.email ?? "",
-        role,
-        accountType:        ownProfile.account_type,
-        accountStatus:      ownProfile.account_status as AuthUser["accountStatus"],
-        studentStage,
-        avatar:             ownProfile.avatar ?? "",
-        mustChangePassword: session?.user.app_metadata?.must_change_password === true,
-      });
+        : unwrapOwnProfile(ownProfileRows as Array<{ profile: OwnProfile }> | null);
+      if (ownProfile && (ownProfile.account_type === "student" || ownProfile.account_type === "company" || ownProfile.account_type === "school" || ownProfile.account_type === "external")) {
+        const role = resolveAuthRole(ownProfile.account_type, ownProfile.student_stage);
+        const studentStage = ownProfile.account_type !== "student"
+          ? null
+          : ownProfile.student_stage === "graduated"
+            ? "graduated"
+            : ownProfile.student_stage === "internship" || ownProfile.availability === "En prácticas" ? "internship" : "enrolled";
+        setUser({
+          id:                 ownProfile.id,
+          name:               ownProfile.name,
+          email:              ownProfile.email ?? session?.user.email ?? "",
+          role,
+          accountType:        ownProfile.account_type,
+          accountStatus:      ownProfile.account_status as AuthUser["accountStatus"],
+          studentStage,
+          avatar:             ownProfile.avatar ?? "",
+          mustChangePassword: session?.user.app_metadata?.must_change_password === true,
+        });
+      } else {
+        setUser(null);
+      }
+    })();
+
+    activeLoad.current = { id: supabaseUserId, version, promise };
+    try {
+      await promise;
+    } finally {
+      if (activeLoad.current?.promise === promise) activeLoad.current = null;
     }
   }, []);
 
@@ -106,8 +133,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Check for an existing session on first mount
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
+        activeSessionId.current = session.user.id;
         loadProfile(session.user.id).finally(() => setIsLoading(false));
       } else {
+        activeSessionId.current = null;
         setIsLoading(false);
       }
     });
@@ -116,8 +145,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         if (session?.user) {
+          // Bootstrap and auth events can report the same session. The
+          // session ref prevents a second profile request; logout clears it
+          // before a later login can reuse the same auth user id.
+          if (activeSessionId.current === session.user.id) return;
+          activeSessionId.current = session.user.id;
           loadProfile(session.user.id);
         } else {
+          sessionVersion.current += 1;
+          activeSessionId.current = null;
           setUser(null);
         }
       }
@@ -138,8 +174,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const logout = useCallback(async () => {
-    await supabase.auth.signOut();
+    sessionVersion.current += 1;
+    activeSessionId.current = null;
     setUser(null);
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Logout failed", error);
+    }
   }, []);
 
   return (

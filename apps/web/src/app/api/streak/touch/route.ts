@@ -15,9 +15,22 @@ export async function POST() {
   const { success } = rateLimit({ key: `streak:${user.id}`, limit: 10, windowMs: 60_000 });
   if (!success) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
 
-  const admin = createAdminClient();
-  const { data, error } = await admin.rpc("touch_streak", { p_user_id: user.id });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  try {
+    const admin = createAdminClient();
+    const { data, error } = await admin.rpc("touch_streak", { p_user_id: user.id });
+    if (error) {
+      return NextResponse.json(
+        { error: "Streak service is unavailable" },
+        { status: 503 },
+      );
+    }
 
-  return NextResponse.json({ ok: true, streak: data });
+    return NextResponse.json({ ok: true, streak: data });
+  } catch {
+    // Do not expose configuration details or service credentials.
+    return NextResponse.json(
+      { error: "Streak service is unavailable" },
+      { status: 503 },
+    );
+  }
 }

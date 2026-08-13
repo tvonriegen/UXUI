@@ -99,6 +99,11 @@ function CompanyView({ companyId }: { companyId: string }) {
       // Avg reputation score
       supabase.from("profiles").select("reputation_score").in("role", ["Estudiante", "Egresado"]),
     ]).then(([total, backed, sv, spec, rep]) => {
+      if ([total, backed, sv, spec, rep].some((result) => result.error)) {
+        setData(null);
+        setLoading(false);
+        return;
+      }
       const totalN   = total.count ?? 0;
       const backedN  = backed.count ?? 0;
       const svIds    = new Set((sv.data ?? []).map((r: any) => r.student_id));
@@ -234,6 +239,11 @@ function StudentView({ studentId }: { studentId: string }) {
         .eq("viewed_id", studentId)
         .gte("created_at", thirtyDaysAgo),
     ]).then(([me, all, sv, ub, pv]) => {
+      if ([me, all, sv, ub, pv].some((result) => result.error)) {
+        setData(null);
+        setLoading(false);
+        return;
+      }
       const myScore   = (me.data as any)?.reputation_score ?? 0;
       const allScores = (all.data ?? []).map((r: any) => r.reputation_score ?? 0);
       const avgScore  = allScores.length > 0

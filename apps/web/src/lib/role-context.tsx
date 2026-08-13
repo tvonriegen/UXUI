@@ -39,14 +39,17 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!user?.id) { setNotifications([]); return; }
 
-    supabase
+    Promise.resolve(supabase
       .from("notifications")
       .select("id, title, body, read, created_at, type")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(50)
-      .then(({ data }) => {
-        if (!data) return;
+      .then(({ data, error }) => {
+        if (error || !data) {
+          setNotifications([]);
+          return;
+        }
         setNotifications(
           data.map((n) => ({
             id:          n.id,
@@ -58,7 +61,8 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
             type:        n.type,
           }))
         );
-      });
+      }))
+      .catch(() => setNotifications([]));
 
     // Real-time new notifications
     const channel = supabase
@@ -96,11 +100,13 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
   const markRead = useCallback(async (id: string) => {
     setReadIds((prev) => new Set(prev).add(id));
     if (user?.id) {
-      await supabase
+      await Promise.resolve(supabase
         .from("notifications")
         .update({ read: true })
         .eq("id", id)
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .then(() => undefined))
+        .catch(() => undefined);
     }
   }, [user?.id]);
 
@@ -112,10 +118,12 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
       return next;
     });
     if (user?.id) {
-      await supabase
+      await Promise.resolve(supabase
         .from("notifications")
         .update({ read: true })
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .then(() => undefined))
+        .catch(() => undefined);
     }
   }, [notifications, user?.id]);
 

@@ -55,7 +55,11 @@ export default function TopNavBar() {
   }, []);
 
   const handleLogout = async () => {
-    await logout();
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
     router.replace("/login");
   };
 

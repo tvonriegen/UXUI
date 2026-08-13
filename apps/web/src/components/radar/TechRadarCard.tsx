@@ -38,6 +38,15 @@ function isoWeekStart(d = new Date()): string {
   return copy.toISOString().slice(0, 10);
 }
 
+function logRadarFailure(operation: string, error: { code?: string | null } | null) {
+  if (process.env.NODE_ENV !== "production") {
+    console.warn("Tech Radar optional operation failed", {
+      operation,
+      code: error?.code ?? "unknown",
+    });
+  }
+}
+
 export default function TechRadarCard({ userId }: TechRadarCardProps) {
   const { toast } = useToast();
   const [snapshot,   setSnapshot]   = useState<UserRadarSnapshot | null>(null);
@@ -49,7 +58,7 @@ export default function TechRadarCard({ userId }: TechRadarCardProps) {
   const loadSnapshot = useCallback(async () => {
     setLoading(true);
     // First: check for an existing snapshot this week
-    const { data: existing } = await supabase
+    const { data: existing, error: existingError } = await supabase
       .from("user_radar_snapshots")
       .select("specialty, matched_skills, gap_skills, emerging_skills, radar_score, computed_at")
       .eq("user_id", userId)
@@ -69,10 +78,14 @@ export default function TechRadarCard({ userId }: TechRadarCardProps) {
     });
     if (error) {
       // Radar data might be empty (never refreshed); treat as OK, just empty.
+      logRadarFailure("compute_user_radar", error);
       setSnapshot(null);
     } else if (data) {
       setSnapshot(data as UserRadarSnapshot);
     }
+    // Missing radar tables/RPCs are expected in partial staging. A successful
+    // computation is still useful when the snapshot read was unavailable.
+    if (existingError) logRadarFailure("user_radar_snapshots.read", existingError);
     setLoading(false);
   }, [userId, week]);
 
@@ -81,14 +94,21 @@ export default function TechRadarCard({ userId }: TechRadarCardProps) {
   const refresh = useCallback(async () => {
     setRefreshing(true);
     // Step 1: refresh aggregate (idempotent; fine to call from any signed-in user).
-    await supabase.rpc("refresh_tech_radar", { p_week_start: week });
+    const { error: refreshError } = await supabase.rpc("refresh_tech_radar", { p_week_start: week });
+    if (refreshError) {
+      logRadarFailure("refresh_tech_radar", refreshError);
+      setRefreshing(false);
+      toast({ type: "info", title: "Tech Radar no disponible", description: "Esta función se habilitará cuando staging esté completo." });
+      return;
+    }
     // Step 2: recompute the user's personalised snapshot
     const { error } = await supabase.rpc("compute_user_radar", {
       p_user_id:    userId,
       p_week_start: week,
     });
     if (error) {
-      toast({ type: "error", title: "No se pudo actualizar el Radar", description: error.message });
+      logRadarFailure("compute_user_radar.refresh", error);
+      toast({ type: "error", title: "No se pudo actualizar el Radar", description: "Inténtalo de nuevo más tarde." });
     } else {
       await loadSnapshot();
       toast({ type: "success", title: "Tech Radar actualizado", description: "Datos de la semana recomputados." });

@@ -11,7 +11,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import Icon from "@/components/ui/Icon";
 import LevelUpModal from "./LevelUpModal";
-import { Target, CheckCircle2, Loader2, ChevronRight } from "lucide-react";
+import { Target, CheckCircle2, ChevronRight } from "lucide-react";
 
 export interface DailyQuest {
   template_code: string;
@@ -40,6 +40,15 @@ interface DailyQuestsCardProps {
   userId: string;
 }
 
+function logQuestFailure(error: { code?: string | null } | null) {
+  if (process.env.NODE_ENV !== "production") {
+    console.warn("Daily quests optional operation failed", {
+      operation: "get_daily_quests",
+      code: error?.code ?? "unknown",
+    });
+  }
+}
+
 export default function DailyQuestsCard({ userId }: DailyQuestsCardProps) {
   const [quests,  setQuests]  = useState<DailyQuest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,7 +63,11 @@ export default function DailyQuestsCard({ userId }: DailyQuestsCardProps) {
       p_date:    new Date().toISOString().slice(0, 10),
     });
     if (err) {
-      setError(err.message);
+      // The RPC is optional while staging is being bootstrapped. Keep the
+      // card usable instead of surfacing a global data-loading failure.
+      logQuestFailure(err);
+      setQuests([]);
+      setError("No disponible temporalmente.");
     } else if (data) {
       setQuests(data as DailyQuest[]);
     }
@@ -138,7 +151,7 @@ export default function DailyQuestsCard({ userId }: DailyQuestsCardProps) {
 
       {error && (
         <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
-          No se pudieron cargar las misiones: {error}
+          Misiones no disponibles temporalmente. Inténtalo de nuevo más tarde.
         </div>
       )}
 
@@ -215,8 +228,8 @@ export default function DailyQuestsCard({ userId }: DailyQuestsCardProps) {
 
       {!loading && !error && quests.length === 0 && (
         <div className="text-center py-6 text-sm text-slate-400">
-          <Loader2 size={18} className="mx-auto mb-2 animate-spin" />
-          Preparando tus misiones de hoy…
+          <Target size={18} className="mx-auto mb-2" />
+          No hay misiones disponibles por ahora.
         </div>
       )}
 

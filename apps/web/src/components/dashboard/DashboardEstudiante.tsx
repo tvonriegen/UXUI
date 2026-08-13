@@ -75,6 +75,13 @@ export default function DashboardEstudiante() {
           .limit(3),
       ]);
 
+      // Profile is the only required dashboard dependency. The staging
+      // environment may not have the optional gamification/feed tables yet.
+      if (pRes.error) {
+        setLoading(false);
+        return;
+      }
+
       const ownProfile = unwrapOwnProfile<Partial<DashProfile>>(
         pRes.data as { profile: Partial<DashProfile> }[] | null,
       );
@@ -89,7 +96,9 @@ export default function DashboardEstudiante() {
           specialty:        p.specialty ?? "",
           reputation_score: p.reputation_score ?? 0,
           attendance:       p.attendance ?? null,
-          xp_tier:          (p.xp_tier as XpTier) ?? tierFromXp(p.xp ?? 0),
+          xp_tier:          ["Bronce", "Plata", "Oro", "Platino", "Diamante"].includes(p.xp_tier as string)
+            ? p.xp_tier as XpTier
+            : tierFromXp(p.xp ?? 0),
           longest_streak:   p.longest_streak ?? 0,
           last_active_date: p.last_active_date ?? null,
         };
@@ -117,10 +126,10 @@ export default function DashboardEstudiante() {
       }
 
       const earnedMap = new Map(
-        (ubRes.data ?? []).map((r) => [r.badge_id as string, r.earned_at as string | null])
+        (ubRes.error ? [] : ubRes.data ?? []).map((r) => [r.badge_id as string, r.earned_at as string | null])
       );
       setBadges(
-        (bRes.data ?? []).map((b) => ({
+        (bRes.error ? [] : bRes.data ?? []).map((b) => ({
           id: b.id as string,
           name: b.name as string,
           icon: b.icon as string,
@@ -131,7 +140,7 @@ export default function DashboardEstudiante() {
 
       interface PostRow { id: string; title: string; description: string | null; content: string | null; created_at: string | null; profiles: { name: string; avatar: string } | null }
       setPosts(
-        ((postsRes.data ?? []) as unknown as PostRow[]).map((p) => ({
+        ((postsRes.error ? [] : postsRes.data ?? []) as unknown as PostRow[]).map((p) => ({
           id: p.id,
           title: p.title,
           description: p.description ?? "",
@@ -145,7 +154,7 @@ export default function DashboardEstudiante() {
       setLoading(false);
     };
 
-    load();
+    load().catch(() => setLoading(false));
 
     // Refetch profile on xp_events INSERT so level/tier changes trigger celebration
     const channel = supabase

@@ -14,6 +14,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import {
   X, Moon, Sun, Globe, ShieldCheck, Zap, LogOut,
@@ -158,6 +159,7 @@ interface ConfigModalProps {
 }
 
 export default function ConfigModal({ open, onClose }: ConfigModalProps) {
+  const router = useRouter();
   const { user, logout } = useAuth();
   const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
 
@@ -200,7 +202,12 @@ export default function ConfigModal({ open, onClose }: ConfigModalProps) {
 
   const handleLogout = async () => {
     onClose();
-    await logout();
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+    router.replace("/login");
   };
 
   if (!open) return null;
