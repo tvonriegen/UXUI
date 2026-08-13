@@ -182,7 +182,7 @@ export default function LoginPage() {
           <div className="px-8 pb-5 text-center">
             <p className="text-sm text-slate-500">
               ¿No tienes cuenta?{" "}
-              <Link href="/register" className="text-sky-600 font-semibold hover:underline">
+              <Link href="/register" className="text-sky-700 font-semibold hover:underline">
                 Crear cuenta
               </Link>
             </p>
