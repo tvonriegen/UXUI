@@ -7,6 +7,28 @@ async function expectNoAxeViolations(page: Page) {
   expect(violations, violations.map(({ id, help }) => `${id}: ${help}`).join("\n")).toEqual([]);
 }
 
+const publicRoutes = [
+  "/",
+  "/explore",
+  "/explore/students",
+  "/freelance",
+  "/how-it-works",
+  "/privacy",
+  "/terms",
+];
+
+test.describe("public page automated accessibility", () => {
+  test.describe.configure({ mode: "serial" });
+
+  for (const route of publicRoutes) {
+    test(`${route} has no automatically detectable accessibility violations`, async ({ page }) => {
+      await page.goto(route);
+      await expect(page.locator("main")).toBeVisible();
+      await expectNoAxeViolations(page);
+    });
+  }
+});
+
 test.describe("accessibility regression coverage", () => {
   test("critical authentication forms expose accessible names and validation", async ({ page }) => {
     await page.goto("/login");
