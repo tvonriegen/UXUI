@@ -39,7 +39,7 @@ export default function PublicShell({
             <Link href="/login" className="rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900">
               Ingresar
             </Link>
-            <Link href="/register" className="hidden items-center rounded-xl bg-sky-500 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-sky-600 sm:inline-flex">
+            <Link href="/register" className="hidden items-center rounded-xl bg-sky-700 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-sky-800 sm:inline-flex">
               Crear cuenta
             </Link>
           </div>
@@ -49,7 +49,7 @@ export default function PublicShell({
       <main className={contentClassName}>{children}</main>
 
       <footer className="border-t border-slate-200/60 bg-white/60">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-6 text-xs text-slate-400 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-6 text-xs text-slate-600 sm:px-6 lg:px-8">
           <span>TalentHub © 2026</span>
           <div className="flex flex-wrap gap-4">
             <Link href="/privacy" className="transition-colors hover:text-sky-600">Privacidad</Link>
