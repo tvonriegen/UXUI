@@ -1,11 +1,23 @@
 # TalentHub Workflow Status
 
-## Current Branch
+## Current Branch (2026-08-13)
 
-- `stabilization/release-readiness`
-- HEAD: `be3ed9e` (no new commits in this session)
-- Base: `main` / `origin/main` — the branch sits at the same commit as `main`; no new commits, no new migration files, no dependency changes have been added yet.
-- Worktree state: when the docs pass started, the working tree already carried two modified files — `M apps/web/src/test/setup.ts` (the Phase 1 test:release green-baseline fix implemented by the implementer earlier in this same release-readiness mission) and `M docs/workflow/HANDOFF.md` (a pre-existing rewrite from the 2026-08-04 session). The docs pass is documentation-only; no commit and no push are made.
+> **Bloque canónico actual.** Los bloques con fecha anterior (2026-08-05 y previos) se
+> conservan como historial; las afirmaciones de estado de rama que contradigan este
+> bloque quedan superadas. Sólo se ejecutaron comandos git de lectura y `git diff --check`;
+> **no** se ejecutaron lint, typecheck, tests, build, `verify:*`, SQL ni migraciones en
+> esta sesión de documentación.
+
+- Rama: `stabilization/release-readiness`.
+- HEAD: `ef3b428` (`feat: release readiness runtime tooling and contact security gate`) — **ya remoto**, local y `origin/stabilization/release-readiness` sincronizados (0 ahead / 0 behind). La rama tiene **10 commits sobre `main`** (cierre del perfil autenticado, gate Node 22, runtime tooling y gate de contacto, entre otros).
+- Base: `main` / `origin/main` en `be3ed9e`. `main` es ancestro de `HEAD` → promoción por **fast-forward directo** posible (`git merge --ff-only`).
+- Trabajo local sin commitear:
+  - **10 archivos de app (dashboard tolerante / logout):** `src/app/api/streak/touch/route.ts`, `components/dashboard/{DashboardEstudiante,TrustTriangleInsights}.tsx`, `components/gamification/DailyQuestsCard.tsx`, `components/layout/TopNavBar.tsx`, `components/radar/TechRadarCard.tsx`, `components/settings/SettingsPage.tsx`, `components/ui/ConfigModal.tsx`, `lib/auth-context.tsx`, `lib/role-context.tsx` — dashboard que tolera la ausencia de tablas/RPCs opcionales en staging, logout que no revienta si `signOut` falla y guardas anti-respuestas-obsoletas en `auth-context`.
+  - `package.json` — añade `verify:storage-migration`.
+- Nuevos sin trackear: `supabase/migrations/20260813000001_reconcile_storage_buckets.sql`, `scripts/verify-storage-migration.mjs`, `docs/technical/STORAGE_DRIFT_REPAIR.md`.
+- Storage / staging: la reparación de Storage fue **aplicada previamente al proyecto TalentHub Staging** (según `STORAGE_DRIFT_REPAIR.md`); la migración `20260813000001` la versiona. No se ha verificado el estado remoto en esta sesión.
+- **Concern Storage independiente:** mantiene un gate propio de staging y no abre Gate D. `public=true` permite descargas por URL conocida; la validación remota sigue pendiente.
+- Plan pactado (no ejecutado): commits atómicos (Storage; fix dashboard/logout; docs) → verificación local → **promoción directa fast-forward a `main`** y push con autorización explícita → **limpieza posterior** (borrar rama fusionada local/remota y actualizar estos documentos).
 
 ## Current Phase
 
@@ -31,6 +43,8 @@
 
 ## Delivered in this mission (this branch)
 
+- **Release-readiness runtime (commits en rama, `ef3b428` y anteriores, ya remotos):** gate Node 22 canónico (`2a01621`), cierre del perfil autenticado y runtime de staging (`7a907c8`, `3929f19`, `66ad32c`), runtime tooling y gate de seguridad de contacto (`ef3b428`), documentación de contratos y ADR de identidad/organizaciones (`83fccdf`, `2ce38e3`).
+- **Work in progress local (2026-08-13, sin commitear):** 10 archivos de app de dashboard tolerante / logout hardening (ver "Current Branch" arriba) + `package.json`; migración Storage `20260813000001_reconcile_storage_buckets.sql` + `scripts/verify-storage-migration.mjs` + `docs/technical/STORAGE_DRIFT_REPAIR.md` (sin trackear). Reparación de Storage aplicada previamente al proyecto TalentHub Staging y versionada por la migración.
 - **Phase 1 (code change, by the implementer earlier in this mission):** modified `apps/web/src/test/setup.ts` to install a deterministic in-memory `Storage` stub on `window.localStorage` and `globalThis.localStorage` plus a `beforeEach` clear, restoring the three `analytics.test.ts` cases under Node 26 / jsdom. Uncommitted on the branch.
 - **Phase docs (this docs pass, 2026-08-05):** documentation-only refresh of `docs/workflow/STATUS.md`, `docs/workflow/NEXT_ACTIONS.md`, `docs/workflow/SESSION_LOG.md`, `docs/technical/KNOWN_ISSUES.md` and `docs/workflow/HANDOFF.md` to correct obsolete statements and record the Phase 0 / Phase 1 results. The docs pass recognised (without re-applying) the Phase 1 `setup.ts` diff already on disk and re-verified the local baseline (Node 26.2.0, npm 11.13.0): `npm test` **31 / 31 passed twice, 8 test files**, `npm run test:release` OK, `npm run verify:release` OK, `git diff --check` OK.
 
@@ -86,16 +100,20 @@
 - The free staging project is unprovisioned; the security review findings from the previous handoff remain open.
 - The `apps/web` dependency tree reports 20 vulnerabilities (1L/9M/10H); the workspace root reports 0. They were not auto-fixed to avoid unplanned upgrades.
 
-## Next Action
+## Next Action (2026-08-13)
 
-1. **Update the architectural contracts and design the documentary B1 package.** Keep B1 limited to contracts, entities, relationships, conceptual constraints, ownership and authorization matrices, and the audit-only separation. No SQL, Supabase, migration, runtime or implementation work is included.
-2. **Keep B2, C and D blocked.** C remains blocked exclusively by D-OD-1; migrations and implementation remain blocked.
-3. Prepare the documentation commit with only the seven acceptance/versioning files: the two architecture documents and `docs/workflow/{STATUS.md,NEXT_ACTIONS.md,OPEN_QUESTIONS.md,SESSION_LOG.md,DECISION_LOG.md}`. Keep `apps/web/src/test/setup.ts`, `docs/workflow/HANDOFF.md` and `docs/technical/KNOWN_ISSUES.md` out of that commit; publication is outside this task.
-4. Re-run the local static verification chain on top of the commit to confirm the Phase 1 baseline still holds.
-5. Provision the second free Supabase project using `docs/technical/STAGING_SETUP.md` (Gate B2.2; not a Gate B1 / Gate A requirement).
-6. Configure isolated staging fixtures and the canonical `RUNTIME_*` GitHub secrets, then trigger `Runtime Supabase Smoke` and `Runtime Security Smoke Tests` manually (Gate D).
-7. Address the security review findings in priority order: CRITICAL `profiles` SELECT and `updateApplicationStatusSA` first, then HIGH rate limiter + chat guard + `/api/seed` response shape + `contact_requests` double-check, then MEDIUM CORS / service-role / HSTS.
-8. Triage the 20 `apps/web` dependency vulnerabilities in a controlled maintenance change after staging is in place.
+> La lista previa de esta sección (2026-08-05) queda superada por el avance de la rama
+> (10 commits sobre `main`, incluidos el gate Node 22 y el cierre del perfil autenticado).
+> El plan vigente es el siguiente, en este orden:
+
+1. **Commits atómicos** (un concern por commit, `docs/git/COMMIT_CONVENTION.md`):
+   - `feat:`/`test:` — Storage: `supabase/migrations/20260813000001_reconcile_storage_buckets.sql` + `scripts/verify-storage-migration.mjs` + script en `package.json` + `docs/technical/STORAGE_DRIFT_REPAIR.md`.
+   - `fix:` — los 10 archivos de dashboard tolerante / logout (auth-context, role-context, DashboardEstudiante, TrustTriangleInsights, DailyQuestsCard, TechRadarCard, streak/touch, TopNavBar, SettingsPage, ConfigModal).
+   - `docs:` — esta actualización de continuidad (HANDOFF, STATUS, NEXT_ACTIONS, KNOWN_ISSUES).
+2. **Verificación local sobre los commits:** `npm run lint && npm run typecheck && npm test && npm run build && npm run test:release && npm run verify:release && git diff --check`.
+3. **Promoción directa fast-forward a `main`:** `git checkout main && git merge --ff-only stabilization/release-readiness` y push — sólo con autorización explícita.
+4. **Limpieza posterior:** borrar `stabilization/release-readiness` local y remota tras la fusión; actualizar `STATUS.md`, `NEXT_ACTIONS.md` y `KNOWN_ISSUES.md` al estado post-promoción.
+5. Continuar con los pendientes de staging/runtime/seguridad registrados más abajo (provisión del proyecto staging libre, matriz RLS, hallazgos de seguridad §8.1.b del handoff, triage de las 20 vulnerabilidades de `apps/web`).
 
 ## Historical Baseline
 

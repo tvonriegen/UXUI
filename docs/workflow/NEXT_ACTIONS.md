@@ -1,5 +1,25 @@
 # TalentHub Next Actions
 
+## Current State (2026-08-13) — plan de promoción vigente
+
+> **Bloque canónico actual.** Los bloques con fecha anterior se conservan como historial
+> (incluidos los de ADR-004, que siguen siendo válidos como estado de gates de
+> identidad/organizaciones). Este bloque refleja el estado real de la rama y el plan
+> explícito de promoción; sólo se ejecutaron comandos git de lectura y `git diff --check`
+> en esta sesión de documentación (no lint/typecheck/test/build/`verify:*`/SQL/migraciones).
+
+- **Rama:** `stabilization/release-readiness`, HEAD `ef3b428` **ya remoto** (0 ahead / 0 behind con `origin`), **10 commits sobre `main`**. `main` es ancestro de `HEAD` → promoción por **fast-forward directo**.
+- **Trabajo local sin commitear:** 10 archivos de app de dashboard tolerante / logout hardening + `package.json` (script `verify:storage-migration`).
+- **Nuevos sin trackear:** `supabase/migrations/20260813000001_reconcile_storage_buckets.sql`, `scripts/verify-storage-migration.mjs`, `docs/technical/STORAGE_DRIFT_REPAIR.md`.
+- **Storage / staging:** reparación de Storage **aplicada previamente al proyecto TalentHub Staging** y versionada por `20260813000001` (forward-only, idempotente, no destructiva de objetos). No aplicar la migración desde este worktree como verificación local (ver `STORAGE_DRIFT_REPAIR.md`).
+- **Gate Storage independiente:** validar en staging como gate propio; no abre Gate D de Core. `public=true` permite descargas por URL conocida y la validación remota permanece pendiente.
+- **Plan explícito (pactado, no ejecutado):**
+  1. **Commits atómicos** — (a) Storage: migración + `verify:storage-migration` + `package.json` + `STORAGE_DRIFT_REPAIR.md`; (b) `fix:` 10 archivos dashboard/logout; (c) `docs:` esta actualización.
+  2. **Verificación local** sobre los commits: `lint` + `typecheck` + `test` + `build` + `test:release` + `verify:release` + `git diff --check`.
+  3. **Promoción directa fast-forward a `main`** (`git checkout main && git merge --ff-only stabilization/release-readiness`) y push — sólo con autorización explícita.
+  4. **Limpieza posterior:** borrar la rama fusionada (local y remota) y actualizar `STATUS.md` / `NEXT_ACTIONS.md` / `KNOWN_ISSUES.md` post-promoción.
+- **Sigue pendiente (no bloqueado por esta sesión):** verificación runtime de los cambios locales, CI Node 22, estado remoto Supabase, matriz RLS en staging y hallazgos de seguridad del handoff §8.1.b.
+
 ## Canonical active state (ADR-004 Accepted 2026-08-05 — replaces prior pre-acceptance state)
 
 - **FASE 0 COMPLETE.**
@@ -16,7 +36,13 @@
 - **D-01..D-43 fixed and preserved**; **D-OD-1..D-OD-7 deferred and open**.
 - **Canonical gate sequence:** **A → B1 → C → B2 → D**. B2, C and D remain blocked; C is blocked exclusively by D-OD-1. No B2/C/D gate is opened by this acceptance.
 
-## Release-Readiness Gate (immediate, in this order)
+## Release-Readiness Gate (immediate, in this order) [HISTORICAL — SUPERSEDED BY 2026-08-13]
+
+> **HISTORICAL — SUPERSEDED BY 2026-08-13.** Esta lista correspondía al estado de la
+> rama el 2026-08-05 (HEAD `be3ed9e`). La rama ha avanzado 10 commits (incluidos el gate
+> Node 22 canónico `2a01621` y el cierre del perfil autenticado), `ef3b428` ya es remoto,
+> y el plan vigente es el del bloque "Current State (2026-08-13)" al inicio de este archivo.
+> Los ítems 1-6 siguientes se conservan como trazabilidad histórica.
 
 1. **Update the architectural contracts and design the documentary B1 package.** Keep B1 limited to the accepted identity, organization, ownership, authorization and audit contracts. Do not add SQL, Supabase, migrations, runtime changes or implementation.
 2. **Keep B2, C and D blocked.** C remains blocked exclusively by D-OD-1; migrations and implementation remain blocked.

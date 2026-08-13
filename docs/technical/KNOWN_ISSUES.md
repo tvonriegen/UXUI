@@ -1,5 +1,36 @@
 # Known Issues
 
+## Storage drift repair y release-readiness local (2026-08-13)
+
+- **Reparación aplicada previamente al staging:** el proyecto TalentHub Staging presentó
+  drift de configuración de Storage (metadatos de buckets y/o policies reparados
+  manualmente sin migración forward equivalente). La reparación ya fue aplicada a staging;
+  la migración `20260813000001_reconcile_storage_buckets.sql` **versiona** esa reparación
+  para que el contrato Git sea repetible. Detalle en `docs/technical/STORAGE_DRIFT_REPAIR.md`.
+- **Caracter de la migración:** forward-only e idempotente; actualiza metadatos de los
+  buckets `avatars`, `banners` y `post-media` y reemplaza únicamente las policies
+  `storage.objects` nombradas (SELECT público por bucket; INSERT/UPDATE/DELETE con primer
+  segmento de path = `auth.uid()`). **No borra ni modifica objetos** (invariante verificado
+  por `scripts/verify-storage-migration.mjs`).
+- **No aplicar desde este worktree:** la migración **no debe aplicarse a un proyecto remoto
+  desde este worktree** como parte de la verificación local; debe aplicarse por el flujo de
+  migración normal cuando el operador de staging lo decida (ver `STORAGE_DRIFT_REPAIR.md`).
+- **Trabajo local sin commitear (rama `stabilization/release-readiness`, HEAD `ef3b428`
+  remoto):** 10 archivos de app de dashboard tolerante / logout hardening
+  (`auth-context.tsx`, `role-context.tsx`, `DashboardEstudiante.tsx`,
+  `TrustTriangleInsights.tsx`, `DailyQuestsCard.tsx`, `TechRadarCard.tsx`,
+  `api/streak/touch/route.ts`, `TopNavBar.tsx`, `SettingsPage.tsx`, `ConfigModal.tsx`) y
+  `package.json` (script `verify:storage-migration`). Sin trackear: la migración Storage,
+  `scripts/verify-storage-migration.mjs` y `docs/technical/STORAGE_DRIFT_REPAIR.md`.
+- **Plan de promoción pactado (no ejecutado):** commits atómicos (Storage; `fix:` dashboard
+ /logout; `docs:`) → verificación local (`lint`, `typecheck`, `test`, `build`,
+  `test:release`, `verify:release`, `git diff --check`) → **promoción directa fast-forward
+  a `main`** con autorización explícita → **limpieza posterior** (borrar la rama fusionada
+  local/remota y actualizar `STATUS.md` / `NEXT_ACTIONS.md` / `KNOWN_ISSUES.md`).
+- **Verificación en esta sesión de documentación:** sólo comandos git de lectura y
+  `git diff --check` (OK). **No se ejecutaron** lint, typecheck, tests, build, `verify:*`,
+  SQL ni migraciones; el estado remoto de staging/producción no fue re-verificado.
+
 ## Authenticated profile boundary hotfix (2026-08-10)
 
 The code and migration are an **atomic pair**: do not deploy code without
@@ -56,6 +87,7 @@ is already resolved.
 
 ## Current Verification
 
+- 2026-08-13 (release-readiness local, this machine): no code verification was run in this documentation session. Only git read commands and `git diff --check` (OK) were executed against the working tree. The uncommitted local changes (10 dashboard-tolerante/logout app files + `package.json`), the untracked storage migration `20260813000001_reconcile_storage_buckets.sql`, `scripts/verify-storage-migration.mjs` and `docs/technical/STORAGE_DRIFT_REPAIR.md`, and the previously-applied staging storage repair are recorded in the "Storage drift repair y release-readiness local (2026-08-13)" section above. lint/typecheck/test/build/`verify:release`, runtime validation and remote Supabase state remain pending for the next session.
 - 2026-08-10 (authenticated profile boundary): direct verifier passed; `npm test` passed with 39/39 tests, `npm run lint`, `npm run typecheck`, `npm run build`, `npm run test:release`, `npm run verify:release` and `git diff --check` passed locally. No Supabase SQL, remote migration, staging smoke test or deployment was performed; runtime validation and legacy profile consumers remain staging prerequisites.
 - 2026-08-05 (release-readiness stabilization, this machine): `npm test` 31/31 passed twice, `npm run lint` OK, `npm run typecheck` OK, `npm run build` OK with 65 pages, `npm run test:release` OK, `npm run verify:release` OK, `git diff --check` OK. The green test:release / verify:release chain is achieved locally for the first time since the previous handoff and is the Phase 1 result of release-readiness. Node baseline on this machine is **Node 26.2.0 / npm 11.13.0**; only Node 26 is installed locally, Node 22 is not available, so the green chain has not been re-run on the CI Node 22 baseline. Phase 1 therefore remains **APPROVED WITH OBSERVATIONS** locally and is not yet fully closed.
 - 2026-08-05 (release-readiness stabilization, this machine): the uncommitted change to `apps/web/src/test/setup.ts` installs a deterministic in-memory `Storage` stub on `window.localStorage` and `globalThis.localStorage` with a `beforeEach` clear, which restores the three `apps/web/src/lib/analytics.test.ts` cases that were failing under Node 26 / jsdom. The diff is the Phase 1 implementation; it was authored by the implementer earlier in this same release-readiness mission (it was already on disk when the docs pass started), and is uncommitted on the branch. It must be reviewed together with the documentation diff.
