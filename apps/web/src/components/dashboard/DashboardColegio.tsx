@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { useRole } from "@/lib/role-context";
 import { supabase } from "@/lib/supabase";
+import { fetchOwnProfile, isMissingRpcError } from "@/lib/own-profile-query";
 import { approveContactRequest, rejectContactRequest } from "@/app/actions/contact-requests";
 import {
   GraduationCap, Users, Handshake, TrendingUp, FileText, ArrowRight,
@@ -47,11 +48,31 @@ export default function DashboardColegio() {
   useEffect(() => {
     if (!user?.id) return;
 
-    const profilePromise = supabase.rpc("get_school_dashboard").then(({ data }) => {
+    const profilePromise = supabase.rpc("get_school_dashboard").then(async ({ data, error }) => {
         if (data?.[0]) {
           const dashboard = data[0] as DashProfile & { specialties: SpecialtyStat[] };
           setProfile(dashboard);
           setSpecialties(dashboard.specialties ?? []);
+          return;
+        }
+
+        if (error && isMissingRpcError(error)) {
+          const fallback = await fetchOwnProfile<Partial<DashProfile>>(
+            supabase,
+            user.id,
+            "name, avatar, school_name, location, student_count, alliance_count, employability_rate",
+          );
+          if (fallback.profile) {
+            setProfile({
+              name: fallback.profile.name ?? user.name,
+              avatar: fallback.profile.avatar ?? user.avatar,
+              school_name: fallback.profile.school_name ?? fallback.profile.name ?? user.name,
+              location: fallback.profile.location ?? "",
+              student_count: fallback.profile.student_count ?? null,
+              alliance_count: fallback.profile.alliance_count ?? 0,
+              employability_rate: fallback.profile.employability_rate ?? null,
+            });
+          }
         }
       });
 
@@ -96,7 +117,7 @@ export default function DashboardColegio() {
       });
 
     Promise.allSettled([profilePromise, queuePromise, specialtyPromise, contactPromise]).then(() => setLoading(false));
-  }, [user?.id]);
+  }, [user?.avatar, user?.id, user?.name]);
 
   const reviewContactRequest = async (id: string, decision: ContactRequestDecision) => {
     setReviewingId(id);

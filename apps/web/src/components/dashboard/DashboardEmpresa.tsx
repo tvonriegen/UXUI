@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { useRole } from "@/lib/role-context";
 import { supabase } from "@/lib/supabase";
-import { unwrapOwnProfile } from "@/lib/own-profile";
+import { fetchOwnProfile } from "@/lib/own-profile-query";
 import {
   Briefcase, Users, TrendingUp, Eye, Search, ArrowRight, Building2,
   Bell, Clock, ChevronRight, MessageSquare, Star, Globe, Loader2,
@@ -38,14 +38,18 @@ export default function DashboardEmpresa() {
     if (!user?.id) return;
 
     Promise.all([
-      supabase.rpc("get_own_profile"),
+      fetchOwnProfile<DashProfile>(
+        supabase,
+        user.id,
+        "name, avatar, industry, employee_count, website, open_positions, company_name",
+      ),
       supabase
         .from("profiles")
         .select("id, name, avatar, title, specialty")
         .in("role", ["Estudiante", "Egresado"])
         .limit(5),
     ]).then(([pRes, tRes]) => {
-      const ownProfile = unwrapOwnProfile(pRes.data as Array<{ profile: DashProfile }> | null);
+      const ownProfile = pRes.profile;
       if (!pRes.error && ownProfile) setProfile(ownProfile);
       setTalent(tRes.data ?? []);
       setLoading(false);

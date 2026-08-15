@@ -4,7 +4,7 @@ import PageLayout from "@/components/layout/PageLayout";
 import Modal from "@/components/ui/Modal";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
-import { unwrapOwnProfile } from "@/lib/own-profile";
+import { fetchOwnProfile } from "@/lib/own-profile-query";
 import { profileEditSchema, THEME_COLORS, type ThemeColor } from "@/lib/schemas";
 import { createStudent, graduateStudent, updateStudentProfile, upsertSchoolReport } from "@/app/actions/school";
 import { updateApplicationStatus, updateInternshipRequest, createInternshipRequest } from "@/app/actions/company";
@@ -212,8 +212,11 @@ export default function ProfilePage() {
   const fetchProfile = useCallback(async () => {
     if (!user?.id) return;
     setLoading(true); setError(null);
-    const { data: ownProfileRows, error: err } = await supabase.rpc("get_own_profile");
-    const data = unwrapOwnProfile(ownProfileRows as Array<{ profile: Profile }> | null);
+    const { profile: data, error: err } = await fetchOwnProfile<Profile>(
+      supabase,
+      user.id,
+      "id, name, email, role, avatar, bio, location, specialty, title, xp, level, streak, gpa, availability, years_experience, company_name, industry, employee_count, website, open_positions, school_name, student_count, alliance_count, employability_rate, soft_skills, attendance, rut, created_at, school_id, reputation_score, banner_url, theme_color",
+    );
     if (err || !data) { setError("No se pudo cargar el perfil."); setLoading(false); return; }
     setProfile(data);
     setLoading(false);

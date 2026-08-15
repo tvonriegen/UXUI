@@ -50,6 +50,31 @@ describe("fetchOwnProfile", () => {
     expect(eq).toHaveBeenCalledWith("id", "user-1");
   });
 
+  it("uses the allowlisted projection requested by a consumer", async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: { id: "user-1", xp: 120, level: 2 },
+      error: null,
+    });
+    const eq = vi.fn().mockReturnValue({ maybeSingle });
+    const select = vi.fn().mockReturnValue({ eq });
+    const client = {
+      rpc: vi.fn().mockResolvedValue({ data: null, error: missingRpcError() }),
+      from: vi.fn().mockReturnValue({ select }),
+    } as unknown as SupabaseClient;
+
+    await expect(
+      fetchOwnProfile<{ id: string; xp: number; level: number }>(
+        client,
+        "user-1",
+        "id, xp, level",
+      ),
+    ).resolves.toMatchObject({
+      profile: { id: "user-1", xp: 120, level: 2 },
+      source: "profiles",
+    });
+    expect(select).toHaveBeenCalledWith("id, xp, level");
+  });
+
   it("does not bypass RPC authorization or infrastructure errors", async () => {
     const from = vi.fn();
     const error = { ...missingRpcError(), code: "42501", message: "permission denied" };

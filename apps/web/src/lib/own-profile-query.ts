@@ -14,13 +14,16 @@ export interface OwnProfile {
   student_stage?: StudentStage | null;
 }
 
-export interface OwnProfileResult {
-  profile: OwnProfile | null;
+export interface OwnProfileResult<T extends object = OwnProfile> {
+  profile: T | null;
   error: PostgrestError | null;
   source: "rpc" | "profiles";
 }
 
-function isMissingOwnProfileRpc(error: PostgrestError): boolean {
+const DEFAULT_PROFILE_COLUMNS =
+  "id, name, role, avatar, availability, account_type, account_status";
+
+export function isMissingRpcError(error: Pick<PostgrestError, "code">): boolean {
   return error.code === "PGRST202" || error.code === "42883";
 }
 
@@ -29,32 +32,33 @@ function isMissingOwnProfileRpc(error: PostgrestError): boolean {
  * owner-only profiles projection only when PostgREST confirms that the RPC is
  * absent. RLS and column grants remain the authorization boundary.
  */
-export async function fetchOwnProfile(
+export async function fetchOwnProfile<T extends object = OwnProfile>(
   client: SupabaseClient,
   userId: string,
-): Promise<OwnProfileResult> {
+  fallbackColumns = DEFAULT_PROFILE_COLUMNS,
+): Promise<OwnProfileResult<T>> {
   const { data: ownProfileRows, error: rpcError } = await client.rpc("get_own_profile");
 
   if (!rpcError) {
     return {
-      profile: unwrapOwnProfile(ownProfileRows as Array<{ profile: OwnProfile }> | null),
+      profile: unwrapOwnProfile(ownProfileRows as Array<{ profile: T }> | null),
       error: null,
       source: "rpc",
     };
   }
 
-  if (!isMissingOwnProfileRpc(rpcError)) {
+  if (!isMissingRpcError(rpcError)) {
     return { profile: null, error: rpcError, source: "rpc" };
   }
 
   const { data: profile, error } = await client
     .from("profiles")
-    .select("id, name, role, avatar, availability, account_type, account_status")
+    .select(fallbackColumns)
     .eq("id", userId)
     .maybeSingle();
 
   return {
-    profile: profile as OwnProfile | null,
+    profile: profile as T | null,
     error,
     source: "profiles",
   };

@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { useRole } from "@/lib/role-context";
 import { supabase } from "@/lib/supabase";
-import { unwrapOwnProfile } from "@/lib/own-profile";
+import { fetchOwnProfile } from "@/lib/own-profile-query";
 import {
   Star, Trophy, Zap, ArrowRight, BookOpen, Briefcase,
   Bell, MessageSquare, ChevronRight, Clock, Lock, Flame,
@@ -65,7 +65,11 @@ export default function DashboardEstudiante() {
 
     const load = async () => {
       const [pRes, ubRes, bRes, postsRes] = await Promise.all([
-        supabase.rpc("get_own_profile"),
+        fetchOwnProfile<Partial<DashProfile>>(
+          supabase,
+          user.id,
+          "name, avatar, level, xp, streak, specialty, reputation_score, attendance, xp_tier, longest_streak, last_active_date",
+        ),
         supabase.from("user_badges").select("badge_id, earned_at").eq("user_id", user.id),
         supabase.from("badges").select("id, name, icon, description"),
         supabase
@@ -82,9 +86,7 @@ export default function DashboardEstudiante() {
         return;
       }
 
-      const ownProfile = unwrapOwnProfile<Partial<DashProfile>>(
-        pRes.data as { profile: Partial<DashProfile> }[] | null,
-      );
+      const ownProfile = pRes.profile;
       if (ownProfile) {
         const p = ownProfile;
         const next: DashProfile = {
