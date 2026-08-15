@@ -231,10 +231,14 @@ if (publicReviewerDrop === -1 || policyRewrite === -1 || publicReviewerDrop < po
 const criticalConsumers = [
   ["apps/web/src/components/talent/TalentPage.tsx", "authenticated_profile_directory"],
   ["apps/web/src/lib/services/contact-requests.ts", "can_request_student_contact"],
-  ["apps/web/src/components/talent/TalentPage.tsx", 'rpc("get_own_profile")'],
-  ["apps/web/src/components/dashboard/DashboardEstudiante.tsx", 'rpc("get_own_profile")'],
+  ["apps/web/src/lib/own-profile-query.ts", 'rpc("get_own_profile")'],
+  ["apps/web/src/lib/own-profile-query.ts", "isMissingRpcError(rpcError)"],
+  ["apps/web/src/lib/own-profile-query.ts", '.eq("id", userId)'],
+  ["apps/web/src/components/talent/TalentPage.tsx", "fetchOwnProfile<"],
+  ["apps/web/src/components/dashboard/DashboardEstudiante.tsx", "fetchOwnProfile<"],
+  ["apps/web/src/components/dashboard/DashboardEmpresa.tsx", "fetchOwnProfile<"],
   ["apps/web/src/components/dashboard/DashboardColegio.tsx", 'rpc("get_school_dashboard")'],
-  ["apps/web/src/components/profile/ProfilePage.tsx", 'rpc("get_own_profile")'],
+  ["apps/web/src/components/profile/ProfilePage.tsx", "fetchOwnProfile<"],
   ["apps/web/src/app/empresa/[id]/page.tsx", 'from("company_profile_directory")'],
   ["apps/web/src/app/actions/school.ts", 'rpc(\n    "school_can_manage_student"'],
 ];
