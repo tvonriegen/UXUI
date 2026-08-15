@@ -24,7 +24,7 @@ import React, {
 import { supabase } from "./supabase";
 import type { AccountType, Role, StudentStage } from "./types";
 import { resolveAuthRole } from "./auth-role";
-import { unwrapOwnProfile } from "./own-profile";
+import { fetchOwnProfile, type OwnProfile } from "./own-profile-query";
 
 // ── Shapes ────────────────────────────────────────────────
 
@@ -46,17 +46,6 @@ interface AuthContextValue {
   /** Returns null on success, an error message string on failure */
   login:    (email: string, password: string) => Promise<{ error: string | null }>;
   logout:   () => Promise<void>;
-}
-
-interface OwnProfile {
-  id: string;
-  name: string;
-  email?: string | null;
-  avatar?: string | null;
-  account_type: AccountType;
-  account_status: AuthUser["accountStatus"];
-  availability?: string | null;
-  student_stage?: StudentStage | null;
 }
 
 // ── Context ───────────────────────────────────────────────
@@ -84,8 +73,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const promise = (async () => {
-      const [{ data: ownProfileRows, error: profileError }, { data: { session } }] = await Promise.all([
-        supabase.rpc("get_own_profile"),
+      const [{ profile: ownProfile, error: profileError }, { data: { session } }] = await Promise.all([
+        fetchOwnProfile(supabase, supabaseUserId),
         supabase.auth.getSession(),
       ]);
 
@@ -93,28 +82,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // has logged in). Never let that stale response restore the old user.
       if (version !== sessionVersion.current || session?.user?.id !== supabaseUserId) return;
 
-      const ownProfile = profileError
-        ? null
-        : unwrapOwnProfile(ownProfileRows as Array<{ profile: OwnProfile }> | null);
       if (ownProfile && (ownProfile.account_type === "student" || ownProfile.account_type === "company" || ownProfile.account_type === "school" || ownProfile.account_type === "external")) {
-        const role = resolveAuthRole(ownProfile.account_type, ownProfile.student_stage);
+        const canonicalStage = ownProfile.student_stage
+          ?? (ownProfile.role === "Egresado" ? "graduated" : null);
+        const role = resolveAuthRole(ownProfile.account_type, canonicalStage);
         const studentStage = ownProfile.account_type !== "student"
           ? null
-          : ownProfile.student_stage === "graduated"
+          : canonicalStage === "graduated"
             ? "graduated"
-            : ownProfile.student_stage === "internship" || ownProfile.availability === "En prácticas" ? "internship" : "enrolled";
+            : canonicalStage === "internship" || ownProfile.availability === "En prácticas" ? "internship" : "enrolled";
         setUser({
           id:                 ownProfile.id,
-          name:               ownProfile.name,
+          name:               ownProfile.name ?? "Usuario",
           email:              ownProfile.email ?? session?.user.email ?? "",
           role,
           accountType:        ownProfile.account_type,
-          accountStatus:      ownProfile.account_status as AuthUser["accountStatus"],
+          accountStatus:      ownProfile.account_status ?? "pending",
           studentStage,
           avatar:             ownProfile.avatar ?? "",
           mustChangePassword: session?.user.app_metadata?.must_change_password === true,
         });
       } else {
+        if (profileError) console.error("Unable to load authenticated profile", profileError);
         setUser(null);
       }
     })();
