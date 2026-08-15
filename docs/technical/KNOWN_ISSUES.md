@@ -1,5 +1,23 @@
 # Known Issues
 
+## Production auth runtime contract (2026-08-15)
+
+- En el despliegue oficial `https://uxui-jad2.vercel.app/`, Supabase Auth acepta
+  las cuentas demo y los perfiles canónicos existen, pero PostgREST responde
+  `PGRST202` porque `public.get_own_profile()` no está disponible en producción.
+  `public.get_school_dashboard()` tampoco está disponible.
+- La aplicación incorpora una compatibilidad acotada para el inicio de sesión:
+  sólo ante `PGRST202`/`42883` consulta la proyección allowlisted del perfil
+  propio por `auth.uid()`. RLS y los grants de columnas siguen siendo la barrera
+  de autorización; errores de permisos o infraestructura no activan el fallback.
+- Verificación local contra el backend configurado: la cuenta demo estudiante
+  completó `/login` → `/student/dashboard` (`307` y luego `200`). La reparación
+  permanente de las RPC continúa pendiente.
+- No ejecutar `supabase db push` ni `migration repair` contra producción: el
+  check Supabase Preview sigue reportando versiones remotas ausentes del árbol
+  local. La restauración de RPC debe hacerse mediante el plan de baseline y una
+  migración forward revisada en staging.
+
 ## Storage drift repair y release-readiness local (2026-08-13)
 
 - **Reparación aplicada previamente al staging:** el proyecto TalentHub Staging presentó

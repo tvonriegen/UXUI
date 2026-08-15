@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createServerSupabaseClient } from "./supabase-server";
-import { unwrapOwnProfile } from "./own-profile";
+import { fetchOwnProfile } from "./own-profile-query";
 import type { AccountType, Role, StudentStage } from "./types";
 
 export type AccountStatus = "active" | "pending" | "suspended" | "disabled";
@@ -39,11 +39,12 @@ function toLegacyRole(accountType: AccountType, legacyRole: unknown): Role {
   return legacyRole === "Egresado" ? "Egresado" : "Estudiante";
 }
 
-function toStudentStage(accountType: AccountType, canonicalStage: unknown, availability: unknown): StudentStage | null {
+function toStudentStage(accountType: AccountType, canonicalStage: unknown, availability: unknown, legacyRole: unknown): StudentStage | null {
   if (accountType !== "student") return null;
   if (canonicalStage === "enrolled" || canonicalStage === "internship" || canonicalStage === "graduated") {
     return canonicalStage;
   }
+  if (legacyRole === "Egresado") return "graduated";
   return availability === "En prácticas" ? "internship" : "enrolled";
 }
 
@@ -53,14 +54,10 @@ export async function getCurrentAccount(): Promise<CurrentAccount | null> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data: ownProfileRows, error } = await supabase.rpc("get_own_profile");
-  const profile = unwrapOwnProfile(ownProfileRows as Array<{ profile: {
-    id: string; email?: string | null; name?: string | null; role?: unknown;
-     account_type?: unknown; account_status?: unknown; availability?: unknown;
-     student_stage?: unknown;
-  } }> | null);
+  const { profile, error } = await fetchOwnProfile(supabase, user.id);
 
-  if (error || !profile || !isAccountType(profile.account_type)) return null;
+  if (error) throw new Error("Unable to load authenticated account");
+  if (!profile || !isAccountType(profile.account_type)) return null;
 
   const accountStatus = isAccountStatus(profile.account_status) ? profile.account_status : "pending";
   return {
@@ -70,7 +67,7 @@ export async function getCurrentAccount(): Promise<CurrentAccount | null> {
     accountType: profile.account_type,
     accountStatus,
     legacyRole: toLegacyRole(profile.account_type, profile.role),
-    studentStage: toStudentStage(profile.account_type, profile.student_stage, profile.availability),
+    studentStage: toStudentStage(profile.account_type, profile.student_stage, profile.availability, profile.role),
     dashboardPath: DASHBOARD_PATHS[profile.account_type],
   };
 }
