@@ -5,7 +5,7 @@ import { useRole } from "@/lib/role-context";
 import { useAuth } from "@/lib/auth-context";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { unwrapOwnProfile } from "@/lib/own-profile";
+import { fetchOwnProfile } from "@/lib/own-profile-query";
 import { TP_SPECIALTIES } from "@/lib/specialties";
 import ContactTalentButton from "@/components/contact-routing/ContactTalentButton";
 import SkillAssessmentActivity from "@/components/talent/SkillAssessmentActivity";
@@ -53,10 +53,14 @@ function ActivitiesPlayground() {
   useEffect(() => {
     if (!user?.id) return;
     Promise.all([
-      supabase.rpc("get_own_profile"),
+      fetchOwnProfile<{ xp?: number; level?: number; streak?: number }>(
+        supabase,
+        user.id,
+        "xp, level, streak",
+      ),
       supabase.from("user_badges").select("badge_id").eq("user_id", user.id),
     ]).then(([pRes, bRes]) => {
-      const ownProfile = unwrapOwnProfile(pRes.data as Array<{ profile: { xp?: number; level?: number; streak?: number } }> | null);
+      const ownProfile = pRes.profile;
       if (ownProfile) {
         setProfile({
           xp:     ownProfile.xp     ?? 0,
