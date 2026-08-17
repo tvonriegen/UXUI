@@ -3,16 +3,23 @@
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 
-const supabaseUrl  = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 // Admin client — uses service role key, bypasses RLS
 // Only call from API routes / server actions
 export function createAdminClient() {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!serviceKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set");
+
+  if (!serviceKey) {
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set");
+  }
+
   return createClient(supabaseUrl, serviceKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
   });
 }
 
@@ -37,8 +44,8 @@ export function createServerSupabaseClient(cookieStore: {
             cookieStore.set(name, value, options);
           });
         } catch {
-          // En Server Components las cookies son de solo lectura.
-          // El middleware se encarga de sincronizar la sesión.
+          // Los Server Components pueden leer cookies, pero no modificarlas.
+          // El middleware sincroniza las sesiones renovadas.
         }
       },
     },
