@@ -163,7 +163,7 @@ export default function DashboardEmpresa() {
           {/* Top talent */}
           <div className="bg-white rounded-2xl p-6 border border-slate-200/60 animate-fade-in-up stagger-2">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-base">Perfiles de Talento</h3>
+              <h2 className="font-bold text-base">Perfiles de Talento</h2>
               <Link href="/company/talent" className="text-xs text-violet-600 font-semibold hover:underline flex items-center gap-1">
                 Ver todos <ChevronRight size={12} />
               </Link>

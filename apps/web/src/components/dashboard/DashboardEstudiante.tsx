@@ -253,7 +253,6 @@ export default function DashboardEstudiante() {
 
       {/* ── Hero Banner ── */}
       <div className="bg-gradient-to-br from-sky-500 via-indigo-500 to-sky-700 rounded-2xl p-6 md:p-8 text-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10 hero-pattern" />
 
         <div className="relative flex flex-col md:flex-row md:items-center gap-5">
           {/* Avatar */}

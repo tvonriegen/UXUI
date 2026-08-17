@@ -237,7 +237,7 @@ export default function DashboardColegio() {
             <div className="bg-red-50/60 rounded-2xl p-5 border border-red-200/60 animate-scale-in">
               <div className="flex items-center gap-2 mb-4">
                 <AlertTriangle size={18} className="text-red-500" />
-                <h3 className="font-bold text-sm text-red-700">Solicitudes Urgentes</h3>
+                <h2 className="font-bold text-sm text-red-700">Solicitudes Urgentes</h2>
                 <span className="ml-auto text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold">
                   {urgentRequests.length}
                 </span>
@@ -260,7 +260,7 @@ export default function DashboardColegio() {
           {/* Full queue */}
           <div className="bg-white rounded-2xl p-6 border border-slate-200/60 animate-fade-in-up stagger-2">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-base">Cola de Solicitudes</h3>
+              <h2 className="font-bold text-base">Cola de Solicitudes</h2>
               <span className="text-xs text-slate-400 font-semibold bg-slate-100 px-2.5 py-1 rounded-full">
                 {queue.length} pendientes
               </span>
