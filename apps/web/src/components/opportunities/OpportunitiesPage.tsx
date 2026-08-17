@@ -267,7 +267,7 @@ export default function EmpleosPage() {
       { count: certificationCount, error: certificationError },
     ] = await Promise.all([
       supabase.from("profiles").select("specialty,bio,availability,years_experience").eq("id", user.id).single(),
-      supabase.from("user_skills").select("skills(name)").eq("user_id", user.id),
+      supabase.rpc("get_own_technical_skills"),
       supabase.from("portfolio_items").select("id", { count: "exact", head: true }).eq("user_id", user.id),
       supabase.from("certifications").select("id", { count: "exact", head: true }).eq("user_id", user.id),
     ]);
@@ -287,8 +287,8 @@ export default function EmpleosPage() {
     if (skillsError || !skillsData) {
       setSkillsForReadiness({ status: skillsError ? "error" : "loaded", names: [] });
     } else {
-      const names = (skillsData as { skills?: { name?: string } | null }[])
-        .map((s) => s.skills?.name ?? "")
+      const names = (skillsData as { name?: string }[])
+        .map((s) => s.name ?? "")
         .filter(Boolean);
       setSkillsForReadiness({ status: "loaded", names });
       setMySkills(names);
