@@ -185,7 +185,7 @@ function ActivitiesPlayground() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-1">
-                    <h3 className="font-bold text-sm leading-tight">Evaluación de Competencias</h3>
+                    <h2 className="font-bold text-sm leading-tight">Evaluación de Competencias</h2>
                     <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-100 text-violet-700">+80 XP</span>
                   </div>
                   <p className="text-xs text-slate-400 leading-relaxed">
@@ -215,7 +215,7 @@ function ActivitiesPlayground() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-1">
-                    <h3 className="font-bold text-sm leading-tight">Quiz Técnico Cronometrado</h3>
+                    <h2 className="font-bold text-sm leading-tight">Quiz Técnico Cronometrado</h2>
                     <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-700">+60 XP</span>
                   </div>
                   <p className="text-xs text-slate-400 leading-relaxed">
@@ -245,7 +245,7 @@ function ActivitiesPlayground() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-1">
-                    <h3 className="font-bold text-sm leading-tight">Descubre tu Perfil de Carrera</h3>
+                    <h2 className="font-bold text-sm leading-tight">Descubre tu Perfil de Carrera</h2>
                     <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">+40 XP</span>
                   </div>
                   <p className="text-xs text-slate-400 leading-relaxed">
@@ -288,7 +288,7 @@ function ActivitiesPlayground() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2 mb-1">
-                      <h3 className="font-bold text-sm leading-tight">{act.title}</h3>
+                      <h2 className="font-bold text-sm leading-tight">{act.title}</h2>
                       {act.xp > 0 && (
                         <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${isDone ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
                           +{act.xp} XP

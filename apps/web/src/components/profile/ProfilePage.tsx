@@ -1135,7 +1135,7 @@ export default function ProfilePage() {
 
             {profile.bio && (
               <div className="bg-white rounded-2xl p-5 border border-slate-200/60">
-                <h3 className="text-sm font-bold mb-2 text-slate-700">Acerca de</h3>
+                <h2 className="text-sm font-bold mb-2 text-slate-700">Acerca de</h2>
                 <p className="text-sm text-slate-600 leading-relaxed">{profile.bio}</p>
               </div>
             )}

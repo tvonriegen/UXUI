@@ -814,7 +814,7 @@ export default function MuroPage() {
                       })()}
 
                       {/* Job title & description */}
-                      <h3 className="font-bold text-lg mb-1">{post.title}</h3>
+                      <h2 className="font-bold text-lg mb-1">{post.title}</h2>
                       <p className="text-sm text-slate-500 line-clamp-2 mb-3">
                         {post.content || post.description}
                       </p>
@@ -945,7 +945,7 @@ export default function MuroPage() {
                       </div>
                     </div>
 
-                    <h3 className="font-bold text-lg mb-1.5">{post.title}</h3>
+                    <h2 className="font-bold text-lg mb-1.5">{post.title}</h2>
                     <p className="text-sm text-slate-500 line-clamp-2 mb-4">
                       {post.content || post.description}
                     </p>
@@ -1145,13 +1145,19 @@ export default function MuroPage() {
                       onClick={() => setTagFilter(tag)}
                       className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors text-left group"
                     >
-                      <span className="text-xs font-bold text-slate-300 w-5">#{i + 1}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold group-hover:text-sky-700 transition-colors">
+                      <span className="text-xs font-bold text-slate-300 w-5">
+                        #{i + 1}
+                      </span>
+
+                      <span className="flex-1 min-w-0 block">
+                        <span className="block text-sm font-semibold group-hover:text-sky-700 transition-colors">
                           {tag}
-                        </p>
-                        <p className="text-[10px] text-slate-400">{count} publicaciones</p>
-                      </div>
+                        </span>
+
+                        <span className="block text-[10px] text-slate-400">
+                          {count} publicaciones
+                        </span>
+                      </span>
                     </button>
                   );
                 })}

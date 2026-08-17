@@ -18,8 +18,16 @@ import { usePathname } from "next/navigation";
 import { useRole } from "@/lib/role-context";
 import { useAuth } from "@/lib/auth-context";
 import type { AccountType } from "@/lib/types";
-import { LayoutDashboard, Newspaper, Users, MessageCircle, User, LayoutGrid, Briefcase } from "lucide-react";
-
+import {
+  LayoutDashboard,
+  Newspaper,
+  Users,
+  MessageCircle,
+  User,
+  LayoutGrid,
+  Briefcase,
+  Zap,
+} from "lucide-react";
 // All tabs — filtered per role below
 const ALL_LINKS = [
   { path: "/student/dashboard", label: "Inicio", icon: LayoutDashboard, accountTypes: ["student"] as AccountType[], badge: false },
@@ -31,6 +39,7 @@ const ALL_LINKS = [
   { path: "/administracion", label: "Admin", icon: LayoutGrid, accountTypes: ["school"] as AccountType[], badge: false },
   { path: "/talent", label: "Talento", icon: Users, accountTypes: ["company"] as AccountType[], badge: false },
   { path: "/empleos", label: "Empleos", icon: Briefcase, accountTypes: ["student", "company"] as AccountType[], badge: false },
+  { path: "/student/activities", label: "Actividades", icon: Zap, accountTypes: ["student"] as AccountType[], badge: false },
   { path: "/external/proposals", label: "Propuestas", icon: Users, accountTypes: ["external"] as AccountType[], badge: false },
   { path: "/messages", label: "Chat", icon: MessageCircle, accountTypes: ["student", "company", "school", "external"] as AccountType[], badge: true },
   { path: "/profile", label: "Perfil", icon: User, accountTypes: ["student", "company", "school", "external"] as AccountType[], badge: false },

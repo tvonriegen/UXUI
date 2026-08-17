@@ -958,7 +958,7 @@ export default function EmpleosPage() {
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-base">{job.title}</h3>
+                        <h2 className="font-bold text-base">{job.title}</h2>
                         <p className="text-sm text-slate-500">{job.company?.name ?? "Empresa"}</p>
                         <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-slate-400">
                           {job.location && <span className="flex items-center gap-1"><MapPin size={11} />{job.location}</span>}

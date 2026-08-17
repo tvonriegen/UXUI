@@ -334,7 +334,7 @@ export default function DashboardEstudiante() {
           {badges.length > 0 && (
             <div className="bg-white rounded-2xl p-6 border border-slate-200/60 animate-fade-in-up stagger-3">
               <div className="flex items-center justify-between mb-5">
-                <h3 className="font-bold text-base">Insignias Verificadas</h3>
+                <h2 className="font-bold text-base">Insignias Verificadas</h2>
                 <Link
                   href="/student/profile"
                   className="text-xs text-sky-600 font-semibold hover:underline flex items-center gap-1"
@@ -379,7 +379,7 @@ export default function DashboardEstudiante() {
           {posts.length > 0 && (
             <div className="bg-white rounded-2xl p-6 border border-slate-200/60 animate-fade-in-up stagger-4">
               <div className="flex items-center justify-between mb-5">
-                <h3 className="font-bold text-base">Actividad Reciente</h3>
+                <h2 className="font-bold text-base">Actividad Reciente</h2>
                 <Link
                   href="/student/feed"
                   className="text-xs text-sky-600 font-semibold hover:underline flex items-center gap-1"
@@ -455,7 +455,7 @@ export default function DashboardEstudiante() {
 
           {/* ── Trust Triangle Visual ── */}
           <div className="bg-white rounded-2xl p-5 border border-slate-200/60 animate-fade-in-up stagger-3 flex flex-col items-center">
-            <h3 className="font-bold text-sm mb-1 self-start">Trust Triangle</h3>
+            <h2 className="font-bold text-sm mb-1 self-start">Trust Triangle</h2>
             <p className="text-[11px] text-slate-400 mb-4 self-start">Tu reputación en 3 dimensiones</p>
             <TrustTriangle data={trustData} size={200} />
           </div>
@@ -469,7 +469,7 @@ export default function DashboardEstudiante() {
 
           {/* Quick actions */}
           <div className="bg-white rounded-2xl p-5 border border-slate-200/60 animate-fade-in-up stagger-3">
-            <h3 className="font-bold text-sm mb-4">Acciones Rápidas</h3>
+            <h2 className="font-bold text-sm mb-4">Acciones Rápidas</h2>
             <div className="space-y-1">
               {[
                 { href: "/student/profile",       icon: <BookOpen     size={16} className="text-sky-500" />,     bg: "bg-sky-50",     label: "Mi Perfil",   sub: "Portafolio y logros" },

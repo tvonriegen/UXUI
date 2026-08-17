@@ -60,6 +60,12 @@ const LINKS = [
     visibleFor: ["student", "company"] as AccountType[],
   },
   {
+    path: "/student/activities",
+    label: "Actividades",
+    icon: Zap,
+    visibleFor: ["student"] as AccountType[],
+  },
+  {
     path: "/company/dashboard",
     label: "Inicio",
     icon: LayoutDashboard,

@@ -118,27 +118,31 @@ export default function NotificationsPage() {
                     )}
 
                     {/* Icon */}
-                    <div
+                    <span
                       className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
                       style={{ background: meta.bg, color: meta.color }}
                     >
-                      <IconComp size={18} />
-                    </div>
+                      <IconComp size={18} aria-hidden="true" />
+                    </span>
 
                     {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className={`text-[13.5px] mb-1 ${
+                    <span className="flex-1 min-w-0 block">
+                      <span
+                        className={`block text-[13.5px] mb-1 ${
                           n.read ? "font-semibold text-slate-700" : "font-bold text-slate-900"
                         }`}
                       >
                         {n.title}
-                      </p>
-                      <p className="text-xs text-slate-500 leading-relaxed">{n.description}</p>
-                      <p className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1">
-                        <Clock size={10} /> {n.time}
-                      </p>
-                    </div>
+                      </span>
+
+                      <span className="block text-xs text-slate-500 leading-relaxed">
+                        {n.description}
+                      </span>
+
+                      <span className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1">
+                        <Clock size={10} aria-hidden="true" /> {n.time}
+                      </span>
+                    </span>
 
                   </button>
                 );

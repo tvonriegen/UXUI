@@ -11,40 +11,43 @@
 // ambient effect works on every page including /login.
 // ──────────────────────────────────────────────────────────
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 import type { Metadata } from "next";
 import "./globals.css";
-import { AuthProvider }    from "@/lib/auth-context";
-import { RoleProvider }    from "@/lib/role-context";
-import { ToastProvider }   from "@/components/ui/Toast";
+
+import { AuthProvider } from "@/lib/auth-context";
+import { RoleProvider } from "@/lib/role-context";
+import { ToastProvider } from "@/components/ui/Toast";
 import { ConfirmProvider } from "@/components/ui/ConfirmDialog";
-import CursorGlow          from "@/components/layout/CursorGlow";
-import ChatWidget           from "@/components/chat/ChatWidget";
-import GoogleAnalytics      from "@/components/analytics/GoogleAnalytics";
+import CursorGlow from "@/components/layout/CursorGlow";
+import ChatWidget from "@/components/chat/ChatWidget";
+import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 
 export const metadata: Metadata = {
-  title:       "TalentHub",
-  description: "Verified technical talent and assisted applications",
+  title: "TalentHub",
+  description: "Talento técnico verificado y postulaciones asistidas",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="es" className="light">
       <body className="bg-cl-surface text-cl-on-surface font-manrope min-h-screen antialiased">
         <GoogleAnalytics />
-        {/* Ambient cursor-tracking gradient — sits at z-0 behind all content */}
+
+        {/* Ambient cursor-tracking gradient */}
         <CursorGlow />
 
-        {/*
-          AuthProvider must wrap RoleProvider so role-switching
-          can eventually be tied to the authenticated user's role.
-        */}
         <AuthProvider>
           <RoleProvider>
             <ToastProvider>
               <ConfirmProvider>
                 {children}
+
                 {/* AI chatbot — renders only for Empresa and Colegio roles */}
                 <ChatWidget />
               </ConfirmProvider>
