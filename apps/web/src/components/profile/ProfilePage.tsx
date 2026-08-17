@@ -347,14 +347,11 @@ export default function ProfilePage() {
 
   const fetchUserSkills = useCallback(async () => {
     if (!user?.id) return;
-    const { data } = await supabase
-      .from("user_skills")
-      .select("skills(name)")
-      .eq("user_id", user.id);
-    const names = (data ?? []).map((row: unknown) => {
-      const r = row as { skills?: { name?: string } | null };
-      return r.skills?.name ?? "";
-    }).filter(Boolean);
+    const { data, error } = await supabase.rpc("get_own_technical_skills");
+    if (error) return;
+    const names = (data ?? [])
+      .map((row: { name?: string }) => row.name ?? "")
+      .filter(Boolean);
     setLocalSkills(names);
   }, [user?.id]);
 
@@ -734,73 +731,13 @@ export default function ProfilePage() {
     const parsedSoft   = Array.from(new Set(editSoftSkillsStr.split(",").map((s) => s.trim()).filter(Boolean)));
     setInlineSaving(true);
 
-    const { data: catalog, error: catalogError } = await supabase
-      .from("skills")
-      .select("id, name");
-
-    if (catalogError) {
-      toast({ type: "error", title: "No se pudieron verificar las competencias" });
+    const { error: skillsError } = await supabase.rpc("replace_own_technical_skills", {
+      p_names: parsedSkills,
+    });
+    if (skillsError) {
+      toast({ type: "error", title: "No se pudieron guardar las competencias", description: skillsError.message });
       setInlineSaving(false);
       return;
-    }
-
-    const catalogByName = new Map(
-      (catalog ?? []).map((skill: { id: string; name: string }) => [skill.name.trim().toLowerCase(), skill])
-    );
-    const matchedSkills = parsedSkills
-      .map((name) => catalogByName.get(name.toLowerCase()))
-      .filter((skill): skill is { id: string; name: string } => Boolean(skill));
-    const missingSkills = parsedSkills.filter((name) => !catalogByName.has(name.toLowerCase()));
-
-    if (missingSkills.length > 0) {
-      toast({
-        type: "error",
-        title: "Competencia no disponible",
-        description: `No reconocemos: ${missingSkills.join(", ")}. Selecciona competencias del catálogo.`,
-      });
-      setInlineSaving(false);
-      return;
-    }
-
-    if (matchedSkills.length > 0) {
-      const { error: upsertSkillsError } = await supabase
-        .from("user_skills")
-        .upsert(
-          matchedSkills.map((skill) => ({ user_id: user.id, skill_id: skill.id })),
-          { onConflict: "user_id,skill_id", ignoreDuplicates: true },
-        );
-      if (upsertSkillsError) {
-        toast({ type: "error", title: "No se pudieron guardar las competencias" });
-        setInlineSaving(false);
-        return;
-      }
-    }
-
-    const desiredSkillIds = new Set(matchedSkills.map((skill) => skill.id));
-    const { data: currentSkillRows, error: currentSkillsError } = await supabase
-      .from("user_skills")
-      .select("skill_id")
-      .eq("user_id", user.id);
-    if (currentSkillsError) {
-      toast({ type: "error", title: "No se pudieron verificar las competencias guardadas" });
-      setInlineSaving(false);
-      return;
-    }
-
-    const obsoleteSkillIds = (currentSkillRows ?? [])
-      .map((row) => row.skill_id as string)
-      .filter((skillId) => !desiredSkillIds.has(skillId));
-    if (obsoleteSkillIds.length > 0) {
-      const { error: deleteSkillsError } = await supabase
-        .from("user_skills")
-        .delete()
-        .eq("user_id", user.id)
-        .in("skill_id", obsoleteSkillIds);
-      if (deleteSkillsError) {
-        toast({ type: "error", title: "Las nuevas competencias se guardaron, pero no se pudieron retirar las anteriores" });
-        setInlineSaving(false);
-        return;
-      }
     }
 
     const { error: profileError } = await supabase
@@ -824,7 +761,7 @@ export default function ProfilePage() {
 
     setLocalBio(editBioInline.trim());
     setLocalLocation(editLocationInline.trim());
-    setLocalSkills(matchedSkills.map((skill) => skill.name));
+    setLocalSkills(parsedSkills);
     setLocalSoftSkills(parsedSoft);
     setProfile((previous) => previous ? {
       ...previous,
@@ -1526,13 +1463,18 @@ export default function ProfilePage() {
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-slate-500 mb-1.5 block">Habilidades Técnicas (separadas por coma)</label>
+                      <label htmlFor="profile-technical-skills" className="text-xs font-semibold text-slate-500 mb-1.5 block">Habilidades técnicas (separadas por coma)</label>
                       <input
+                        id="profile-technical-skills"
                         value={editSkills}
                         onChange={(e) => setEditSkills(e.target.value)}
                         placeholder="Arduino, Python, Soldadura TIG..."
+                        aria-describedby="profile-technical-skills-help"
                         className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none"
                       />
+                      <p id="profile-technical-skills-help" className="mt-1.5 text-xs text-slate-500">
+                        Puedes escribir competencias del catálogo o agregar otras que representen tu experiencia real.
+                      </p>
                     </div>
                     <div>
                       <label className="text-xs font-semibold text-slate-500 mb-1.5 block">Ubicación</label>

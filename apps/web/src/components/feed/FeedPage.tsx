@@ -249,12 +249,10 @@ export default function MuroPage() {
     if (!user?.id || (role !== "Estudiante" && role !== "Egresado")) return;
     const [{ data: prof }, { data: skillsData }] = await Promise.all([
       supabase.from("profiles").select("specialty").eq("id", user.id).single(),
-      supabase.from("user_skills")
-        .select("skills(name)")
-        .eq("user_id", user.id),
+      supabase.rpc("get_own_technical_skills"),
     ]);
     if (prof) setMySpecialty((prof as any).specialty ?? "");
-    if (skillsData) setMySkills((skillsData as any[]).map((s) => s.skills?.name ?? ""));
+    if (skillsData) setMySkills((skillsData as { name?: string }[]).map((s) => s.name ?? "").filter(Boolean));
   }, [user?.id, role]);
 
   useEffect(() => {

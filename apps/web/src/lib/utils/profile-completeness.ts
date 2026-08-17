@@ -58,7 +58,7 @@ export function computeProfileCompleteness(input: ProfileCompletenessInput): Pro
       label: "Habilidades técnicas",
       done: input.skillsCount > 0,
       weight: 15,
-      guidance: "Agrega competencias del catálogo para explicar mejor tu compatibilidad.",
+      guidance: "Agrega tus competencias técnicas reales para explicar mejor tu compatibilidad.",
     },
     {
       id: "soft-skills",
