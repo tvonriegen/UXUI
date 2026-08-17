@@ -60,7 +60,8 @@ export default function LoginPage({ searchParams }: { searchParams?: { error?: s
     const { error: authError } = await login(email.trim(), password);
     if (!authError) {
       trackAnalyticsEvent("login", { method: "password" });
-      router.replace("/");
+      window.location.assign("/");
+      return;
     } else {
       setError("Correo o contraseña incorrectos.");
       setIsSubmitting(false);
@@ -73,7 +74,8 @@ export default function LoginPage({ searchParams }: { searchParams?: { error?: s
     const { error: authError } = await login(demoEmail, DEMO_PASSWORD);
     if (!authError) {
       trackAnalyticsEvent("login", { method: "demo" });
-      router.replace("/");
+      window.location.assign("/");
+      return;
     } else {
       setError(`No se pudo acceder a la cuenta demo. Asegúrate de haber ejecutado /api/seed primero.`);
       setDemoLoading(null);

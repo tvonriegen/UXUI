@@ -34,7 +34,11 @@ export async function registerAccount(input: {
     // Temporary product decision: allow immediate login while email verification is paused.
     email_confirm: true,
     app_metadata: { account_type: accountType },
-    user_metadata: { name },
+    user_metadata: {
+      name,
+      account_type: accountType,
+      role: legacyRoleFor(accountType),
+    },
   });
 
   if (createError || !created.user) return { error: createError?.message ?? "No se pudo crear la cuenta." };
@@ -46,7 +50,7 @@ export async function registerAccount(input: {
     role: legacyRoleFor(accountType),
     account_type: accountType,
     account_status: "active",
-  }, { onConflict: "id", ignoreDuplicates: true });
+  }, { onConflict: "id" });
 
   if (profileError) {
     await admin.auth.admin.deleteUser(created.user.id);

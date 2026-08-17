@@ -18,20 +18,23 @@ export function createAdminClient() {
 
 // Cookie-based client for middleware and server components
 export function createServerSupabaseClient(cookieStore: {
-  get: (name: string) => { value: string } | undefined;
+  getAll: () => Array<{ name: string; value: string }>;
   set: (name: string, value: string, options?: object) => void;
-  delete: (name: string, options?: object) => void;
 }) {
   return createServerClient(supabaseUrl, supabaseAnon, {
     cookies: {
-      get(name) {
-        return cookieStore.get(name)?.value;
+      getAll() {
+        return cookieStore.getAll();
       },
-      set(name, value, options) {
-        cookieStore.set(name, value, options);
-      },
-      remove(name, options) {
-        cookieStore.delete(name, options);
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
+        } catch {
+          // Server Components can read cookies but cannot modify them.
+          // Middleware synchronizes refreshed sessions with the response.
+        }
       },
     },
   });
