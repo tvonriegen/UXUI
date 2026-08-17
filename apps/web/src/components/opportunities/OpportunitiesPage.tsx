@@ -389,23 +389,28 @@ export default function EmpleosPage() {
 
     const raw = data ?? [];
 
-    // Batch-fetch skills for all applicants in one query
-    const applicantIds = raw.map((r: any) => r.applicant_id).filter(Boolean);
     const skillsByUser: Record<string, string[]> = {};
 
-    if (applicantIds.length > 0) {
-      const { data: skillsRows } = await supabase
-        .from("user_skills")
-        .select("user_id, skills(name)")
-        .in("user_id", applicantIds);
+    const { data: skillsRows, error: applicantSkillsError } = await supabase.rpc(
+      "get_opportunity_applicant_skills",
+      { p_opportunity_id: jobId },
+    );
+    if (applicantSkillsError) {
+      setLoadingApplicants(null);
+      toast({
+        type: "error",
+        title: "No se pudo calcular la compatibilidad",
+        description: applicantSkillsError.message,
+      });
+      return;
+    }
 
-      for (const row of skillsRows ?? []) {
-        const uid  = (row as { user_id: string; skills?: { name?: string } | null }).user_id;
-        const name = (row as { skills?: { name?: string } | null }).skills?.name ?? "";
-        if (name) {
-          skillsByUser[uid] = skillsByUser[uid] ?? [];
-          skillsByUser[uid].push(name);
-        }
+    for (const row of skillsRows ?? []) {
+      const uid = (row as { user_id: string; name?: string }).user_id;
+      const name = (row as { name?: string }).name ?? "";
+      if (uid && name) {
+        skillsByUser[uid] = skillsByUser[uid] ?? [];
+        skillsByUser[uid].push(name);
       }
     }
 
