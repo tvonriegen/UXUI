@@ -1337,8 +1337,11 @@ export default function EmpleosPage() {
                       </button>
                       {selectedJob.company_id && (
                         <button
+                          type="button"
                           onClick={() => toggleFollow(selectedJob.company_id)}
                           disabled={followingId === selectedJob.company_id}
+                          aria-label={followedIds.has(selectedJob.company_id) ? "Dejar de seguir empresa" : "Seguir empresa"}
+                          aria-pressed={followedIds.has(selectedJob.company_id)}
                           className={`px-3.5 py-2.5 rounded-xl text-sm font-semibold border transition-all btn-press ${
                             followedIds.has(selectedJob.company_id)
                               ? "bg-slate-100 text-slate-600 border-slate-200"
