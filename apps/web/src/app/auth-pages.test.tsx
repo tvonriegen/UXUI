@@ -41,6 +41,7 @@ describe("auth pages", () => {
   it("allows selecting Estudiante and enables registration after all fields are filled", async () => {
     const user = userEvent.setup();
     mocks.registerAccount.mockResolvedValue({ success: true, requiresEmailVerification: false });
+    mocks.login.mockResolvedValue({ error: null });
     render(createElement(RegisterPage));
 
     const company = screen.getByRole("button", { name: /Empresa/ });
@@ -58,6 +59,24 @@ describe("auth pages", () => {
     expect(submit).toBeEnabled();
     await user.click(submit);
     await waitFor(() => expect(mocks.registerAccount).toHaveBeenCalledWith(expect.objectContaining({ accountType: "student" })));
+    expect(mocks.login).toHaveBeenCalledWith("ada@example.com", "Secure1!");
+    expect(mocks.replace).toHaveBeenCalledWith("/student/dashboard");
+  });
+
+  it("keeps the created account recoverable when automatic login fails", async () => {
+    const user = userEvent.setup();
+    mocks.registerAccount.mockResolvedValue({ success: true, requiresEmailVerification: false });
+    mocks.login.mockResolvedValue({ error: "login failed" });
+    render(createElement(RegisterPage));
+
+    await user.type(screen.getByLabelText("Nombre completo"), "Ada Lovelace");
+    await user.type(screen.getByLabelText("Correo electrónico"), "ada@example.com");
+    await user.type(screen.getByLabelText("Contraseña"), "Secure1!");
+    await user.type(screen.getByLabelText("Confirmar contraseña"), "Secure1!");
+    await user.click(screen.getByRole("button", { name: "Crear cuenta" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Tu cuenta fue creada");
+    expect(mocks.replace).not.toHaveBeenCalled();
   });
 
   it("enables login after email and password are entered", async () => {
@@ -88,5 +107,11 @@ describe("auth pages", () => {
 
     expect(await screen.findByText("Correo o contraseña incorrectos.")).toBeVisible();
     expect(mocks.replace).not.toHaveBeenCalled();
+  });
+
+  it("explains when middleware rejects an incomplete account", () => {
+    render(createElement(LoginPage, { searchParams: { error: "profile" } }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent("no tiene un perfil válido");
   });
 });

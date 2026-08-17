@@ -16,6 +16,9 @@ import { useRouter }    from "next/navigation";
 import PageLayout       from "@/components/layout/PageLayout";
 import { useAuth }      from "@/lib/auth-context";
 import { useRole }      from "@/lib/role-context";
+import { supabase }     from "@/lib/supabase";
+import { useToast }     from "@/components/ui/Toast";
+import Link             from "next/link";
 import {
   User, Shield, Bell, Sparkles, BookOpen,
   ChevronRight, Moon, Sun, Monitor, LogOut,
@@ -25,22 +28,32 @@ import {
 const STORAGE_KEY = "talenthub_config";
 
 interface AppConfig {
-  darkMode:    boolean;
+  theme:       "light" | "dark" | "system";
   compactView: boolean;
 }
-const DEFAULT_CFG: AppConfig = { darkMode: false, compactView: false };
+const DEFAULT_CFG: AppConfig = { theme: "system", compactView: false };
 
 function loadCfg(): AppConfig {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_CFG;
-    return { ...DEFAULT_CFG, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    return {
+      theme: parsed.theme ?? (parsed.darkMode === true ? "dark" : "system"),
+      compactView: parsed.compactView ?? false,
+    };
   } catch {
     return DEFAULT_CFG;
   }
 }
 function saveCfg(c: AppConfig) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(c));
+  let existing: Record<string, unknown> = {};
+  try { existing = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}"); } catch { existing = {}; }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    ...existing,
+    ...c,
+    darkMode: c.theme === "dark",
+  }));
 }
 
 // ── Tabs ─────────────────────────────────────────────────
@@ -65,7 +78,9 @@ function Toggle({ label, sub, checked, onChange }: { label: string; sub?: string
         {sub && <p className="text-[11.5px] text-slate-400 mt-0.5">{sub}</p>}
       </div>
       <button
+        type="button"
         onClick={() => onChange(!checked)}
+        aria-label={label}
         className={`relative w-10 h-6 rounded-full transition-all duration-200 ${
           checked ? "bg-sky-500" : "bg-slate-200"
         }`}
@@ -100,10 +115,13 @@ function Row({ label, value }: { label: string; value: string }) {
 export default function SettingsPage() {
   const { user, logout }  = useAuth();
   const { role }          = useRole();
+  const { toast }         = useToast();
   const router            = useRouter();
 
   const [activeTab, setActiveTab] = useState<TabId>("cuenta");
   const [cfg,       setCfg]       = useState<AppConfig>(DEFAULT_CFG);
+  const [loadingPrefs, setLoadingPrefs] = useState(true);
+  const [savingPrefs, setSavingPrefs] = useState(false);
 
   // Privacy toggles (UI only for now — no DB persistence yet)
   const [privVisible,   setPrivVisible]   = useState(true);
@@ -123,16 +141,76 @@ export default function SettingsPage() {
     setCfg(loadCfg());
   }, []);
 
+  useEffect(() => {
+    if (!user?.id) return;
+    Promise.all([
+      supabase.from("user_preferences").select("*").eq("user_id", user.id).maybeSingle(),
+      user.accountType === "student"
+        ? supabase.from("student_profiles").select("public_visibility").eq("profile_id", user.id).maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+    ]).then(([prefsResult, studentResult]) => {
+      const prefs = prefsResult.data;
+      if (prefs) {
+        setPrivMessages(prefs.allow_direct_messages ?? true);
+        setPrivGpa(prefs.show_gpa ?? false);
+        setPrivFeria(prefs.internship_fair_visible ?? true);
+        setNMatch(prefs.notify_matches ?? true);
+        setNMsg(prefs.notify_messages ?? true);
+        setNBadge(prefs.notify_badges ?? true);
+        setNSocial(prefs.notify_social ?? false);
+        setNReminder(prefs.notify_reminders ?? true);
+        setNWeekly(prefs.weekly_email ?? false);
+        setCfg({ theme: prefs.theme ?? "system", compactView: prefs.compact_view ?? false });
+      }
+      if (studentResult.data) setPrivVisible(studentResult.data.public_visibility ?? false);
+      setLoadingPrefs(false);
+    }).catch(() => {
+      setLoadingPrefs(false);
+      toast({ type: "error", title: "No se pudieron cargar las preferencias" });
+    });
+  }, [toast, user?.accountType, user?.id]);
+
+  useEffect(() => {
+    const dark = cfg.theme === "dark" || (cfg.theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    document.documentElement.classList.toggle("dark", dark);
+    document.documentElement.classList.toggle("compact", cfg.compactView);
+    saveCfg(cfg);
+  }, [cfg]);
+
   const setCfgKey = <K extends keyof AppConfig>(key: K, val: AppConfig[K]) => {
     const next = { ...cfg, [key]: val };
     setCfg(next);
     saveCfg(next);
-    if (key === "darkMode") {
-      document.documentElement.classList.toggle("dark", val as boolean);
+  };
+
+  const savePreferences = async () => {
+    if (!user?.id) return;
+    setSavingPrefs(true);
+    const { error: preferencesError } = await supabase.from("user_preferences").upsert({
+      user_id: user.id,
+      allow_direct_messages: privMessages,
+      show_gpa: privGpa,
+      internship_fair_visible: privFeria,
+      notify_matches: nMatch,
+      notify_messages: nMsg,
+      notify_badges: nBadge,
+      notify_social: nSocial,
+      notify_reminders: nReminder,
+      weekly_email: nWeekly,
+      theme: cfg.theme,
+      compact_view: cfg.compactView,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "user_id" });
+    const { error: visibilityError } = user.accountType === "student"
+      ? await supabase.from("student_profiles").update({ public_visibility: privVisible, updated_at: new Date().toISOString() }).eq("profile_id", user.id)
+      : { error: null };
+    setSavingPrefs(false);
+    if (preferencesError || visibilityError) {
+      toast({ type: "error", title: "No se pudieron guardar las preferencias", description: preferencesError?.message ?? visibilityError?.message });
+      return;
     }
-    if (key === "compactView") {
-      document.documentElement.classList.toggle("compact", val as boolean);
-    }
+    window.dispatchEvent(new Event("talenthub-preferences-updated"));
+    toast({ type: "success", title: "Preferencias guardadas" });
   };
 
   const handleLogout = async () => {
@@ -167,6 +245,7 @@ export default function SettingsPage() {
                 <button
                   key={t.id}
                   onClick={() => setActiveTab(t.id)}
+                  aria-pressed={active}
                   className={`
                     w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl
                     text-[13px] font-medium text-left transition-all duration-150
@@ -202,6 +281,9 @@ export default function SettingsPage() {
                   >
                     <LogOut size={15} /> Cerrar sesión
                   </button>
+                  <Link href="/change-password" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-sky-700 hover:underline">
+                    Cambiar contraseña
+                  </Link>
                 </div>
               </div>
             )}
@@ -209,30 +291,16 @@ export default function SettingsPage() {
             {/* ── Privacidad ── */}
             {activeTab === "privacidad" && (
               <div>
-                <Toggle
-                  label="Perfil visible para empresas"
-                  sub="Aparecerás en búsquedas de talento verificado."
-                  checked={privVisible}
-                  onChange={setPrivVisible}
-                />
-                <Toggle
-                  label="Mostrar promedio en el perfil"
-                  sub="Tu GPA visible a recruiters."
-                  checked={privGpa}
-                  onChange={setPrivGpa}
-                />
+                {user?.accountType === "student" && <Toggle label="Perfil visible para empresas" sub="Aparecerás en búsquedas de talento verificado." checked={privVisible} onChange={setPrivVisible} />}
+                {user?.accountType === "student" && <Toggle label="Mostrar promedio en el perfil" sub="Tu GPA visible a recruiters." checked={privGpa} onChange={setPrivGpa} />}
                 <Toggle
                   label="Permitir mensajes directos"
                   sub="Cualquier usuario verificado puede escribirte."
                   checked={privMessages}
                   onChange={setPrivMessages}
                 />
-                <Toggle
-                  label="Aparecer en feria de práctica"
-                  sub="Empresas podrán pre-entrevistarte."
-                  checked={privFeria}
-                  onChange={setPrivFeria}
-                />
+                {user?.accountType === "student" && <Toggle label="Aparecer en feria de práctica" sub="Empresas podrán pre-entrevistarte." checked={privFeria} onChange={setPrivFeria} />}
+                <button type="button" onClick={savePreferences} disabled={savingPrefs || loadingPrefs} className="mt-5 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-700 disabled:opacity-50">{savingPrefs ? "Guardando…" : "Guardar privacidad"}</button>
               </div>
             )}
 
@@ -244,7 +312,7 @@ export default function SettingsPage() {
                 <Toggle label="Insignias desbloqueadas"            checked={nBadge}    onChange={setNBadge}    />
                 <Toggle label="Actividad de tu red"                checked={nSocial}   onChange={setNSocial}   />
                 <Toggle label="Recordatorios del colegio"          checked={nReminder} onChange={setNReminder} />
-                <Toggle label="Resumen semanal por correo"         checked={nWeekly}   onChange={setNWeekly}   />
+                <button type="button" onClick={savePreferences} disabled={savingPrefs || loadingPrefs} className="mt-5 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-700 disabled:opacity-50">{savingPrefs ? "Guardando…" : "Guardar notificaciones"}</button>
               </div>
             )}
 
@@ -260,11 +328,12 @@ export default function SettingsPage() {
                       { label: "Sistema",  icon: Monitor, key: "auto"  },
                     ].map((opt) => {
                       const Icon = opt.icon;
-                      const active = opt.key === (cfg.darkMode ? "dark" : "light");
+                      const active = opt.key === cfg.theme;
                       return (
                         <button
                           key={opt.key}
-                          onClick={() => setCfgKey("darkMode", opt.key === "dark")}
+                          aria-pressed={active}
+                          onClick={() => setCfgKey("theme", opt.key as AppConfig["theme"])}
                           className={`
                             flex flex-col items-center gap-2 p-4 rounded-xl border transition-all
                             ${active
@@ -288,6 +357,7 @@ export default function SettingsPage() {
                     checked={cfg.compactView}
                     onChange={(v) => setCfgKey("compactView", v)}
                   />
+                  <button type="button" onClick={savePreferences} disabled={savingPrefs || loadingPrefs} className="mt-5 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-700 disabled:opacity-50">{savingPrefs ? "Guardando…" : "Guardar apariencia"}</button>
                 </div>
               </div>
             )}
@@ -296,19 +366,18 @@ export default function SettingsPage() {
             {activeTab === "ayuda" && (
               <div className="space-y-2">
                 {[
-                  "Centro de ayuda",
-                  "Reportar un problema",
-                  "Términos y condiciones",
-                  "Política de privacidad",
-                  "Acerca de TalentHub v2.0",
+                  { label: "Reportar un problema", href: "mailto:soporte@talenthub.cl" },
+                  { label: "Términos y condiciones", href: "/terms" },
+                  { label: "Política de privacidad", href: "/privacy" },
                 ].map((item) => (
-                  <button
-                    key={item}
+                  <Link
+                    key={item.label}
+                    href={item.href}
                     className="w-full flex justify-between items-center px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-[13.5px] font-semibold text-slate-700 hover:bg-slate-100 transition-colors text-left"
                   >
-                    <span>{item}</span>
+                    <span>{item.label}</span>
                     <ChevronRight size={14} className="text-slate-400" />
-                  </button>
+                  </Link>
                 ))}
               </div>
             )}

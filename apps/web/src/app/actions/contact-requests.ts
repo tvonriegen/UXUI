@@ -32,6 +32,8 @@ export async function approveContactRequest(contactRequestId: string) {
     .from("contact_requests")
     .update({ status: "approved" })
     .eq("id", contactRequestId)
+    .eq("school_id", user.id)
+    .eq("status", "pending")
     .select("id");
 
   if (error) return { error: error.message };
@@ -44,11 +46,15 @@ export async function rejectContactRequest(contactRequestId: string, rejectionRe
   if (!contactRequestId) return { error: "Solicitud inválida." };
   const { supabase, user } = await getServerClient();
   if (!user) return { error: "No autenticado." };
+  const reason = rejectionReason.trim();
+  if (reason.length > 1000) return { error: "El motivo no puede superar 1000 caracteres." };
 
   const { data, error } = await supabase
     .from("contact_requests")
-    .update({ status: "rejected", rejection_reason: rejectionReason })
+    .update({ status: "rejected", rejection_reason: reason })
     .eq("id", contactRequestId)
+    .eq("school_id", user.id)
+    .eq("status", "pending")
     .select("id");
 
   if (error) return { error: error.message };
@@ -66,6 +72,8 @@ export async function cancelContactRequest(contactRequestId: string) {
     .from("contact_requests")
     .update({ status: "cancelled" })
     .eq("id", contactRequestId)
+    .eq("company_id", user.id)
+    .eq("status", "pending")
     .select("id");
 
   if (error) return { error: error.message };

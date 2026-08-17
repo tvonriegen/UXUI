@@ -14,7 +14,12 @@ export interface LegacyJobPosting {
   company_id: string;
   max_candidates: number | null;
   views_count: number;
+  required_skills?: string[];
+  preferred_skills?: string[];
+  minimum_experience_years?: number | null;
+  work_mode?: "onsite" | "hybrid" | "remote" | null;
   company?: { name: string; avatar: string };
+  source?: "legacy" | "canonical";
 }
 
 export type ApplicationOpportunityRef = {
@@ -51,6 +56,11 @@ export function opportunityToLegacyJob(opportunity: Opportunity): LegacyJobPosti
     company_id: opportunity.publisher_id,
     max_candidates: opportunity.max_candidates,
     views_count: opportunity.views_count,
+    required_skills: opportunity.required_skills ?? [],
+    preferred_skills: opportunity.preferred_skills ?? [],
+    minimum_experience_years: opportunity.minimum_experience_years ?? null,
+    work_mode: opportunity.work_mode ?? null,
+    source: "canonical",
   };
 }
 
@@ -60,8 +70,19 @@ export function mergeOpportunitySources(
   legacy: LegacyJobPosting[],
 ): LegacyJobPosting[] {
   const legacyIds = new Set(legacy.map((row) => row.id));
+  const canonicalById = new Map(canonical.map((row) => [row.id, row]));
   return [
-    ...legacy,
+    ...legacy.map((row) => {
+      const canonicalRow = canonicalById.get(row.id);
+      return {
+        ...row,
+        required_skills: canonicalRow?.required_skills ?? row.required_skills ?? [],
+        preferred_skills: canonicalRow?.preferred_skills ?? row.preferred_skills ?? [],
+        minimum_experience_years: canonicalRow?.minimum_experience_years ?? row.minimum_experience_years ?? null,
+        work_mode: canonicalRow?.work_mode ?? row.work_mode ?? null,
+        source: "legacy" as const,
+      };
+    }),
     ...canonical.filter((row) => !legacyIds.has(row.id)).map(opportunityToLegacyJob),
   ];
 }

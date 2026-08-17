@@ -5,7 +5,6 @@
 
 import { cookies } from "next/headers";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
-import { isMinorProfile } from "@/lib/utils/is-minor";
 
 export type InterviewModality = "video" | "presencial" | "telefono";
 export type InterviewStatus   =
@@ -64,6 +63,23 @@ export async function proposeInterview(args: ProposeArgs) {
   if (!args.applicationId || !args.proposedAt) {
     return { error: "Parámetros inválidos." };
   }
+  const proposedAt = new Date(args.proposedAt);
+  if (Number.isNaN(proposedAt.getTime()) || proposedAt.getTime() <= Date.now()) {
+    return { error: "La entrevista debe programarse para una fecha futura." };
+  }
+  if (!(["video", "presencial", "telefono"] as const).includes(args.modality)) {
+    return { error: "Modalidad inválida." };
+  }
+  const durationMins = args.durationMins ?? 30;
+  if (!Number.isInteger(durationMins) || durationMins < 15 || durationMins > 120) {
+    return { error: "La duración debe estar entre 15 y 120 minutos." };
+  }
+  if (args.meetingLink) {
+    try {
+      const meetingUrl = new URL(args.meetingLink);
+      if (!["http:", "https:"].includes(meetingUrl.protocol)) return { error: "El enlace debe comenzar con http:// o https://." };
+    } catch { return { error: "El enlace de reunión no es válido." }; }
+  }
 
   const cookieStore = await cookies();
   const supabase = createServerSupabaseClient(cookieStore as any); // eslint-disable-line
@@ -73,95 +89,22 @@ export async function proposeInterview(args: ProposeArgs) {
   // Authorize: caller must be the owning company of the application's job posting
   const { data: app } = await supabase
     .from("job_applications")
-    .select("id, applicant_id, job_id, job_postings!inner(company_id, title)")
+    .select("id, applicant_id, job_id, opportunity_id, job_postings(company_id, title), opportunities(publisher_id, title)")
     .eq("id", args.applicationId)
     .single();
 
   if (!app) return { error: "Postulación no encontrada." };
   const jobPosting = app.job_postings as { company_id?: string; title?: string } | null;
-  if (jobPosting?.company_id !== caller.id) {
+  const opportunity = app.opportunities as { publisher_id?: string; title?: string } | null;
+  if (jobPosting?.company_id !== caller.id && opportunity?.publisher_id !== caller.id) {
     return { error: "Acceso denegado." };
-  }
-
-  // S1 deliberately has no third-party student_stage/age/school projection.
-  // Interview mediation remains fail-closed until it is moved behind an
-  // explicitly scoped RPC; do not reintroduce direct profile reads here.
-  return {
-    error: "La mediación de entrevistas no está disponible bajo el límite de perfil S1.",
-    interviewId: "",
-    conversationId: "",
-    requiresSchoolApproval: false,
-  };
-
-  /* Legacy interview implementation intentionally disabled for S1.
-  const { data: applicant } = await supabase
-    .from("profiles")
-    .select("id, account_type, age, school_id")
-    .eq("id", app.applicant_id)
-    .single();
-
-  if (!applicant) return { error: "Perfil del postulante no encontrado." };
-
-  const { data: studentProfile } = await supabase
-    .from("student_profiles")
-    .select("student_stage, school_id")
-    .eq("profile_id", app.applicant_id)
-    .maybeSingle();
-  const applicantRole = applicant.account_type === "student" && studentProfile?.student_stage === "graduated"
-    ? "Egresado"
-    : applicant.account_type === "student" ? "Estudiante" : applicant.account_type;
-
-  if (isMinorProfile(applicantRole, applicant.age)) {
-    const schoolId = studentProfile?.school_id ?? applicant.school_id;
-    if (!schoolId) {
-      return { error: "El postulante requiere mediación escolar, pero no tiene colegio asignado." };
-    }
-
-    const { data: existingRequest } = await supabase
-      .from("contact_requests")
-      .select("id, status")
-      .eq("company_id", caller.id)
-      .eq("student_id", app.applicant_id)
-      .in("status", ["pending", "approved"])
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (existingRequest?.status !== "approved") {
-      if (existingRequest?.id) {
-        return {
-          success: true,
-          requiresSchoolApproval: true,
-          contactRequestId: existingRequest.id as string,
-        };
-      }
-
-      const { data: createdRequest, error: requestErr } = await supabase
-        .from("contact_requests")
-        .insert({
-          company_id: caller.id,
-          student_id: app.applicant_id,
-          school_id: applicant.school_id,
-          message: `Solicitud para proponer entrevista por "${jobPosting?.title ?? "la vacante"}".`,
-        })
-        .select("id")
-        .single();
-
-      if (requestErr || !createdRequest) {
-        return { error: requestErr?.message ?? "No se pudo crear la solicitud de contacto." };
-      }
-
-      return {
-        success: true,
-        requiresSchoolApproval: true,
-        contactRequestId: createdRequest.id as string,
-      };
-    }
   }
 
   // Ensure a conversation exists between company and student using RLS.
   const convoId = await ensureConversation(supabase, caller.id, app.applicant_id);
-  if (!convoId) return { error: "No se pudo abrir la conversación con el postulante." };
+  if (!convoId) {
+    return { error: "Aún no está autorizado el contacto con este postulante. Solicita primero la aprobación del colegio desde su perfil." };
+  }
 
   // Insert the interview row
   const { data: interview, error: iErr } = await supabase
@@ -171,11 +114,11 @@ export async function proposeInterview(args: ProposeArgs) {
       company_id:     caller.id,
       student_id:     app.applicant_id,
       proposed_at:    args.proposedAt,
-      duration_mins:  args.durationMins ?? 30,
+      duration_mins:  durationMins,
       modality:       args.modality,
-      location:       args.location ?? "",
-      meeting_link:   args.meetingLink ?? "",
-      notes:          args.notes ?? "",
+      location:       (args.location ?? "").trim().slice(0, 500),
+      meeting_link:   (args.meetingLink ?? "").trim().slice(0, 2000),
+      notes:          (args.notes ?? "").trim().slice(0, 2000),
       status:         "proposed",
     })
     .select("id")
@@ -186,13 +129,13 @@ export async function proposeInterview(args: ProposeArgs) {
   const { error: msgErr } = await supabase.from("messages").insert({
     conversation_id: convoId,
     sender_id:       caller.id,
-    content:         `Propuesta de entrevista para "${jobPosting?.title ?? "la vacante"}".`,
+    content:         `Propuesta de entrevista para "${jobPosting?.title ?? opportunity?.title ?? "la vacante"}".`,
     kind:            "interview_proposal",
     metadata: {
       interview_id:   interview.id,
       application_id: args.applicationId,
       proposed_at:    args.proposedAt,
-      duration_mins:  args.durationMins ?? 30,
+      duration_mins:  durationMins,
       modality:       args.modality,
       location:       args.location ?? "",
       meeting_link:   args.meetingLink ?? "",
@@ -200,7 +143,10 @@ export async function proposeInterview(args: ProposeArgs) {
     read: false,
   });
 
-  if (msgErr) return { error: msgErr.message };
+  if (msgErr) {
+    await supabase.from("interviews").update({ status: "cancelled" }).eq("id", interview.id);
+    return { error: "La entrevista no pudo enviarse al chat. Inténtalo nuevamente." };
+  }
 
   // Also move the application to "interviewing" if not further along
   await supabase
@@ -210,7 +156,6 @@ export async function proposeInterview(args: ProposeArgs) {
     .in("status", ["pending", "reviewing"]);
 
   return { success: true, interviewId: interview.id, conversationId: convoId, requiresSchoolApproval: false };
-  */
 }
 
 // ── Student: respond to a proposal (accept / decline) ────
@@ -232,12 +177,15 @@ export async function respondInterview(interviewId: string, response: "accepted"
   if (iv.student_id !== caller.id) return { error: "Acceso denegado." };
   if (iv.status !== "proposed") return { error: "Esta propuesta ya fue respondida." };
 
-  const { error } = await supabase
+  const { data: updated, error } = await supabase
     .from("interviews")
     .update({ status: response, updated_at: new Date().toISOString() })
-    .eq("id", interviewId);
+    .eq("id", interviewId)
+    .eq("status", "proposed")
+    .select("id");
 
   if (error) return { error: error.message };
+  if (!updated?.length) return { error: "Esta propuesta ya fue respondida." };
 
   // Log into the application event timeline
   await supabase.from("application_events").insert({
@@ -270,11 +218,14 @@ export async function cancelInterview(interviewId: string) {
     return { error: "Acceso denegado." };
   }
 
-  const { error } = await supabase
+  const { data: updated, error } = await supabase
     .from("interviews")
     .update({ status: "cancelled", updated_at: new Date().toISOString() })
-    .eq("id", interviewId);
+    .eq("id", interviewId)
+    .in("status", ["proposed", "accepted", "rescheduled"])
+    .select("id");
 
   if (error) return { error: error.message };
+  if (!updated?.length) return { error: "La entrevista ya no se puede cancelar." };
   return { success: true };
 }

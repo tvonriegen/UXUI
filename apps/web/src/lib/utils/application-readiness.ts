@@ -47,6 +47,8 @@ export interface ApplicationReadinessInput {
   match?: {
     score: number;
     label: string;
+    missingSkills?: string[];
+    structuredRequirements?: boolean;
   };
 }
 
@@ -379,6 +381,16 @@ function buildEvidenceItem(input: ApplicationReadinessInput): ReadinessItem {
 
 function buildMatchItem(input: ApplicationReadinessInput): ReadinessItem {
   if (input.match) {
+    if (input.match.missingSkills?.length) {
+      return {
+        id: "match-skills-recommended",
+        type: "recommended",
+        status: "warning",
+        title: "Fortalece competencias para esta vacante",
+        explanation: `Compatibilidad estimada: ${input.match.score}% (${input.match.label}). La vacante solicita además: ${input.match.missingSkills.join(", ")}. Añádelas solo si realmente las tienes o incorpora evidencia cuando las desarrolles.`,
+        actionLabel: "Revisar mis competencias",
+      };
+    }
     return {
       id: "match-info",
       type: "informational",

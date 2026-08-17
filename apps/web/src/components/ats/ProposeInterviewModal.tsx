@@ -88,8 +88,10 @@ export default function ProposeInterviewModal({
               const Icon = m.icon;
               return (
                 <button
+                  type="button"
                   key={m.value}
                   onClick={() => setModality(m.value)}
+                  aria-pressed={modality === m.value}
                   className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 text-xs font-bold transition-all btn-press ${
                     modality === m.value
                       ? "border-violet-400 bg-violet-50 text-violet-700"
@@ -107,9 +109,11 @@ export default function ProposeInterviewModal({
         {/* Date / time */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-xs font-semibold text-slate-500 mb-1.5 block">Fecha</label>
+            <label htmlFor="interview-date" className="text-xs font-semibold text-slate-500 mb-1.5 block">Fecha</label>
             <input
+              id="interview-date"
               type="date"
+              required
               value={date}
               min={new Date().toISOString().slice(0, 10)}
               onChange={(e) => setDate(e.target.value)}
@@ -117,9 +121,11 @@ export default function ProposeInterviewModal({
             />
           </div>
           <div>
-            <label className="text-xs font-semibold text-slate-500 mb-1.5 block">Hora</label>
+            <label htmlFor="interview-time" className="text-xs font-semibold text-slate-500 mb-1.5 block">Hora</label>
             <input
+              id="interview-time"
               type="time"
+              required
               value={time}
               onChange={(e) => setTime(e.target.value)}
               className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-violet-200 focus:border-violet-400 outline-none"
@@ -129,10 +135,11 @@ export default function ProposeInterviewModal({
 
         {/* Duration */}
         <div>
-          <label className="text-xs font-semibold text-slate-500 mb-1.5 block">
+          <label htmlFor="interview-duration" className="text-xs font-semibold text-slate-500 mb-1.5 block">
             Duración: {duration} minutos
           </label>
           <input
+            id="interview-duration"
             type="range" min={15} max={120} step={15}
             value={duration}
             onChange={(e) => setDuration(Number(e.target.value))}
@@ -146,8 +153,9 @@ export default function ProposeInterviewModal({
         {/* Conditional location / link */}
         {(modality === "video") && (
           <div>
-            <label className="text-xs font-semibold text-slate-500 mb-1.5 block">Enlace de reunión (opcional)</label>
+            <label htmlFor="interview-link" className="text-xs font-semibold text-slate-500 mb-1.5 block">Enlace de reunión (opcional)</label>
             <input
+              id="interview-link"
               type="url" value={link} onChange={(e) => setLink(e.target.value)}
               placeholder="https://meet.google.com/..."
               className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-violet-200 outline-none"
@@ -156,8 +164,9 @@ export default function ProposeInterviewModal({
         )}
         {(modality === "presencial") && (
           <div>
-            <label className="text-xs font-semibold text-slate-500 mb-1.5 block">Dirección</label>
+            <label htmlFor="interview-location" className="text-xs font-semibold text-slate-500 mb-1.5 block">Dirección</label>
             <input
+              id="interview-location"
               type="text" value={location} onChange={(e) => setLocation(e.target.value)}
               placeholder="Edificio, calle, ciudad…"
               className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-violet-200 outline-none"
@@ -167,8 +176,9 @@ export default function ProposeInterviewModal({
 
         {/* Notes */}
         <div>
-          <label className="text-xs font-semibold text-slate-500 mb-1.5 block">Notas para el candidato (opcional)</label>
+          <label htmlFor="interview-notes" className="text-xs font-semibold text-slate-500 mb-1.5 block">Notas para el candidato (opcional)</label>
           <textarea
+            id="interview-notes"
             value={notes} onChange={(e) => setNotes(e.target.value)}
             rows={2}
             placeholder="Tema de la entrevista, preparación sugerida…"
@@ -177,6 +187,7 @@ export default function ProposeInterviewModal({
         </div>
 
         <button
+          type="button"
           onClick={handleSubmit}
           disabled={saving || !date || !time}
           className="w-full bg-violet-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-violet-700 disabled:opacity-40 transition-colors btn-press flex items-center justify-center gap-2"

@@ -9,7 +9,7 @@
 // Step 4 · Import  — sequential creation with progress + error log
 // ──────────────────────────────────────────────────────────────────
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { bulkCreateStudents } from "@/app/actions/school";
 import { isValidRut } from "@/lib/schemas";
 import {
@@ -121,6 +121,8 @@ function parseCSV(raw: string): { headers: string[]; rows: Record<string, string
   }
   if (line) lines.push(line);
 
+  const delimiter = (lines[0]?.match(/;/g)?.length ?? 0) > (lines[0]?.match(/,/g)?.length ?? 0) ? ";" : ",";
+
   function parseLine(l: string): string[] {
     const cells: string[] = [];
     let cell = ""; let inQ = false;
@@ -129,7 +131,7 @@ function parseCSV(raw: string): { headers: string[]; rows: Record<string, string
       if (c === '"') {
         if (inQ && l[i + 1] === '"') { cell += '"'; i++; }
         else inQ = !inQ;
-      } else if (c === "," && !inQ) {
+      } else if (c === delimiter && !inQ) {
         cells.push(cell.trim()); cell = "";
       } else {
         cell += c;
@@ -265,6 +267,10 @@ export default function SmartImporter({ onClose, onSuccess }: Props) {
 
   const processFile = async (file: File) => {
     setParseError(null);
+    if (file.size > 5 * 1024 * 1024) {
+      setParseError("El archivo no puede superar 5 MB.");
+      return;
+    }
     const name = file.name.toLowerCase();
     const isExcel = name.endsWith(".xlsx") || name.endsWith(".xls") || name.endsWith(".xlsm");
     const isCsv   = name.endsWith(".csv") || file.type === "text/csv";
@@ -296,6 +302,7 @@ export default function SmartImporter({ onClose, onSuccess }: Props) {
       if (rows.length === 0) { setParseError("No se encontraron filas de datos."); return; }
       applyParsed(h, rows);
     };
+    reader.onerror = () => setParseError("No se pudo leer el archivo CSV.");
     reader.readAsText(file, "UTF-8");
   };
 
@@ -307,10 +314,21 @@ export default function SmartImporter({ onClose, onSuccess }: Props) {
   };
 
   const buildStudents = useCallback(() => {
-    const built: StudentRow[] = rawRows.map((row, i) => {
+    const seenEmails = new Map<string, number>();
+    const seenRuts = new Map<string, number>();
+    const built: StudentRow[] = rawRows.slice(0, 200).map((row, i) => {
       const errors = validateRow(row, mapping);
+      const emailColumn = mapping.email;
+      const rutColumn = mapping.rut;
+      const email = emailColumn ? (row[emailColumn] ?? "").trim().toLocaleLowerCase("es-CL") : "";
+      const rut = rutColumn ? (row[rutColumn] ?? "").replace(/[.\s-]/g, "").toUpperCase() : "";
+      if (email && seenEmails.has(email)) errors.email = `Duplicado con fila ${(seenEmails.get(email) ?? 0) + 1}`;
+      else if (email) seenEmails.set(email, i);
+      if (rut && seenRuts.has(rut)) errors.rut = `Duplicado con fila ${(seenRuts.get(rut) ?? 0) + 1}`;
+      else if (rut) seenRuts.set(rut, i);
       return { _id: i, _errors: errors, ...row };
     });
+    if (rawRows.length > 200) setParseError("Solo se procesarán las primeras 200 filas por importación.");
     setStudents(built);
     setStep("validate");
   }, [rawRows, mapping]);
@@ -373,6 +391,14 @@ export default function SmartImporter({ onClose, onSuccess }: Props) {
     setStep("import");
   };
 
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !importing) onClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [importing, onClose]);
+
   // ── Step indicator ────────────────────────────────────────────
 
   const STEPS: { key: Step; label: string }[] = [
@@ -387,17 +413,17 @@ export default function SmartImporter({ onClose, onSuccess }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div aria-hidden="true" className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onClick={() => { if (!importing) onClose(); }} />
+      <div role="dialog" aria-modal="true" aria-labelledby="smart-importer-title" className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
 
         {/* Header */}
         <div className="px-6 pt-6 pb-4 border-b border-slate-100 shrink-0">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-lg font-extrabold">Importador Inteligente</h2>
+              <h2 id="smart-importer-title" className="text-lg font-extrabold">Importador Inteligente</h2>
               <p className="text-xs text-slate-500 mt-0.5">CSV y Excel (.xlsx/.xls) · incluye RUT, género, celular, clase, edad</p>
             </div>
-            <button onClick={onClose} className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center hover:bg-slate-200 transition-colors">
+            <button type="button" onClick={onClose} disabled={importing} aria-label="Cerrar importador" className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center hover:bg-slate-200 transition-colors disabled:opacity-40">
               <X size={16} />
             </button>
           </div>
@@ -430,10 +456,19 @@ export default function SmartImporter({ onClose, onSuccess }: Props) {
           {step === "upload" && (
             <div className="space-y-4">
               <div
+                role="button"
+                tabIndex={0}
+                aria-label="Seleccionar archivo CSV o Excel"
                 onDrop={handleDrop}
                 onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
                 onDragLeave={() => setDragging(false)}
                 onClick={() => fileRef.current?.click()}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    fileRef.current?.click();
+                  }
+                }}
                 className={`flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-2xl py-16 cursor-pointer transition-all ${
                   dragging ? "border-sky-400 bg-sky-50" : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
                 }`}
@@ -455,7 +490,7 @@ export default function SmartImporter({ onClose, onSuccess }: Props) {
               </div>
 
               {parseError && (
-                <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                <div role="alert" className="flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
                   <AlertTriangle size={16} /> {parseError}
                 </div>
               )}
@@ -498,6 +533,7 @@ export default function SmartImporter({ onClose, onSuccess }: Props) {
                       </div>
                       <ChevronRight size={13} className="text-slate-300 shrink-0" />
                       <select
+                        aria-label={`Columna para ${FIELD_LABELS[field]}`}
                         value={mapped ?? ""}
                         onChange={(e) => setMapping((m) => ({ ...m, [field]: e.target.value || null }))}
                         className={`flex-1 text-xs rounded-lg border px-2.5 py-2 outline-none bg-white ${
@@ -563,6 +599,8 @@ export default function SmartImporter({ onClose, onSuccess }: Props) {
                               return (
                                 <td key={field} className={`px-2 py-1.5 ${err ? "bg-red-50" : ""}`}>
                                   <input
+                                    aria-label={`${FIELD_LABELS[field]}, fila ${s._id + 1}`}
+                                    aria-invalid={Boolean(err)}
                                     value={val}
                                     onChange={(e) => col && setCell(s._id, field, e.target.value)}
                                     placeholder={col ? FIELD_PLACEHOLDERS[field] : "—"}
@@ -579,7 +617,7 @@ export default function SmartImporter({ onClose, onSuccess }: Props) {
                               );
                             })}
                             <td className="px-2 py-1.5">
-                              <button onClick={() => removeRow(s._id)} className="p-1 text-slate-300 hover:text-red-500 transition-colors">
+                              <button type="button" onClick={() => removeRow(s._id)} aria-label={`Eliminar fila ${s._id + 1}`} className="p-1 text-slate-400 hover:text-red-600 transition-colors">
                                 <Trash2 size={12} />
                               </button>
                             </td>
@@ -600,7 +638,7 @@ export default function SmartImporter({ onClose, onSuccess }: Props) {
                 <div className="text-center space-y-4">
                   <Loader2 size={40} className="animate-spin text-sky-500 mx-auto" />
                   <p className="text-sm font-semibold text-slate-600">Creando cuentas de estudiantes…</p>
-                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div role="progressbar" aria-label="Progreso de importación" aria-valuemin={0} aria-valuemax={100} aria-valuenow={importProgress} className="h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-sky-400 to-indigo-500 rounded-full transition-all duration-300" style={{ width: `${importProgress}%` }} />
                   </div>
                   <p className="text-xs text-slate-400">{importProgress}% completado</p>

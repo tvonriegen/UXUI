@@ -75,10 +75,17 @@ export const opportunitySchema = z.object({
   compensationMin: z.coerce.number().int().min(0).optional(),
   compensationMax: z.coerce.number().int().min(0).optional(),
   maxCandidates: z.coerce.number().int().min(1).max(10000).optional(),
+  requiredSkills: z.array(z.string().trim().min(1).max(80)).max(20).default([]),
+  preferredSkills: z.array(z.string().trim().min(1).max(80)).max(20).default([]),
+  minimumExperienceYears: z.coerce.number().int().min(0).max(50).optional(),
+  workMode: z.enum(["onsite", "hybrid", "remote"]).optional(),
   closesAt: z.string().trim().optional(),
 }).refine(
   (value) => value.compensationMin == null || value.compensationMax == null || value.compensationMin <= value.compensationMax,
   { message: "La compensación mínima no puede superar la máxima.", path: ["compensationMax"] },
+).refine(
+  (value) => !value.closesAt || (!Number.isNaN(Date.parse(value.closesAt)) && new Date(value.closesAt).getTime() > Date.now()),
+  { message: "La fecha de cierre debe ser futura.", path: ["closesAt"] },
 );
 
 // School creates a student account
@@ -126,6 +133,7 @@ export const profileEditSchema = z.object({
   specialty:    z.string().max(100).optional(),
   title:        z.string().max(100).optional(),
   availability: z.enum(["Disponible", "En prácticas", "No disponible"]).optional(),
+  years_experience: z.coerce.number().int().min(0).max(50).optional(),
   website:      z.string().url("URL inválida").optional().or(z.literal("")),
   theme_color:  z.enum(THEME_COLORS).optional().nullable(),
 });

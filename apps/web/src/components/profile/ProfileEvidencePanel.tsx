@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { CheckCircle2, Clock3, ExternalLink, FileCheck2, Loader2, Plus, RotateCcw, XCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { submitProfileEvidence } from "@/app/actions/evidence";
+import { resubmitProfileEvidence, submitProfileEvidence } from "@/app/actions/evidence";
 import { computeProfileCompleteness, type ProfileCompletenessResult, type ProfileEvidenceStatus } from "@/lib/utils/profile-completeness";
 
 export interface ProfileEvidenceRow {
@@ -88,6 +88,7 @@ export function ProfileEvidencePanel({
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [resubmittingId, setResubmittingId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [type, setType] = useState<ProfileEvidenceRow["evidence_type"]>("project");
@@ -97,12 +98,16 @@ export function ProfileEvidencePanel({
 
   const loadEvidence = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("profile_evidence")
       .select("id, evidence_type, title, description, url, issuer, status, reviewed_at, created_at")
       .eq("owner_id", profileId)
       .order("created_at", { ascending: false });
-    setEvidence((data ?? []) as ProfileEvidenceRow[]);
+    if (error) {
+      setMessage("No se pudieron cargar las evidencias del perfil.");
+    } else {
+      setEvidence((data ?? []) as ProfileEvidenceRow[]);
+    }
     setLoading(false);
   }, [profileId]);
 
@@ -137,6 +142,20 @@ export function ProfileEvidencePanel({
       return;
     }
     resetForm(); setFormOpen(false); setMessage("Evidencia enviada para revisión institucional.");
+    await loadEvidence();
+  };
+
+  const handleResubmit = async (evidenceId: string) => {
+    if (resubmittingId) return;
+    setResubmittingId(evidenceId);
+    setMessage(null);
+    const result = await resubmitProfileEvidence(evidenceId);
+    setResubmittingId(null);
+    if (result.error) {
+      setMessage(result.error);
+      return;
+    }
+    setMessage("Evidencia reenviada para revisión institucional.");
     await loadEvidence();
   };
 
@@ -196,7 +215,7 @@ export function ProfileEvidencePanel({
         </div>
       )}
 
-      {message && <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600">{message}</p>}
+      {message && <p role="status" aria-live="polite" className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600">{message}</p>}
 
       {loading ? (
         <div className="flex justify-center py-6"><Loader2 size={20} className="animate-spin text-slate-300" /></div>
@@ -220,6 +239,19 @@ export function ProfileEvidencePanel({
                     <div className="mt-2 flex flex-wrap items-center gap-3 text-[10px] text-slate-400">
                       {item.issuer && <span>{item.issuer}</span>}
                       {item.url && <a href={item.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sky-600 hover:underline"><ExternalLink size={10} /> Ver enlace</a>}
+                      {isOwner && item.status === "rejected" && (
+                        <button
+                          type="button"
+                          onClick={() => handleResubmit(item.id)}
+                          disabled={resubmittingId !== null}
+                          className="inline-flex items-center gap-1 font-bold text-sky-700 hover:underline disabled:opacity-50"
+                        >
+                          {resubmittingId === item.id
+                            ? <Loader2 size={10} className="animate-spin" />
+                            : <RotateCcw size={10} />}
+                          Reenviar a revisión
+                        </button>
+                      )}
                     </div>
                   </div>
                   <div className="shrink-0">

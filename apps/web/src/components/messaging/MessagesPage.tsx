@@ -1,11 +1,13 @@
 "use client";
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import PageLayout from "@/components/layout/PageLayout";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth-context";
 import { useRole } from "@/lib/role-context";
-import { ArrowLeft, Send, Search, Loader2, Trash2, MoreVertical, Check, CheckCheck, Users } from "lucide-react";
+import { ArrowLeft, Send, Search, Loader2, Trash2, Check, CheckCheck, Users } from "lucide-react";
 import InterviewProposalBubble from "@/components/ats/InterviewProposalBubble";
+import { useToast } from "@/components/ui/Toast";
 
 interface Participant {
   id: string;
@@ -65,6 +67,9 @@ function fmtTime(iso: string): string {
 export default function MessagesPage() {
   const { user } = useAuth();
   const { role } = useRole();
+  const { toast } = useToast();
+  const searchParams = useSearchParams();
+  const requestedConversationId = searchParams.get("conversation");
   const [convos, setConvos] = useState<ConversationRow[]>([]);
   const [activeConvo, setActiveConvo] = useState<ConversationRow | null>(null);
   const [messages, setMessages] = useState<MessageRow[]>([]);
@@ -160,12 +165,16 @@ export default function MessagesPage() {
       }));
 
       setConvos(enriched);
+      if (requestedConversationId) {
+        const requested = enriched.find((conversation) => conversation.id === requestedConversationId);
+        if (requested) setActiveConvo(requested);
+      }
     } catch {
       setError("No se pudieron cargar las conversaciones.");
     } finally {
       setLoadingConvos(false);
     }
-  }, [user?.id]);
+  }, [user?.id, requestedConversationId]);
 
   useEffect(() => { fetchConversations(); }, [fetchConversations]);
 
@@ -173,7 +182,12 @@ export default function MessagesPage() {
   const fetchStudents = useCallback(async () => {
     if (!user?.id || role !== "Colegio") return;
     setLoadingStudents(true);
-    const { data } = await supabase.rpc("get_school_students");
+    const { data, error: studentsError } = await supabase.rpc("get_school_students");
+    if (studentsError) {
+      setError("No se pudo cargar el directorio de estudiantes.");
+      setLoadingStudents(false);
+      return;
+    }
     setStudents((data ?? []) as StudentDirectoryEntry[]);
     setLoadingStudents(false);
   }, [user?.id, role]);
@@ -249,6 +263,8 @@ export default function MessagesPage() {
   // Fetch messages for active conversation
   const fetchMessages = useCallback(async (convoId: string) => {
     setLoadingMsgs(true);
+    setMessages([]);
+    setError(null);
     const { data, error: err } = await supabase
       .from("messages")
       .select("id, conversation_id, sender_id, content, read, created_at, kind, metadata")
@@ -256,7 +272,9 @@ export default function MessagesPage() {
       .order("created_at", { ascending: true })
       .limit(100);
 
-    if (!err && data) {
+    if (err) {
+      setError("No se pudieron cargar los mensajes.");
+    } else if (data) {
       setMessages(data as MessageRow[]);
       // Mark received unread messages as read
       const unreadIds = (data as MessageRow[])
@@ -380,7 +398,14 @@ export default function MessagesPage() {
   };
 
   const deleteMessage = async (msgId: string) => {
-    await supabase.from("messages").delete().eq("id", msgId).eq("sender_id", user?.id ?? "");
+    const removed = messages.find((message) => message.id === msgId);
+    if (!removed) return;
+    setMessages((prev) => prev.filter((message) => message.id !== msgId));
+    const { error: deleteError } = await supabase.from("messages").delete().eq("id", msgId).eq("sender_id", user?.id ?? "");
+    if (deleteError) {
+      setMessages((prev) => [...prev, removed].sort((a, b) => a.created_at.localeCompare(b.created_at)));
+      toast({ type: "error", title: "No se pudo eliminar el mensaje", description: "Inténtalo nuevamente." });
+    }
   };
 
   const openConvo = (c: ConversationRow) => {
@@ -403,19 +428,25 @@ export default function MessagesPage() {
         <div className={`w-full md:w-80 lg:w-96 bg-white border-r border-slate-200/60 flex flex-col shrink-0 ${activeConvo ? "hidden md:flex" : "flex"}`}>
           <div className="p-4 border-b border-slate-100 shrink-0">
             <div className="flex items-center gap-2 mb-3">
-              <h2 className="text-lg font-bold flex-1">Mensajes</h2>
+              <h1 className="text-lg font-bold flex-1">Mensajes</h1>
               {totalUnread > 0 && (
                 <span className="bg-sky-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center">
                   {totalUnread > 99 ? "99+" : totalUnread}
                 </span>
               )}
             </div>
+            {error && !activeConvo && (
+              <div role="alert" className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                {error}
+              </div>
+            )}
 
             {/* Tab switcher — only for Colegio */}
             {role === "Colegio" && (
               <div className="flex rounded-xl bg-slate-100 p-0.5 mb-3">
                 <button
                   onClick={() => setLeftTab("convos")}
+                  aria-pressed={leftTab === "convos"}
                   className={`flex-1 text-xs font-semibold py-1.5 rounded-lg transition-colors ${
                     leftTab === "convos" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500"
                   }`}
@@ -424,6 +455,7 @@ export default function MessagesPage() {
                 </button>
                 <button
                   onClick={() => setLeftTab("students")}
+                  aria-pressed={leftTab === "students"}
                   className={`flex-1 flex items-center justify-center gap-1 text-xs font-semibold py-1.5 rounded-lg transition-colors ${
                     leftTab === "students" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500"
                   }`}
@@ -439,6 +471,7 @@ export default function MessagesPage() {
               {leftTab === "convos" ? (
                 <input
                   type="text" value={search}
+                  aria-label="Buscar conversación"
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Buscar conversación..."
                   className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-200 outline-none"
@@ -446,6 +479,7 @@ export default function MessagesPage() {
               ) : (
                 <input
                   type="text" value={studentSearch}
+                  aria-label="Buscar estudiante"
                   onChange={(e) => setStudentSearch(e.target.value)}
                   placeholder="Buscar estudiante..."
                   className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-200 outline-none"
@@ -502,6 +536,7 @@ export default function MessagesPage() {
             )}
             {filtered.map((c) => (
               <button key={c.id} onClick={() => openConvo(c)}
+                aria-pressed={activeConvo?.id === c.id}
                 className={`w-full flex items-center gap-3 p-4 transition-colors text-left ${
                   activeConvo?.id === c.id
                     ? "bg-sky-50/60"
@@ -559,7 +594,7 @@ export default function MessagesPage() {
             <>
               {/* Header */}
               <div className="bg-white border-b border-slate-200/60 px-4 py-3 flex items-center gap-3 shrink-0">
-                <button onClick={() => setActiveConvo(null)} className="md:hidden text-slate-400 hover:text-slate-600">
+                <button onClick={() => setActiveConvo(null)} aria-label="Volver a conversaciones" className="md:hidden text-slate-400 hover:text-slate-600">
                   <ArrowLeft size={20} />
                 </button>
                 {activeConvo.other.avatar ? (
@@ -573,11 +608,10 @@ export default function MessagesPage() {
                   <p className="text-sm font-bold truncate">{activeConvo.other.name}</p>
                   <p className="text-[11px] text-slate-400">{activeConvo.other.role}</p>
                 </div>
-                <button className="text-slate-400 hover:text-slate-600"><MoreVertical size={18} /></button>
               </div>
 
               {error && (
-                <div className="px-4 py-2 bg-red-50 border-b border-red-200 text-sm text-red-600">{error}</div>
+                <div role="alert" className="px-4 py-2 bg-red-50 border-b border-red-200 text-sm text-red-600">{error}</div>
               )}
 
               {/* Messages */}
@@ -629,7 +663,8 @@ export default function MessagesPage() {
                         {isMe && !isOptimistic && (
                           <button
                             onClick={() => deleteMessage(m.id)}
-                            className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full hidden group-hover:flex items-center justify-center hover:bg-red-600 transition-colors"
+                            aria-label="Eliminar mensaje"
+                            className="absolute -top-1 -right-1 w-6 h-6 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 flex items-center justify-center hover:bg-red-700 transition-opacity"
                           >
                             <Trash2 size={10} />
                           </button>
@@ -645,12 +680,14 @@ export default function MessagesPage() {
               <div className="bg-white border-t border-slate-200/60 px-4 py-3 flex items-center gap-2 shrink-0">
                 <input
                   type="text" value={input}
+                  aria-label="Mensaje"
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
                   placeholder="Escribe un mensaje..."
                   className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 outline-none"
                 />
                 <button onClick={send} disabled={!input.trim() || sending}
+                  aria-label="Enviar mensaje"
                   className="bg-sky-600 text-white p-2.5 rounded-full hover:bg-sky-700 active:bg-sky-800 disabled:opacity-40 transition-colors btn-press"
                 >
                   {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}

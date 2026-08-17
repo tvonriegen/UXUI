@@ -22,7 +22,7 @@ const ACCOUNT_TYPES: { value: AccountType; label: string; emoji: string }[] = [
 ];
 
 export default function RegisterPage() {
-  const { user } = useAuth();
+  const { login, user } = useAuth();
   const router              = useRouter();
 
   const [name,         setName]         = useState("");
@@ -65,9 +65,17 @@ export default function RegisterPage() {
       setIsSubmitting(false);
     } else {
       trackAnalyticsEvent("sign_up", { account_type: accountType });
+      const { error: loginError } = await login(email.trim(), password);
+
+      if (loginError) {
+        setError("Tu cuenta fue creada, pero no pudimos iniciar la sesión automáticamente. Ingresa con tu correo y contraseña.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      trackAnalyticsEvent("login", { method: "registration" });
       setSuccess(true);
-      // Give Supabase a moment to persist the session, then redirect
-      setTimeout(() => router.replace("/"), 1500);
+      router.replace(accountType === "company" ? "/company/dashboard" : "/student/dashboard");
     }
   };
 

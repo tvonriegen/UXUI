@@ -13,7 +13,7 @@ import { supabase } from "@/lib/supabase";
 import { clearMustChangePassword } from "@/app/actions/school";
 import { Eye, EyeOff, KeyRound, AlertCircle, CheckCircle } from "lucide-react";
 
-const MIN_LENGTH = 6;
+const MIN_LENGTH = 8;
 
 function getStrength(pwd: string): { score: number; label: string; color: string } {
   let score = 0;
@@ -45,6 +45,10 @@ export default function ChangePasswordPage() {
 
     if (newPassword.length < MIN_LENGTH) {
       setError(`La contraseña debe tener al menos ${MIN_LENGTH} caracteres.`);
+      return;
+    }
+    if (!/[0-9]/.test(newPassword) || !/[^a-zA-Z0-9]/.test(newPassword)) {
+      setError("La contraseña debe incluir al menos un número y un carácter especial.");
       return;
     }
     if (newPassword !== confirm) {
@@ -85,6 +89,10 @@ export default function ChangePasswordPage() {
 
   return (
     <div className="min-h-screen bg-cl-surface flex items-center justify-center p-4">
+      <a href="#main-content" className="sr-only fixed left-4 top-4 z-[100] rounded-lg bg-white px-4 py-2 font-bold text-sky-800 shadow-lg focus:not-sr-only">
+        Saltar al contenido principal
+      </a>
+      <main id="main-content" tabIndex={-1} className="w-full max-w-sm">
       <div className="w-full max-w-sm bg-white rounded-3xl shadow-xl border border-slate-200/60 overflow-hidden">
 
         {/* Header */}
@@ -110,14 +118,14 @@ export default function ChangePasswordPage() {
         <form onSubmit={handleSubmit} className="px-8 py-7 space-y-5">
 
           {error && (
-            <div className="flex items-center gap-2.5 bg-red-50 border border-red-200/60 text-red-600 px-4 py-3 rounded-xl text-sm">
+            <div role="alert" className="flex items-center gap-2.5 bg-red-50 border border-red-200/60 text-red-700 px-4 py-3 rounded-xl text-sm">
               <AlertCircle size={16} className="shrink-0" />
               {error}
             </div>
           )}
 
           {success && (
-            <div className="flex items-center gap-2.5 bg-emerald-50 border border-emerald-200/60 text-emerald-700 px-4 py-3 rounded-xl text-sm">
+            <div role="status" className="flex items-center gap-2.5 bg-emerald-50 border border-emerald-200/60 text-emerald-700 px-4 py-3 rounded-xl text-sm">
               <CheckCircle size={16} className="shrink-0" />
               ¡Contraseña actualizada! Redirigiendo…
             </div>
@@ -125,11 +133,12 @@ export default function ChangePasswordPage() {
 
           {/* New password */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+            <label htmlFor="new-password" className="text-xs font-bold text-slate-600 uppercase tracking-wider block">
               Nueva contraseña
             </label>
             <div className="relative">
               <input
+                id="new-password"
                 type={showPass ? "text" : "password"}
                 required
                 autoComplete="new-password"
@@ -141,8 +150,8 @@ export default function ChangePasswordPage() {
               <button
                 type="button"
                 onClick={() => setShowPass(!showPass)}
+                aria-label={showPass ? "Ocultar contraseña" : "Mostrar contraseña"}
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                tabIndex={-1}
               >
                 {showPass ? <EyeOff size={17} /> : <Eye size={17} />}
               </button>
@@ -166,10 +175,12 @@ export default function ChangePasswordPage() {
 
           {/* Confirm password */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
+            <label htmlFor="confirm-password" className="text-xs font-bold text-slate-600 uppercase tracking-wider block">
               Confirmar contraseña
             </label>
             <input
+              id="confirm-password"
+              aria-invalid={mismatch}
               type={showPass ? "text" : "password"}
               required
               autoComplete="new-password"
@@ -206,6 +217,7 @@ export default function ChangePasswordPage() {
           </button>
         </form>
       </div>
+      </main>
     </div>
   );
 }

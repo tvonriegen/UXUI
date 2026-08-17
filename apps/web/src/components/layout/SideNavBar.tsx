@@ -111,7 +111,7 @@ const ACCOUNT_SUB: Record<AccountType, string> = {
 };
 
 const CANONICAL_ROUTES: Record<string, Partial<Record<AccountType, string>>> = {
-  "/muro": { student: "/student/feed" },
+  "/muro": { student: "/student/feed", school: "/school/feed" },
   "/talent": { company: "/company/talent" },
   "/empleos": { student: "/student/opportunities", company: "/company/jobs" },
   "/messages": { student: "/student/messages", company: "/company/messages", school: "/school/messages", external: "/external/messages" },
@@ -126,7 +126,7 @@ function canonicalRoute(path: string, accountType: AccountType) {
 
 export default function SideNavBar() {
   const pathname              = usePathname();
-  const { unreadCount } = useRole();
+  const { unreadCount, messageUnreadCount } = useRole();
   const { user }              = useAuth();
   const accountType = user?.accountType ?? "student";
 
@@ -174,16 +174,17 @@ export default function SideNavBar() {
       </div>
 
       {/* ── Navigation Links ── */}
-      <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
+      <nav aria-label="Navegación principal" className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
         {filtered.map((link, idx) => {
           const target = canonicalRoute(link.path, accountType);
-          const isActive = pathname === target;
+          const isActive = pathname === target || pathname.startsWith(`${target}/`);
           const IconComp = link.icon;
 
           return (
             <Link
               key={link.path}
               href={target}
+              aria-current={isActive ? "page" : undefined}
               className={`
                 flex items-center gap-3 px-3 py-2.5 rounded-xl
                 transition-all duration-200 text-[13px] font-medium
@@ -201,16 +202,16 @@ export default function SideNavBar() {
                   className={isActive ? "text-sky-600" : ""}
                 />
                 {/* Unread badge dot */}
-                {(link.path === "/messages" || link.path === "/notifications") && unreadCount > 0 && (
+                {((link.path === "/messages" && messageUnreadCount > 0) || (link.path === "/notifications" && unreadCount > 0)) && (
                   <span className="absolute -top-1 -right-1.5 w-2 h-2 bg-red-500 rounded-full animate-pulse-dot" />
                 )}
               </span>
 
               <span>{link.path === "/talent" && accountType === "student" ? "Actividades" : link.label}</span>
 
-              {link.path === "/messages" && unreadCount > 0 && (
+              {link.path === "/messages" && messageUnreadCount > 0 && (
                 <span className="ml-auto text-[10px] font-bold bg-red-500 text-white px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-                  {unreadCount}
+                  {messageUnreadCount > 99 ? "99+" : messageUnreadCount}
                 </span>
               )}
             </Link>

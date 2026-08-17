@@ -11,14 +11,14 @@ import { supabase } from "@/lib/supabase";
 import { fetchOwnProfile } from "@/lib/own-profile-query";
 import {
   Briefcase, Users, TrendingUp, Eye, Search, ArrowRight, Building2,
-  Bell, Clock, ChevronRight, MessageSquare, Star, Globe, Loader2,
+  Bell, Clock, ChevronRight, MessageSquare, CalendarClock, Globe, Loader2,
 } from "lucide-react";
 import StatCard              from "@/components/ui/StatCard";
 import TrustTriangleInsights from "@/components/dashboard/TrustTriangleInsights";
 
 interface DashProfile {
   name: string; avatar: string; industry: string;
-  employee_count: string; website: string; open_positions: number;
+  employee_count: string; website: string;
   company_name: string;
 }
 
@@ -32,6 +32,7 @@ export default function DashboardEmpresa() {
 
   const [profile,  setProfile]  = useState<DashProfile | null>(null);
   const [talent,   setTalent]   = useState<TalentRow[]>([]);
+  const [openVacancies, setOpenVacancies] = useState(0);
   const [loading,  setLoading]  = useState(true);
 
   useEffect(() => {
@@ -41,17 +42,24 @@ export default function DashboardEmpresa() {
       fetchOwnProfile<DashProfile>(
         supabase,
         user.id,
-        "name, avatar, industry, employee_count, website, open_positions, company_name",
+        "name, avatar, industry, employee_count, website, company_name",
       ),
       supabase
         .from("profiles")
         .select("id, name, avatar, title, specialty")
         .in("role", ["Estudiante", "Egresado"])
         .limit(5),
-    ]).then(([pRes, tRes]) => {
+      supabase.from("job_postings").select("id, active").eq("company_id", user.id),
+      supabase.from("opportunities").select("id, status").eq("publisher_id", user.id).eq("publisher_type", "company"),
+    ]).then(([pRes, tRes, legacyJobsRes, opportunitiesRes]) => {
       const ownProfile = pRes.profile;
       if (!pRes.error && ownProfile) setProfile(ownProfile);
       setTalent(tRes.data ?? []);
+      const legacyIds = new Set((legacyJobsRes.data ?? []).map((job) => job.id));
+      const legacyOpen = (legacyJobsRes.data ?? []).filter((job) => job.active).length;
+      const canonicalOpen = (opportunitiesRes.data ?? [])
+        .filter((opportunity) => opportunity.status === "open" && !legacyIds.has(opportunity.id)).length;
+      setOpenVacancies(legacyOpen + canonicalOpen);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [user?.id]);
@@ -107,7 +115,7 @@ export default function DashboardEmpresa() {
             {profile.industry && <p className="text-white/70 text-sm mt-1">{profile.industry}</p>}
           </div>
           <Link
-            href="/talent"
+            href="/company/talent"
             className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-white/30 transition-colors btn-press"
           >
             <Search size={16} /> Buscar Talento
@@ -119,7 +127,7 @@ export default function DashboardEmpresa() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
           label="Vacantes Abiertas"
-          value={profile.open_positions ?? 0}
+          value={openVacancies}
           icon={<Briefcase size={20} className="text-violet-500" />}
           bg="bg-violet-50"
           delay={1}
@@ -156,7 +164,7 @@ export default function DashboardEmpresa() {
           <div className="bg-white rounded-2xl p-6 border border-slate-200/60 animate-fade-in-up stagger-2">
             <div className="flex items-center justify-between mb-5">
               <h3 className="font-bold text-base">Perfiles de Talento</h3>
-              <Link href="/talent" className="text-xs text-violet-600 font-semibold hover:underline flex items-center gap-1">
+              <Link href="/company/talent" className="text-xs text-violet-600 font-semibold hover:underline flex items-center gap-1">
                 Ver todos <ChevronRight size={12} />
               </Link>
             </div>
@@ -185,7 +193,7 @@ export default function DashboardEmpresa() {
                         {[t.title, t.specialty].filter(Boolean).join(" — ")}
                       </p>
                     </div>
-                    <Link href="/talent" className="text-xs text-violet-600 font-semibold hover:underline">
+                    <Link href={`/company/talent?q=${encodeURIComponent(t.name)}`} className="text-xs text-violet-600 font-semibold hover:underline">
                       Ver perfil
                     </Link>
                   </div>
@@ -198,17 +206,17 @@ export default function DashboardEmpresa() {
           <div className="bg-white rounded-2xl p-6 border border-slate-200/60 animate-fade-in-up stagger-3">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-base">Vacantes Activas</h3>
-              <Link href="/empleos" className="text-xs text-violet-600 font-semibold hover:underline flex items-center gap-1">
+              <Link href="/company/jobs" className="text-xs text-violet-600 font-semibold hover:underline flex items-center gap-1">
                 Ver empleos <ChevronRight size={12} />
               </Link>
             </div>
-            {profile.open_positions > 0 ? (
+            {openVacancies > 0 ? (
               <div className="flex items-center gap-3 p-4 rounded-xl bg-violet-50 border border-violet-100">
                 <div className="w-11 h-11 bg-violet-100 rounded-xl flex items-center justify-center shrink-0">
                   <Briefcase size={20} className="text-violet-600" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-bold text-violet-700">{profile.open_positions} vacante{profile.open_positions > 1 ? "s" : ""} abierta{profile.open_positions > 1 ? "s" : ""}</p>
+                  <p className="text-sm font-bold text-violet-700">{openVacancies} vacante{openVacancies > 1 ? "s" : ""} abierta{openVacancies > 1 ? "s" : ""}</p>
                   <p className="text-xs text-slate-500">Gestiona tus ofertas en la sección Empleos</p>
                 </div>
               </div>
@@ -253,6 +261,9 @@ export default function DashboardEmpresa() {
                   {recentNotifs.filter((n) => !n.read).length}
                 </span>
               )}
+              <Link href="/company/notifications" className="text-xs font-semibold text-violet-700 hover:underline">
+                Ver todas
+              </Link>
             </div>
             {recentNotifs.length === 0 ? (
               <p className="text-xs text-slate-400 text-center py-4">Sin notificaciones.</p>
@@ -284,10 +295,10 @@ export default function DashboardEmpresa() {
             <h3 className="font-bold text-sm mb-4">Acciones</h3>
             <div className="space-y-1">
               {[
-                { href: "/talent",   icon: <Search        size={16} className="text-violet-500" />, bg: "bg-violet-50",  label: "Buscar Talento" },
-                { href: "/profile",  icon: <Building2     size={16} className="text-sky-500" />,   bg: "bg-sky-50",    label: "Editar Perfil"  },
-                { href: "/messages", icon: <MessageSquare size={16} className="text-emerald-500" />, bg: "bg-emerald-50", label: "Mensajes"       },
-                { href: "/muro",     icon: <Star          size={16} className="text-amber-500" />,   bg: "bg-amber-50",   label: "El Muro"        },
+                { href: "/company/talent",   icon: <Search        size={16} className="text-violet-500" />, bg: "bg-violet-50",  label: "Buscar Talento" },
+                { href: "/company/profile",  icon: <Building2     size={16} className="text-sky-500" />,   bg: "bg-sky-50",    label: "Editar Perfil"  },
+                { href: "/company/messages", icon: <MessageSquare size={16} className="text-emerald-500" />, bg: "bg-emerald-50", label: "Mensajes"       },
+                { href: "/company/interviews", icon: <CalendarClock size={16} className="text-amber-500" />, bg: "bg-amber-50", label: "Entrevistas" },
               ].map((a) => (
                 <Link
                   key={a.label}

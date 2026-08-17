@@ -336,7 +336,7 @@ export default function DashboardEstudiante() {
               <div className="flex items-center justify-between mb-5">
                 <h3 className="font-bold text-base">Insignias Verificadas</h3>
                 <Link
-                  href="/profile"
+                  href="/student/profile"
                   className="text-xs text-sky-600 font-semibold hover:underline flex items-center gap-1"
                 >
                   Ver todas <ChevronRight size={12} />
@@ -381,7 +381,7 @@ export default function DashboardEstudiante() {
               <div className="flex items-center justify-between mb-5">
                 <h3 className="font-bold text-base">Actividad Reciente</h3>
                 <Link
-                  href="/muro"
+                  href="/student/feed"
                   className="text-xs text-sky-600 font-semibold hover:underline flex items-center gap-1"
                 >
                   Ver El Muro <ChevronRight size={12} />
@@ -472,11 +472,11 @@ export default function DashboardEstudiante() {
             <h3 className="font-bold text-sm mb-4">Acciones Rápidas</h3>
             <div className="space-y-1">
               {[
-                { href: "/profile",  icon: <BookOpen     size={16} className="text-sky-500" />,    bg: "bg-sky-50",    label: "Mi Perfil",   sub: "Portafolio y logros" },
-                { href: "/empleos",  icon: <Briefcase    size={16} className="text-violet-500" />,  bg: "bg-violet-50",  label: "Buscar oportunidades", sub: "Match y postulaciones" },
-                { href: "/muro",     icon: <Flame        size={16} className="text-amber-500" />,   bg: "bg-amber-50",   label: "El Muro",     sub: "Proyectos y eventos" },
-                { href: "/talent",   icon: <Zap          size={16} className="text-emerald-500" />,  bg: "bg-emerald-50",  label: "Actividades",  sub: "Misiones y desarrollo" },
-                { href: "/messages", icon: <MessageSquare size={16} className="text-emerald-500" />, bg: "bg-emerald-50", label: "Mensajes",    sub: "Conversaciones" },
+                { href: "/student/profile",       icon: <BookOpen     size={16} className="text-sky-500" />,     bg: "bg-sky-50",     label: "Mi Perfil",   sub: "Portafolio y logros" },
+                { href: "/student/opportunities", icon: <Briefcase    size={16} className="text-violet-500" />,  bg: "bg-violet-50",  label: "Buscar oportunidades", sub: "Match y postulaciones" },
+                { href: "/student/feed",          icon: <Flame        size={16} className="text-amber-500" />,   bg: "bg-amber-50",   label: "El Muro",     sub: "Proyectos y eventos" },
+                { href: "/student/activities",    icon: <Zap          size={16} className="text-emerald-500" />, bg: "bg-emerald-50", label: "Actividades",  sub: "Misiones y desarrollo" },
+                { href: "/student/messages",      icon: <MessageSquare size={16} className="text-emerald-500" />, bg: "bg-emerald-50", label: "Mensajes",    sub: "Conversaciones" },
               ].map((a) => (
                 <Link
                   key={a.href}

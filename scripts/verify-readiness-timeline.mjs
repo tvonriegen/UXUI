@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const rootDir = resolve(new URL("..", import.meta.url).pathname);
+const rootDir = fileURLToPath(new URL("..", import.meta.url));
 const migration = readFileSync(
   resolve(rootDir, "supabase/migrations/20260726000002_application_readiness_timeline.sql"),
   "utf8",

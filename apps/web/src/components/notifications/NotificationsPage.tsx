@@ -16,7 +16,7 @@ import PageLayout   from "@/components/layout/PageLayout";
 import { useRole }  from "@/lib/role-context";
 import {
   Briefcase, MessageCircle, Trophy, CheckCircle,
-  Heart, Calendar, Bell, MoreHorizontal, Clock,
+  Heart, Calendar, Bell, Clock,
 } from "lucide-react";
 
 // Map notification type → icon + colour
@@ -70,6 +70,7 @@ export default function NotificationsPage() {
             <button
               key={t}
               onClick={() => setTab(t)}
+              aria-pressed={tab === t}
               className={`
                 px-4 py-2 rounded-full text-[13px] font-semibold border transition-all duration-200
                 ${tab === t
@@ -101,6 +102,7 @@ export default function NotificationsPage() {
                   <button
                     key={n.id}
                     onClick={() => markRead(n.id)}
+                    aria-label={n.read ? `${n.title}, leída` : `${n.title}, marcar como leída`}
                     className={`
                       w-full text-left flex gap-4 px-5 py-4 transition-colors
                       hover:bg-slate-50/80 relative
@@ -138,10 +140,6 @@ export default function NotificationsPage() {
                       </p>
                     </div>
 
-                    {/* More options placeholder */}
-                    <div className="shrink-0 self-start mt-1">
-                      <MoreHorizontal size={16} className="text-slate-300" />
-                    </div>
                   </button>
                 );
               })}

@@ -22,12 +22,14 @@ import { useAuth }   from "@/lib/auth-context";
 import TopNavBar      from "./TopNavBar";
 import SideNavBar     from "./SideNavBar";
 import BottomMobileNav from "./BottomMobileNav";
+import { useAccessibleFormLabels } from "@/lib/hooks/useAccessibleFormLabels";
 
 interface PageLayoutProps {
   children: React.ReactNode;
 }
 
 export default function PageLayout({ children }: PageLayoutProps) {
+  useAccessibleFormLabels();
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
@@ -53,6 +55,12 @@ export default function PageLayout({ children }: PageLayoutProps) {
 
   return (
     <div className="flex min-h-screen bg-cl-surface">
+      <a
+        href="#main-content"
+        className="sr-only fixed left-4 top-4 z-[100] rounded-lg bg-white px-4 py-2 font-bold text-sky-800 shadow-lg focus:not-sr-only"
+      >
+        Saltar al contenido principal
+      </a>
       <TopNavBar />
       <SideNavBar />
       {/*
@@ -60,7 +68,7 @@ export default function PageLayout({ children }: PageLayoutProps) {
         fill-mode:both, which would break position:fixed descendants.
         Modal.tsx uses createPortal to escape this stacking context.
       */}
-      <main className="flex-1 lg:ml-56 pt-16 pb-24 lg:pb-6 flex flex-col animate-fade-in-up">
+      <main id="main-content" tabIndex={-1} className="flex-1 lg:ml-56 pt-16 pb-24 lg:pb-6 flex flex-col animate-fade-in-up">
         {children}
       </main>
       <BottomMobileNav />

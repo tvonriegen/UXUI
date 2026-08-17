@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { useAccessibleFormLabels } from "@/lib/hooks/useAccessibleFormLabels";
 
 interface PublicShellProps {
   children: ReactNode;
@@ -10,8 +13,15 @@ export default function PublicShell({
   children,
   contentClassName = "",
 }: PublicShellProps) {
+  useAccessibleFormLabels();
   return (
     <div className="min-h-screen bg-cl-surface text-slate-900">
+      <a
+        href="#main-content"
+        className="sr-only fixed left-4 top-4 z-[100] rounded-lg bg-white px-4 py-2 font-bold text-sky-800 shadow-lg focus:not-sr-only"
+      >
+        Saltar al contenido principal
+      </a>
       <header className="relative z-10 border-b border-slate-200/60 bg-white/85 backdrop-blur-xl">
         <div className="mx-auto flex min-h-16 max-w-6xl items-center gap-5 px-4 sm:px-6 lg:px-8">
           <Link href="/" className="group flex shrink-0 items-center gap-2.5">
@@ -46,7 +56,7 @@ export default function PublicShell({
         </div>
       </header>
 
-      <main className={contentClassName}>{children}</main>
+      <main id="main-content" tabIndex={-1} className={contentClassName}>{children}</main>
 
       <footer className="border-t border-slate-200/60 bg-white/60">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-6 text-xs text-slate-600 sm:px-6 lg:px-8">

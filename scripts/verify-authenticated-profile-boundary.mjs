@@ -6,11 +6,11 @@ const migrationPath = path.join(
   root,
   "supabase/migrations/20260810000001_harden_authenticated_profiles.sql",
 );
-const migration = fs.readFileSync(migrationPath, "utf8");
+const migration = fs.readFileSync(migrationPath, "utf8").replace(/\r\n/g, "\n");
 const baseline = fs.readFileSync(
   path.join(root, "supabase/staging/profile-runtime-baseline.sql"),
   "utf8",
-);
+).replace(/\r\n/g, "\n");
 
 const required = [
   "DROP POLICY IF EXISTS profiles_select_authenticated_compat",
@@ -243,7 +243,7 @@ const criticalConsumers = [
   ["apps/web/src/app/actions/school.ts", 'rpc(\n    "school_can_manage_student"'],
 ];
 for (const [file, fragment] of criticalConsumers) {
-  const source = fs.readFileSync(path.join(root, file), "utf8");
+  const source = fs.readFileSync(path.join(root, file), "utf8").replace(/\r\n/g, "\n");
   if (!source.includes(fragment)) {
     console.error(`verify:authenticated-profile-boundary missing critical consumer contract: ${file}`);
     process.exit(1);

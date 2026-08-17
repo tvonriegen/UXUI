@@ -25,6 +25,7 @@ import {
 
 interface AppConfig {
   darkMode:    boolean;
+  theme:       "light" | "dark" | "system";
   compactView: boolean;
   language:    "es" | "en";
   adminMode:   boolean;
@@ -33,6 +34,7 @@ interface AppConfig {
 
 const DEFAULT_CONFIG: AppConfig = {
   darkMode:    false,
+  theme:       "system",
   compactView: false,
   language:    "es",
   adminMode:   false,
@@ -180,7 +182,11 @@ export default function ConfigModal({ open, onClose }: ConfigModalProps) {
 
   const update = useCallback(<K extends keyof AppConfig>(key: K, value: AppConfig[K]) => {
     setConfig((prev) => {
-      const next = { ...prev, [key]: value };
+      const next = {
+        ...prev,
+        [key]: value,
+        ...(key === "darkMode" ? { theme: value ? "dark" as const : "light" as const } : {}),
+      };
       saveConfig(next);
 
       // Side effects

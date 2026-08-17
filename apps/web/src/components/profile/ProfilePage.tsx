@@ -94,6 +94,7 @@ export default function ProfilePage() {
   const [editSpecialty,    setEditSpecialty]    = useState("");
   const [editTitle,        setEditTitle]        = useState("");
   const [editAvailability, setEditAvailability] = useState("Disponible");
+  const [editYearsExperience, setEditYearsExperience] = useState<number | "">(0);
   const [editWebsite,      setEditWebsite]      = useState("");
   const [editIndustry,     setEditIndustry]     = useState("");
   const [editThemeColor,   setEditThemeColor]   = useState<ThemeColor | "">("");
@@ -437,6 +438,7 @@ export default function ProfilePage() {
     setEditSpecialty(profile.specialty ?? "");
     setEditTitle(profile.title ?? "");
     setEditAvailability(profile.availability ?? "Disponible");
+    setEditYearsExperience(profile.years_experience ?? 0);
     setEditWebsite(profile.website ?? "");
     setEditIndustry(profile.industry ?? "");
     setEditThemeColor((profile.theme_color ?? "") as ThemeColor | "");
@@ -456,6 +458,7 @@ export default function ProfilePage() {
       specialty:    editSpecialty   || undefined,
       title:        editTitle       || undefined,
       availability: editAvailability || undefined,
+      years_experience: editYearsExperience === "" ? undefined : Number(editYearsExperience),
       website:      editWebsite     || undefined,
       theme_color:  editThemeColor  || undefined,
     });
@@ -482,6 +485,7 @@ export default function ProfilePage() {
         updatePayload.specialty    = editSpecialty.trim();
         updatePayload.title        = editTitle.trim();
         updatePayload.availability = editAvailability || null;
+        updatePayload.years_experience = editYearsExperience === "" ? 0 : Number(editYearsExperience);
       }
       if (isCompany) {
         updatePayload.website  = editWebsite.trim();
@@ -518,8 +522,15 @@ export default function ProfilePage() {
     const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
     if (!upErr) {
       const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
-      await supabase.from("profiles").update({ avatar: publicUrl }).eq("id", user.id);
-      setProfile((prev) => prev ? { ...prev, avatar: publicUrl } : prev);
+      const { error: profileUpdateError } = await supabase
+        .from("profiles")
+        .update({ avatar: publicUrl })
+        .eq("id", user.id);
+      if (profileUpdateError) {
+        setError("La foto se subió, pero no se pudo asociar al perfil. Inténtalo nuevamente.");
+      } else {
+        setProfile((prev) => prev ? { ...prev, avatar: publicUrl } : prev);
+      }
     } else {
       setError("No se pudo subir la foto de perfil.");
     }
@@ -539,8 +550,15 @@ export default function ProfilePage() {
     const { error: upErr } = await supabase.storage.from("banners").upload(path, file, { upsert: true });
     if (!upErr) {
       const { data: { publicUrl } } = supabase.storage.from("banners").getPublicUrl(path);
-      await supabase.from("profiles").update({ banner_url: publicUrl }).eq("id", user.id);
-      setProfile((prev) => prev ? { ...prev, banner_url: publicUrl } : prev);
+      const { error: profileUpdateError } = await supabase
+        .from("profiles")
+        .update({ banner_url: publicUrl })
+        .eq("id", user.id);
+      if (profileUpdateError) {
+        setError("El banner se subió, pero no se pudo asociar al perfil. Inténtalo nuevamente.");
+      } else {
+        setProfile((prev) => prev ? { ...prev, banner_url: publicUrl } : prev);
+      }
     } else {
       setError("No se pudo subir la imagen del banner.");
     }
@@ -744,6 +762,47 @@ export default function ProfilePage() {
       return;
     }
 
+    if (matchedSkills.length > 0) {
+      const { error: upsertSkillsError } = await supabase
+        .from("user_skills")
+        .upsert(
+          matchedSkills.map((skill) => ({ user_id: user.id, skill_id: skill.id })),
+          { onConflict: "user_id,skill_id", ignoreDuplicates: true },
+        );
+      if (upsertSkillsError) {
+        toast({ type: "error", title: "No se pudieron guardar las competencias" });
+        setInlineSaving(false);
+        return;
+      }
+    }
+
+    const desiredSkillIds = new Set(matchedSkills.map((skill) => skill.id));
+    const { data: currentSkillRows, error: currentSkillsError } = await supabase
+      .from("user_skills")
+      .select("skill_id")
+      .eq("user_id", user.id);
+    if (currentSkillsError) {
+      toast({ type: "error", title: "No se pudieron verificar las competencias guardadas" });
+      setInlineSaving(false);
+      return;
+    }
+
+    const obsoleteSkillIds = (currentSkillRows ?? [])
+      .map((row) => row.skill_id as string)
+      .filter((skillId) => !desiredSkillIds.has(skillId));
+    if (obsoleteSkillIds.length > 0) {
+      const { error: deleteSkillsError } = await supabase
+        .from("user_skills")
+        .delete()
+        .eq("user_id", user.id)
+        .in("skill_id", obsoleteSkillIds);
+      if (deleteSkillsError) {
+        toast({ type: "error", title: "Las nuevas competencias se guardaron, pero no se pudieron retirar las anteriores" });
+        setInlineSaving(false);
+        return;
+      }
+    }
+
     const { error: profileError } = await supabase
       .from("profiles")
       .update({
@@ -755,30 +814,12 @@ export default function ProfilePage() {
       .eq("id", user.id);
 
     if (profileError) {
-      toast({ type: "error", title: "No se pudo guardar el perfil" });
+      toast({
+        type: "error",
+        title: "Las competencias se actualizaron, pero no se pudieron guardar los datos del perfil",
+      });
       setInlineSaving(false);
       return;
-    }
-
-    const { error: deleteSkillsError } = await supabase
-      .from("user_skills")
-      .delete()
-      .eq("user_id", user.id);
-    if (deleteSkillsError) {
-      toast({ type: "error", title: "No se pudieron actualizar las competencias" });
-      setInlineSaving(false);
-      return;
-    }
-
-    if (matchedSkills.length > 0) {
-      const { error: insertSkillsError } = await supabase
-        .from("user_skills")
-        .insert(matchedSkills.map((skill) => ({ user_id: user.id, skill_id: skill.id })));
-      if (insertSkillsError) {
-        toast({ type: "error", title: "No se pudieron guardar las competencias" });
-        setInlineSaving(false);
-        return;
-      }
     }
 
     setLocalBio(editBioInline.trim());
@@ -2660,6 +2701,19 @@ export default function ProfilePage() {
                   <option>No disponible</option>
                 </select>
               </div>
+              <div>
+                <label htmlFor="profile-years-experience" className="text-xs font-semibold text-slate-500 mb-1.5 block">Años de experiencia relacionada</label>
+                <input
+                  id="profile-years-experience"
+                  type="number"
+                  min={0}
+                  max={50}
+                  value={editYearsExperience}
+                  onChange={(e) => setEditYearsExperience(e.target.value === "" ? "" : Number(e.target.value))}
+                  className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none"
+                />
+                <p className="mt-1 text-[11px] text-slate-500">Incluye prácticas, trabajos y experiencia comprobable relacionada.</p>
+              </div>
             </>
           )}
 
@@ -2917,15 +2971,21 @@ export default function ProfilePage() {
                 placeholder="Explica el tipo de práctica, horarios, requisitos…"
                 className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-violet-200 outline-none resize-none" />
             </div>
-            <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-xl border border-orange-100 cursor-pointer" onClick={() => setSolUrgent(!solUrgent)}>
-              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${solUrgent ? "bg-orange-500 border-orange-500" : "border-slate-300"}`}>
+            <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-orange-100 bg-orange-50 p-3 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-orange-600 has-[:focus-visible]:ring-offset-2">
+              <input
+                type="checkbox"
+                checked={solUrgent}
+                onChange={(event) => setSolUrgent(event.target.checked)}
+                className="sr-only"
+              />
+              <span aria-hidden="true" className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${solUrgent ? "bg-orange-600 border-orange-600" : "border-slate-400"}`}>
                 {solUrgent && <CheckCircle2 size={12} className="text-white" />}
-              </div>
+              </span>
               <div>
                 <p className="text-xs font-bold text-orange-800">Solicitud urgente</p>
-                <p className="text-[10px] text-orange-600">El colegio recibirá una notificación prioritaria</p>
+                <p className="text-[10px] text-orange-800">El colegio recibirá una notificación prioritaria</p>
               </div>
-            </div>
+            </label>
             <button
               onClick={handleSolicitar}
               disabled={solBusy || !solTitle.trim() || !solSchoolId}

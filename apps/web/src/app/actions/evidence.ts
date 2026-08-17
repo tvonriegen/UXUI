@@ -49,12 +49,16 @@ export async function resubmitProfileEvidence(evidenceId: string) {
   const auth = await getAuthenticatedClient();
   if ("error" in auth) return auth;
 
-  const { error } = await auth.supabase
+  const { data, error } = await auth.supabase
     .from("profile_evidence")
     .update({ status: "pending", validation_note: "", reviewed_by: null, reviewed_at: null })
     .eq("id", evidenceId)
-    .eq("owner_id", auth.user.id);
-  return error ? { error: error.message } : { success: true };
+    .eq("owner_id", auth.user.id)
+    .eq("status", "rejected")
+    .select("id")
+    .maybeSingle();
+  if (error) return { error: error.message };
+  return data ? { success: true } : { error: "La evidencia no existe o ya no puede reenviarse." };
 }
 
 export async function reviewProfileEvidence(
@@ -75,10 +79,13 @@ export async function reviewProfileEvidence(
     .single();
   if (!reviewer || reviewer.account_type !== "school") return { error: "Solo un colegio puede revisar evidencia." };
 
-  const { error } = await auth.supabase
+  const { data, error } = await auth.supabase
     .from("profile_evidence")
     .update({ status, validation_note: note.trim().slice(0, 500) })
     .eq("id", evidenceId)
-    .eq("status", "pending");
-  return error ? { error: error.message } : { success: true };
+    .eq("status", "pending")
+    .select("id")
+    .maybeSingle();
+  if (error) return { error: error.message };
+  return data ? { success: true } : { error: "La evidencia ya fue revisada o no está disponible." };
 }
