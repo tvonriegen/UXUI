@@ -20,8 +20,8 @@ import TrustTriangle         from "@/components/ui/TrustTriangle";
 import StreakFlame           from "@/components/gamification/StreakFlame";
 import TierBadge, { tierFromXp, nextTierInfo, type XpTier } from "@/components/gamification/TierBadge";
 import DailyQuestsCard       from "@/components/gamification/DailyQuestsCard";
-import LevelUpModal          from "@/components/gamification/LevelUpModal";
 import TechRadarCard         from "@/components/radar/TechRadarCard";
+import dynamic from "next/dynamic";
 
 interface DashProfile {
   name: string; avatar: string; level: number; xp: number;
@@ -41,6 +41,11 @@ interface DashPost {
   id: string; title: string; description: string; content: string;
   authorName: string; authorAvatar: string; createdAt: string;
 }
+
+const LevelUpModal = dynamic(
+  () => import("@/components/gamification/LevelUpModal"),
+  { ssr: false }
+);
 
 export default function DashboardEstudiante() {
   const { user } = useAuth();
@@ -64,72 +69,107 @@ export default function DashboardEstudiante() {
     fetch("/api/streak/touch", { method: "POST" }).catch(() => {});
 
     const load = async () => {
-      const [pRes, ubRes, bRes, postsRes] = await Promise.all([
-        fetchOwnProfile<Partial<DashProfile>>(
-          supabase,
-          user.id,
-          "name, avatar, level, xp, streak, specialty, reputation_score, attendance, xp_tier, longest_streak, last_active_date",
-        ),
-        supabase.from("user_badges").select("badge_id, earned_at").eq("user_id", user.id),
-        supabase.from("badges").select("id, name, icon, description"),
-        supabase
-          .from("posts")
-          .select("id, title, description, content, created_at, profiles!author_id(name, avatar)")
-          .order("created_at", { ascending: false })
-          .limit(3),
-      ]);
+      // 1. Cargar primero SOLO lo imprescindible para mostrar el dashboard
+      const pRes = await fetchOwnProfile<Partial<DashProfile>>(
+        supabase,
+        user.id,
+        "name, avatar, level, xp, streak, specialty, reputation_score, attendance, xp_tier, longest_streak, last_active_date",
+      );
 
-      // Profile is the only required dashboard dependency. The staging
-      // environment may not have the optional gamification/feed tables yet.
       if (pRes.error) {
         setLoading(false);
         return;
       }
 
       const ownProfile = pRes.profile;
-      if (ownProfile) {
-        const p = ownProfile;
-        const next: DashProfile = {
-          name:             p.name ?? "",
-          avatar:           p.avatar ?? "",
-          level:            p.level ?? 1,
-          xp:               p.xp ?? 0,
-          streak:           p.streak ?? 0,
-          specialty:        p.specialty ?? "",
-          reputation_score: p.reputation_score ?? 0,
-          attendance:       p.attendance ?? null,
-          xp_tier:          ["Bronce", "Plata", "Oro", "Platino", "Diamante"].includes(p.xp_tier as string)
-            ? p.xp_tier as XpTier
-            : tierFromXp(p.xp ?? 0),
-          longest_streak:   p.longest_streak ?? 0,
-          last_active_date: p.last_active_date ?? null,
-        };
-        // Level-up detection
-        if (prevLevelRef.current != null && next.level > prevLevelRef.current) {
-          setCelebration({
-            kind: "level",
-            title: `¡Nivel ${next.level}!`,
-            subtitle: "Sigue acumulando XP completando misiones diarias.",
-            level: next.level,
-          });
-        }
-        // Tier-up detection
-        if (prevTierRef.current != null && next.xp_tier !== prevTierRef.current) {
-          setCelebration({
-            kind: "tier",
-            title: `¡Nuevo rango: ${next.xp_tier}!`,
-            subtitle: "Tu trayectoria sube al siguiente nivel.",
-            tier: next.xp_tier,
-          });
-        }
-        prevLevelRef.current = next.level;
-        prevTierRef.current  = next.xp_tier;
-        setProfile(next);
+
+      if (!ownProfile) {
+        setLoading(false);
+        return;
       }
 
+      const p = ownProfile;
+
+      const next: DashProfile = {
+        name: p.name ?? "",
+        avatar: p.avatar ?? "",
+        level: p.level ?? 1,
+        xp: p.xp ?? 0,
+        streak: p.streak ?? 0,
+        specialty: p.specialty ?? "",
+        reputation_score: p.reputation_score ?? 0,
+        attendance: p.attendance ?? null,
+        xp_tier: ["Bronce", "Plata", "Oro", "Platino", "Diamante"].includes(
+          p.xp_tier as string
+        )
+          ? (p.xp_tier as XpTier)
+          : tierFromXp(p.xp ?? 0),
+        longest_streak: p.longest_streak ?? 0,
+        last_active_date: p.last_active_date ?? null,
+      };
+
+      // Level-up detection
+      if (
+        prevLevelRef.current != null &&
+        next.level > prevLevelRef.current
+      ) {
+        setCelebration({
+          kind: "level",
+          title: `¡Nivel ${next.level}!`,
+          subtitle: "Sigue acumulando XP completando misiones diarias.",
+          level: next.level,
+        });
+      }
+
+      // Tier-up detection
+      if (
+        prevTierRef.current != null &&
+        next.xp_tier !== prevTierRef.current
+      ) {
+        setCelebration({
+          kind: "tier",
+          title: `¡Nuevo rango: ${next.xp_tier}!`,
+          subtitle: "Tu trayectoria sube al siguiente nivel.",
+          tier: next.xp_tier,
+        });
+      }
+
+      prevLevelRef.current = next.level;
+      prevTierRef.current = next.xp_tier;
+
+      setProfile(next);
+
+      // IMPORTANTE:
+      // mostrar inmediatamente el dashboard
+      setLoading(false);
+
+      // 2. Cargar después los datos secundarios
+      const [ubRes, bRes, postsRes] = await Promise.all([
+        supabase
+          .from("user_badges")
+          .select("badge_id, earned_at")
+          .eq("user_id", user.id),
+
+        supabase
+          .from("badges")
+          .select("id, name, icon, description"),
+
+        supabase
+          .from("posts")
+          .select(
+            "id, title, description, content, created_at, profiles!author_id(name, avatar)"
+          )
+          .order("created_at", { ascending: false })
+          .limit(3),
+      ]);
+
       const earnedMap = new Map(
-        (ubRes.error ? [] : ubRes.data ?? []).map((r) => [r.badge_id as string, r.earned_at as string | null])
+        (ubRes.error ? [] : ubRes.data ?? []).map((r) => [
+          r.badge_id as string,
+          r.earned_at as string | null,
+        ])
       );
+
       setBadges(
         (bRes.error ? [] : bRes.data ?? []).map((b) => ({
           id: b.id as string,
@@ -140,20 +180,31 @@ export default function DashboardEstudiante() {
         }))
       );
 
-      interface PostRow { id: string; title: string; description: string | null; content: string | null; created_at: string | null; profiles: { name: string; avatar: string } | null }
-      setPosts(
-        ((postsRes.error ? [] : postsRes.data ?? []) as unknown as PostRow[]).map((p) => ({
-          id: p.id,
-          title: p.title,
-          description: p.description ?? "",
-          content: p.content ?? "",
-          authorName:   p.profiles?.name   ?? "Usuario",
-          authorAvatar: p.profiles?.avatar ?? "",
-          createdAt:    (p.created_at ?? "").split("T")[0],
-        }))
-      );
+      interface PostRow {
+        id: string;
+        title: string;
+        description: string | null;
+        content: string | null;
+        created_at: string | null;
+        profiles: {
+          name: string;
+          avatar: string;
+        } | null;
+      }
 
-      setLoading(false);
+      setPosts(
+        ((postsRes.error ? [] : postsRes.data ?? []) as unknown as PostRow[]).map(
+          (p) => ({
+            id: p.id,
+            title: p.title,
+            description: p.description ?? "",
+            content: p.content ?? "",
+            authorName: p.profiles?.name ?? "Usuario",
+            authorAvatar: p.profiles?.avatar ?? "",
+            createdAt: (p.created_at ?? "").split("T")[0],
+          })
+        )
+      );
     };
 
     load().catch(() => setLoading(false));
@@ -201,7 +252,7 @@ export default function DashboardEstudiante() {
     <div className="p-4 md:p-6 lg:p-8 max-w-6xl mx-auto w-full space-y-6">
 
       {/* ── Hero Banner ── */}
-      <div className="bg-gradient-to-br from-sky-500 via-indigo-500 to-sky-700 rounded-2xl p-6 md:p-8 text-white relative overflow-hidden animate-fade-in-up">
+      <div className="bg-gradient-to-br from-sky-500 via-indigo-500 to-sky-700 rounded-2xl p-6 md:p-8 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10 hero-pattern" />
 
         <div className="relative flex flex-col md:flex-row md:items-center gap-5">
