@@ -40,6 +40,24 @@ function dashboardPath(accountType: string): string {
   return "/student/dashboard";
 }
 
+function redirectWithResponseCookies(
+  request: NextRequest,
+  response: NextResponse,
+  pathname: string,
+  error?: string,
+): NextResponse {
+  const url = request.nextUrl.clone();
+  url.pathname = pathname;
+  url.search = "";
+  if (error) url.searchParams.set("error", error);
+
+  const redirect = NextResponse.redirect(url);
+  for (const cookie of response.cookies.getAll()) {
+    redirect.cookies.set(cookie);
+  }
+  return redirect;
+}
+
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
   const supabase = createServerClient(
@@ -99,16 +117,23 @@ export async function middleware(request: NextRequest) {
     .maybeSingle();
 
   if (!profile?.account_type) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("error", "profile");
-    return NextResponse.redirect(url);
+    // An Auth user without a canonical profile cannot use the application.
+    // Clear the invalid session before returning to login, otherwise the
+    // authenticated-login redirect and this guard create an endless loop.
+    await supabase.auth.signOut();
+    return redirectWithResponseCookies(request, response, "/login", "profile");
   }
 
   if (profile.account_status === "suspended" || profile.account_status === "disabled") {
+    await supabase.auth.signOut();
+    return redirectWithResponseCookies(request, response, "/login", "account_status");
+  }
+
+  // The root route is the public welcome page. Authenticated users should
+  // always land on the workspace that belongs to their canonical account.
+  if (pathname === "/") {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("error", "account_status");
+    url.pathname = dashboardPath(profile.account_type);
     return NextResponse.redirect(url);
   }
 

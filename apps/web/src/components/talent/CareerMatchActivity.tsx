@@ -11,6 +11,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { useModalAccessibility } from "@/lib/hooks/useModalAccessibility";
 import {
   X, Heart, Minus, ThumbsDown, Compass, Zap, CheckCircle,
   Cpu, Zap as ZapIcon, Wrench, Flame, Leaf, Building, ChefHat,
@@ -127,6 +128,7 @@ interface Props {
 type Phase = "intro" | "swiping" | "result" | "already_done";
 
 export default function CareerMatchActivity({ userId, onClose, onXPEarned }: Props) {
+  const dialogRef = useModalAccessibility(onClose);
   const [phase,     setPhase]     = useState<Phase>("intro");
   const [cardIndex, setCardIndex] = useState(0);
   const [votes,     setVotes]     = useState<Vote[]>([]);
@@ -179,15 +181,17 @@ export default function CareerMatchActivity({ userId, onClose, onXPEarned }: Pro
           completed_at: new Date().toISOString(),
         }, { onConflict: "user_id,activity_id" });
 
-        await fetch("/api/xp", {
+        const xpResponse = await fetch("/api/xp", {
           method:  "POST",
           headers: { "Content-Type": "application/json" },
-          body:    JSON.stringify({ user_id: userId, type: "activity", xp_amount: XP_REWARD, metadata: { activity_id: ACTIVITY_ID } }),
-        }).catch(() => {});
+          body:    JSON.stringify({ type: "activity", xp_amount: XP_REWARD, metadata: { activity_id: ACTIVITY_ID } }),
+        }).catch(() => null);
+        const xpResult = xpResponse?.ok ? await xpResponse.json().catch(() => null) : null;
+        const awardedXp = Number(xpResult?.xp_awarded) || 0;
 
         setSaving(false);
         setVotes(newVotes);
-        onXPEarned(XP_REWARD);
+        onXPEarned(awardedXp);
         setExiting(false);
         setPhase("result");
       }
@@ -214,17 +218,17 @@ export default function CareerMatchActivity({ userId, onClose, onXPEarned }: Pro
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-slate-900/75 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
+      <div aria-hidden="true" className="absolute inset-0 bg-slate-900/75 backdrop-blur-sm" onClick={onClose} />
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="career-match-title" className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
 
         {/* Header */}
         <div className="bg-gradient-to-r from-emerald-600 to-indigo-600 px-6 pt-5 pb-4 text-white">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
               <Compass size={18} />
-              <span className="font-bold text-sm">Descubre tu Perfil</span>
+              <span id="career-match-title" className="font-bold text-sm">Descubre tu Perfil</span>
             </div>
-            <button onClick={onClose} className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
+            <button type="button" onClick={onClose} aria-label="Cerrar actividad" className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors">
               <X size={14} />
             </button>
           </div>

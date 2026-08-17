@@ -21,14 +21,21 @@ const DEMO_ACCOUNTS = [
 
 const DEMO_PASSWORD = "Demo1234!";
 
-export default function LoginPage() {
+const LOGIN_ROUTE_ERRORS: Record<string, string> = {
+  profile: "Tu cuenta no tiene un perfil válido. Contacta al administrador para recuperar el acceso.",
+  account_status: "Esta cuenta está suspendida o deshabilitada. Contacta al administrador.",
+};
+
+export default function LoginPage({ searchParams }: { searchParams?: { error?: string } }) {
   const { login, user } = useAuth();
   const router           = useRouter();
 
   const [email,        setEmail]        = useState("");
   const [password,     setPassword]     = useState("");
   const [showPass,     setShowPass]     = useState(false);
-  const [error,        setError]        = useState("");
+  const [error,        setError]        = useState(() =>
+    searchParams?.error ? LOGIN_ROUTE_ERRORS[searchParams.error] ?? "No se pudo validar la cuenta." : ""
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [demoLoading,  setDemoLoading]  = useState<string | null>(null);
   const demoMode = process.env.NEXT_PUBLIC_DEMO_MODE === "true";

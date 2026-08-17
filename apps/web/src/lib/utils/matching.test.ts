@@ -11,7 +11,7 @@ const job = {
 
 describe("matching", () => {
   it("normalizes accents and awards specialty, skill and practice points", () => {
-    expect(computeMatchScore(["AutoCAD Electrical", "Tableros"], "Instalaciones Electricas", job)).toBe(70);
+    expect(computeMatchScore(["AutoCAD Electrical", "Tableros"], "Instalaciones Electricas", job, { availability: "Disponible" })).toBe(70);
   });
 
   it("caps skill points at 50", () => {
@@ -21,6 +21,23 @@ describe("matching", () => {
     expect(result.factors.skills.awarded).toBe(50);
     expect(result.factors.skills.capped).toBe(true);
     expect(result.total).toBeLessThanOrEqual(100);
+  });
+
+  it("reports concrete missing structured skills without duplicate inflation", () => {
+    const result = computeExplainableMatch(
+      { ...job, requiredSkills: ["PLC Siemens", "AutoCAD Electrical"], preferredSkills: ["Inglés técnico"] },
+      job.specialty,
+      ["AutoCAD Electrical", "AutoCAD Electrical"],
+      { availability: "Disponible" },
+    );
+
+    expect(result.factors.skills.matchedSkills.map((skill) => skill.name)).toEqual(["AutoCAD Electrical"]);
+    expect(result.factors.skills.missingSkills).toEqual(["PLC Siemens", "Inglés técnico"]);
+    expect(result.factors.skills.awarded).toBe(20);
+  });
+
+  it("does not award availability points from the vacancy text", () => {
+    expect(computeMatchScore([], "", job, { availability: "No disponible" })).toBe(0);
   });
 
   it.each([

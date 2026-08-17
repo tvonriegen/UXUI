@@ -42,6 +42,18 @@ export default function TopNavBar() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  // Escape closes transient navigation panels for keyboard users.
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setNotifOpen(false);
+        setUserDdOpen(false);
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+
   // ⌘K / Ctrl+K → focus search
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -83,11 +95,12 @@ export default function TopNavBar() {
     .slice(0, 2)
     .join("")
     .toUpperCase() ?? "?";
-  const profilePath = accountType === "external" ? "/external/profile" : "/profile";
-  const settingsPath = accountType === "external" ? "/external/settings" : "/settings";
+  const profilePath = `/${accountType}/profile`;
+  const settingsPath = `/${accountType}/settings`;
+  const notificationsPath = `/${accountType}/notifications`;
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-white/85 backdrop-blur-xl border-b border-slate-200/60 shadow-sm">
+    <nav aria-label="Barra superior" className="fixed top-0 w-full z-50 bg-white/85 backdrop-blur-xl border-b border-slate-200/60 shadow-sm">
       <div className="flex items-center px-4 sm:px-6 h-16 gap-3">
 
         {/* ── Logo ── */}
@@ -144,7 +157,7 @@ export default function TopNavBar() {
               title="Notificaciones"
               aria-label="Notificaciones"
               aria-expanded={notifOpen}
-              aria-haspopup="menu"
+              aria-controls="notifications-panel"
             >
               <Bell
                 size={20}
@@ -159,7 +172,7 @@ export default function TopNavBar() {
 
             {/* Quick-view dropdown */}
             {notifOpen && (
-              <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-2xl shadow-slate-200/80 border border-slate-100/80 z-50 max-h-96 overflow-hidden flex flex-col animate-fade-in-down">
+              <div id="notifications-panel" className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl shadow-2xl shadow-slate-200/80 border border-slate-100/80 z-50 max-h-96 overflow-hidden flex flex-col animate-fade-in-down">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 shrink-0">
                   <p className="text-xs font-bold text-slate-700 tracking-wide">Notificaciones</p>
                   <div className="flex items-center gap-2">
@@ -169,7 +182,7 @@ export default function TopNavBar() {
                       </button>
                     )}
                     <Link
-                      href="/notifications"
+                      href={notificationsPath}
                       onClick={() => setNotifOpen(false)}
                       className="text-[10px] font-bold text-slate-400 hover:text-sky-600"
                     >
@@ -211,7 +224,7 @@ export default function TopNavBar() {
               className="flex items-center gap-2 group"
               aria-label="Abrir menú de usuario"
               aria-expanded={userDdOpen}
-              aria-haspopup="menu"
+              aria-controls="user-navigation-panel"
             >
               <div className="h-8 w-8 rounded-full bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center text-white font-bold text-xs ring-2 ring-white shadow-sm group-hover:ring-sky-200 transition-all overflow-hidden">
                 {user?.avatar ? (
@@ -223,7 +236,7 @@ export default function TopNavBar() {
             </button>
 
             {userDdOpen && (
-              <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-2xl shadow-slate-200/80 border border-slate-100/80 py-1.5 z-50 animate-fade-in-down">
+              <div id="user-navigation-panel" className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-2xl shadow-slate-200/80 border border-slate-100/80 py-1.5 z-50 animate-fade-in-down">
                 <div className="px-4 py-3 border-b border-slate-100">
                   <p className="text-sm font-bold text-slate-800 truncate">{user?.name}</p>
                   <p className="text-[11px] text-slate-400 truncate mt-0.5">{user?.email}</p>

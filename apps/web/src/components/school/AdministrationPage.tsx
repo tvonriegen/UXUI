@@ -56,13 +56,23 @@ const ADMIN_TABS = ["Mis Estudiantes", "Estadísticas", "Solicitudes"] as const 
 
 // ── Component ─────────────────────────────────────────────
 
-export default function AdministracionPage() {
+interface AdministrationPageProps {
+  initialSection?: string;
+}
+
+function getInitialTab(section?: string): AdminTab {
+  if (section === "metricas") return "Estadísticas";
+  if (section === "solicitudes" || section === "practicas") return "Solicitudes";
+  return "Mis Estudiantes";
+}
+
+export default function AdministracionPage({ initialSection }: AdministrationPageProps) {
   const { user }  = useAuth();
   const { role }  = useRole();
   const { toast } = useToast();
   const confirmFn = useConfirm();
 
-  const [tab, setTab] = useState<AdminTab>("Mis Estudiantes");
+  const [tab, setTab] = useState<AdminTab>(() => getInitialTab(initialSection));
 
   // ── Students ──────────────────────────────────────────
   const [dbStudents,      setDbStudents]      = useState<DbStudent[]>([]);
@@ -71,7 +81,7 @@ export default function AdministracionPage() {
   const [schoolSpecialty, setSchoolSpecialty] = useState("Todos");
 
   // ── Smart CSV Importer ────────────────────────────────
-  const [showImporter,    setShowImporter]    = useState(false);
+  const [showImporter,    setShowImporter]    = useState(initialSection === "importar");
 
   // ── Add student modal ─────────────────────────────────
   const [addStudentOpen,  setAddStudentOpen]  = useState(false);
@@ -216,7 +226,7 @@ export default function AdministracionPage() {
   const handleGraduate = async (studentId: string) => {
     const ok = await confirmFn({
       title:        "¿Graduar este estudiante?",
-      body:         "Su rol cambiará a Egresado. Esta acción no se puede deshacer.",
+      body:         "Su etapa académica cambiará a Egresado y conservará la misma cuenta de estudiante. Esta acción no se puede deshacer desde este panel.",
       confirmLabel: "Graduar",
     });
     if (!ok) return;
@@ -398,6 +408,12 @@ export default function AdministracionPage() {
         <AdminHeader />
         <AdminTabs tabs={ADMIN_TABS} activeTab={tab} onChange={setTab} />
 
+        {initialSection === "validaciones" && tab === "Mis Estudiantes" && (
+          <div role="status" className="rounded-2xl border border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-900">
+            Selecciona <strong>Gestionar</strong> en un estudiante para revisar y validar sus habilidades y evidencias.
+          </div>
+        )}
+
         {/* ══════════════════════════════════════════════
             TAB: Mis Estudiantes
         ══════════════════════════════════════════════ */}
@@ -410,12 +426,14 @@ export default function AdministracionPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowImporter(true)}
+                  type="button"
                   className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold rounded-xl transition-colors shadow-sm"
                 >
                   <Upload size={14} /> Importar CSV
                 </button>
                 <button
                   onClick={() => { setAddStudentErr(null); setAddStudentOk(false); setAddStudentOpen(true); }}
+                  type="button"
                   className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-colors shadow-sm"
                 >
                   <Plus size={14} /> Agregar Alumno

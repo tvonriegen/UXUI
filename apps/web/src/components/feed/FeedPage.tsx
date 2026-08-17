@@ -4,6 +4,7 @@
 // ──────────────────────────────────────────────────────────
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import Link from "next/link";
 import PageLayout from "@/components/layout/PageLayout";
 import Modal      from "@/components/ui/Modal";
 import { supabase } from "@/lib/supabase";
@@ -21,6 +22,8 @@ import {
 import { postSchema } from "@/lib/schemas";
 import DOMPurify from "isomorphic-dompurify";
 import { TP_SPECIALTIES, TAG_FILTERS, SOFT_SKILLS } from "@/lib/specialties";
+import { resolveApplicationOpportunityId } from "@/lib/services/opportunities";
+import { useToast } from "@/components/ui/Toast";
 
 // ── Constants ─────────────────────────────────────────────
 
@@ -43,6 +46,7 @@ export default function MuroPage() {
   const { user } = useAuth();
   const { role } = useRole();
   const { muted, toggleMute, playLike, playComment, playPost } = useSound();
+  const { toast } = useToast();
 
   // ── Save / apply / match state ────────────────────────
   const [savedPostIds,    setSavedPostIds]    = useState<Set<string>>(new Set());
@@ -72,6 +76,7 @@ export default function MuroPage() {
   const [isFetching,  setIsFetching]  = useState(true);
   const [isPosting,   setIsPosting]   = useState(false);
   const [postError,   setPostError]   = useState<string | null>(null);
+  const [feedError,   setFeedError]   = useState<string | null>(null);
 
   // New post form fields
   const [newTitle,          setNewTitle]          = useState("");
@@ -107,6 +112,7 @@ export default function MuroPage() {
   const fetchPosts = useCallback(async (offset = 0, append = false) => {
     if (offset === 0) setIsFetching(true);
     else setLoadingMore(true);
+    setFeedError(null);
 
     const { data, error, count } = await supabase
       .from("posts")
@@ -119,6 +125,7 @@ export default function MuroPage() {
       .range(offset, offset + PAGE_SIZE - 1);
 
     if (error || !data) {
+      setFeedError("No pudimos cargar las publicaciones. Inténtalo nuevamente.");
       setIsFetching(false);
       setLoadingMore(false);
       return;
@@ -228,9 +235,13 @@ export default function MuroPage() {
     if (!user?.id || (role !== "Estudiante" && role !== "Egresado")) return;
     const { data } = await supabase
       .from("job_applications")
-      .select("job_id")
+      .select("job_id, opportunity_id")
       .eq("applicant_id", user.id);
-    setAppliedJobIds(new Set((data ?? []).map((r: any) => r.job_id)));
+    setAppliedJobIds(new Set(
+      (data ?? [])
+        .map((application: { job_id?: string | null; opportunity_id?: string | null }) => resolveApplicationOpportunityId(application))
+        .filter((id): id is string => Boolean(id))
+    ));
   }, [user?.id, role]);
 
   // ── Fetch student profile for smart matching ──────────
@@ -265,10 +276,16 @@ export default function MuroPage() {
       isSaved ? s.delete(postId) : s.add(postId);
       return s;
     });
-    if (isSaved) {
-      await supabase.from("saved_posts").delete().eq("user_id", user.id).eq("post_id", postId);
-    } else {
-      await supabase.from("saved_posts").insert({ user_id: user.id, post_id: postId });
+    const { error } = isSaved
+      ? await supabase.from("saved_posts").delete().eq("user_id", user.id).eq("post_id", postId)
+      : await supabase.from("saved_posts").insert({ user_id: user.id, post_id: postId });
+    if (error) {
+      setSavedPostIds((prev) => {
+        const restored = new Set(prev);
+        isSaved ? restored.add(postId) : restored.delete(postId);
+        return restored;
+      });
+      toast({ type: "error", title: "No se pudo actualizar Guardados", description: "Inténtalo nuevamente." });
     }
   };
 
@@ -279,9 +296,23 @@ export default function MuroPage() {
     setAppliedJobIds((prev) => new Set(prev).add(jobPostingId));
     const { error } = await supabase
       .from("job_applications")
-      .insert({ job_id: jobPostingId, applicant_id: user.id, status: "pending", priority: 0 });
+      .insert({
+        job_id: null,
+        opportunity_id: jobPostingId,
+        applicant_id: user.id,
+        student_id: user.id,
+        status: "pending",
+        priority: 0,
+      });
     if (error) {
-      setAppliedJobIds((prev) => { const s = new Set(prev); s.delete(jobPostingId); return s; });
+      if (error.code === "23505") {
+        toast({ type: "info", title: "Ya estabas postulado a esta oferta" });
+      } else {
+        setAppliedJobIds((prev) => { const s = new Set(prev); s.delete(jobPostingId); return s; });
+        toast({ type: "error", title: "No se pudo enviar la postulación", description: error.message });
+      }
+    } else {
+      toast({ type: "success", title: "Postulación enviada" });
     }
     setApplyingJobId(null);
   };
@@ -355,6 +386,7 @@ export default function MuroPage() {
       setPosts((prev) =>
         prev.map((p) => p.id === postId ? { ...p, liked: wasLiked, likes: wasLiked ? p.likes + 1 : p.likes - 1 } : p)
       );
+      toast({ type: "error", title: "No se pudo actualizar la reacción", description: "Inténtalo nuevamente." });
     } else {
       // Reconcile count from the authoritative DB value
       setPosts((prev) =>
@@ -383,6 +415,7 @@ export default function MuroPage() {
 
     // Upload media to Supabase Storage if provided
     let mediaUrl = "";
+    let uploadedMediaPath = "";
     if (mediaFile && user.id) {
       const ext  = mediaFile.name.split(".").pop();
       const path = `${user.id}/${Date.now()}.${ext}`;
@@ -404,6 +437,7 @@ export default function MuroPage() {
         .from("post-media")
         .getPublicUrl(path);
       mediaUrl = publicUrl;
+      uploadedMediaPath = path;
     }
 
     const { error } = await supabase.from("posts").insert({
@@ -417,6 +451,9 @@ export default function MuroPage() {
     });
 
     if (error) {
+      if (uploadedMediaPath) {
+        await supabase.storage.from("post-media").remove([uploadedMediaPath]);
+      }
       setPostError(error.message);
       setIsPosting(false);
       return;
@@ -448,11 +485,17 @@ export default function MuroPage() {
 
   const fetchComments = useCallback(async (postId: string) => {
     setLoadingComments((prev) => new Set(prev).add(postId));
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("post_comments")
       .select(`id, post_id, content, created_at, author_id, profiles!author_id(name, avatar, role)`)
       .eq("post_id", postId)
       .order("created_at", { ascending: true });
+
+    if (error) {
+      toast({ type: "error", title: "No se pudieron cargar los comentarios", description: "Inténtalo nuevamente." });
+      setLoadingComments((prev) => { const s = new Set(prev); s.delete(postId); return s; });
+      return;
+    }
 
     const mapped: PostComment[] = (data ?? []).map((c: any) => ({
       id:           c.id,
@@ -467,7 +510,7 @@ export default function MuroPage() {
 
     setCommentsByPost((prev) => ({ ...prev, [postId]: mapped }));
     setLoadingComments((prev) => { const s = new Set(prev); s.delete(postId); return s; });
-  }, []);
+  }, [toast]);
 
   const toggleComments = (postId: string) => {
     if (expandedPostId === postId) {
@@ -518,6 +561,7 @@ export default function MuroPage() {
       }));
       setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, comments: p.comments - 1 } : p));
       setCommentDraft(draft);
+      toast({ type: "error", title: "No se pudo publicar el comentario", description: "Inténtalo nuevamente." });
     } else if (data) {
       const d = data as any;
       const real: PostComment = {
@@ -613,6 +657,7 @@ export default function MuroPage() {
             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
               type="text"
+              aria-label="Buscar publicaciones"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar publicaciones..."
@@ -625,6 +670,7 @@ export default function MuroPage() {
               <button
                 key={t}
                 onClick={() => setTab(t)}
+                aria-pressed={tab === t}
                 className={`pb-2.5 text-sm font-semibold transition-colors border-b-2 whitespace-nowrap flex items-center gap-1.5 ${
                   tab === t
                     ? "border-sky-500 text-sky-700"
@@ -681,6 +727,19 @@ export default function MuroPage() {
 
           {/* Feed Column */}
           <div className="lg:col-span-2 space-y-4">
+
+            {feedError && !isFetching && (
+              <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 flex flex-wrap items-center justify-between gap-3">
+                <span>{feedError}</span>
+                <button
+                  type="button"
+                  onClick={() => fetchPosts(0, false)}
+                  className="font-semibold underline underline-offset-2 hover:no-underline"
+                >
+                  Reintentar
+                </button>
+              </div>
+            )}
 
             {isFetching && Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden animate-pulse">
@@ -787,19 +846,7 @@ export default function MuroPage() {
 
                       {/* CTA */}
                       <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                        <div className="flex items-center gap-5">
-                          <button
-                            onClick={() => toggleLike(post.id)}
-                            disabled={!user}
-                            className={`flex items-center gap-1.5 text-sm font-medium transition-all active:scale-90 disabled:opacity-40 ${post.liked ? "text-red-500" : "text-slate-400 hover:text-red-400"}`}
-                          >
-                            <Heart size={18} className={`transition-all ${post.liked ? "fill-red-500 scale-110" : ""}`} />
-                            {post.likes}
-                          </button>
-                          <span className="flex items-center gap-1.5 text-sm text-slate-400 font-medium">
-                            <MessageCircle size={18} /> {post.comments}
-                          </span>
-                        </div>
+                        <span className="text-xs text-slate-500">Revisa los requisitos antes de postular.</span>
                         {/* Apply button — only for jp- cards (real job_postings) and student roles */}
                         {post.id.startsWith("jp-") && canApply ? (() => {
                           const jobId    = post.author; // actual job_postings UUID
@@ -825,7 +872,12 @@ export default function MuroPage() {
                             </button>
                           );
                         })() : (
-                          <span className="text-[10px] text-slate-400 italic">Aplica en /empleos</span>
+                          <Link
+                            href={role === "Estudiante" ? "/student/opportunities" : "/empleos"}
+                            className="text-xs font-semibold text-violet-700 underline underline-offset-2 hover:no-underline"
+                          >
+                            Ver oportunidades
+                          </Link>
                         )}
                       </div>
                     </div>
@@ -1028,6 +1080,7 @@ export default function MuroPage() {
                           <button
                             onClick={() => submitComment(post.id)}
                             disabled={!commentDraft.trim() || submittingComment}
+                            aria-label="Publicar comentario"
                             className="w-8 h-8 bg-sky-600 rounded-xl flex items-center justify-center hover:bg-sky-700 active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex-shrink-0"
                           >
                             {submittingComment ? (
@@ -1203,7 +1256,9 @@ export default function MuroPage() {
                   />
                 )}
                 <button
+                  type="button"
                   onClick={clearMedia}
+                  aria-label="Quitar archivo adjunto"
                   className="absolute top-2 right-2 w-7 h-7 bg-black/60 rounded-full flex items-center justify-center hover:bg-black/80 transition-colors"
                 >
                   <X size={14} className="text-white" />

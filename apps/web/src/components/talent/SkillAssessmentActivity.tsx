@@ -10,6 +10,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
+import { useModalAccessibility } from "@/lib/hooks/useModalAccessibility";
 import {
   X, ChevronRight, Zap, CheckCircle, Brain,
   Users, MessageSquare, Lightbulb, Wrench, Loader2,
@@ -134,6 +135,7 @@ type Phase = "intro" | "question" | "result" | "already_done";
 
 // ── Component ─────────────────────────────────────────────────────
 export default function SkillAssessmentActivity({ userId, onClose, onXPEarned }: Props) {
+  const dialogRef = useModalAccessibility(onClose);
   const [phase,     setPhase]     = useState<Phase>("intro");
   const [qIndex,    setQIndex]    = useState(0);
   const [answers,   setAnswers]   = useState<string[]>([]);
@@ -208,16 +210,18 @@ export default function SkillAssessmentActivity({ userId, onClose, onXPEarned }:
       );
 
       // Award XP
-      await fetch("/api/xp", {
+      const xpResponse = await fetch("/api/xp", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ user_id: userId, type: "activity", xp_amount: xp, metadata: { activity_id: ACTIVITY_ID, score: pct } }),
-      }).catch(() => {});
+        body:    JSON.stringify({ type: "activity", xp_amount: xp, metadata: { activity_id: ACTIVITY_ID, score: pct } }),
+      }).catch(() => null);
+      const xpResult = xpResponse?.ok ? await xpResponse.json().catch(() => null) : null;
+      const awardedXp = Number(xpResult?.xp_awarded) || 0;
 
       setAnswers(newAnswers);
       setSaving(false);
       setPhase("result");
-      onXPEarned(xp);
+      onXPEarned(awardedXp);
     }
   }, [selected, animating, answers, qIndex, userId, onXPEarned]);
 
@@ -234,16 +238,19 @@ export default function SkillAssessmentActivity({ userId, onClose, onXPEarned }:
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
+        aria-hidden="true"
         className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Card */}
-      <div className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden animate-scale-in">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="skill-assessment-title" className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden animate-scale-in">
 
         {/* Close */}
         <button
+          type="button"
           onClick={onClose}
+          aria-label="Cerrar actividad"
           className="absolute top-4 right-4 z-10 w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center hover:bg-slate-200 transition-colors"
         >
           <X size={16} />
@@ -252,6 +259,7 @@ export default function SkillAssessmentActivity({ userId, onClose, onXPEarned }:
         {/* ── INTRO ── */}
         {phase === "intro" && (
           <div className="p-8 text-center space-y-5">
+            <h2 id="skill-assessment-title" className="sr-only">Evaluación de habilidades</h2>
             <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto">
               <Brain size={32} className="text-amber-600" />
             </div>

@@ -3,11 +3,11 @@ import { requireAccountType } from "@/lib/auth-server";
 
 const LEGACY_ROUTES: Record<string, string> = {
   students: "/administracion",
-  import: "/administracion?tab=import",
+  import: "/administracion?tab=importar",
   validations: "/administracion?tab=validaciones",
-  "contact-requests": "/administracion?tab=solicitudes",
-  internships: "/administracion?tab=solicitudes",
-  companies: "/administracion?tab=alianzas",
+  "contact-requests": "/school/contact-requests",
+  internships: "/administracion?tab=practicas",
+  companies: "/school/contact-requests",
   metrics: "/administracion?tab=metricas",
   feed: "/muro",
   settings: "/settings",

@@ -306,6 +306,12 @@ body {
   .cursor-glow { display: none; }
 }
 
+/* A consistent keyboard focus indicator across every interactive surface. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 3px solid #0284c7;
+  outline-offset: 2px;
+}
+
 /* Respect user motion preferences across the custom animation utilities. */
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -593,3 +599,18 @@ html.compact .space-y-6 > * + * {
 .skeleton-line { height: 12px; }
 .skeleton-card { height: 96px; }
 .skeleton-circle { border-radius: 9999px; }
+
+/* WCAG 2.2 AA compatibility layer for legacy utility combinations. */
+[class~="text-slate-400"] { color: #64748b !important; }
+[class~="text-red-500"] { color: #b91c1c !important; }
+[class~="text-amber-600"] { color: #92400e !important; }
+[class*="text-[9px]"],
+[class*="text-[10px]"] { font-size: 0.75rem !important; }
+
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  min-width: 24px;
+  min-height: 24px;
+}

@@ -34,7 +34,7 @@ const factorMeta = {
   },
   practice: {
     icon: Briefcase,
-    title: "Práctica / Pasantía",
+    title: "Disponibilidad",
     max: 10,
     ariaLabel: "puntos por práctica o pasantía",
   },
@@ -179,6 +179,18 @@ function FactorRow({
             )}
           </div>
         )}
+        {skills && skills.missingSkills.length > 0 && (
+          <div className="mt-2">
+            <p className="text-[10px] font-bold text-amber-700">Competencias por desarrollar o acreditar:</p>
+            <div className="mt-1 flex flex-wrap gap-1">
+              {skills.missingSkills.map((skill) => (
+                <span key={skill} className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -197,10 +209,12 @@ export default function MatchExplanationPanel({
     strengths.push("Tu especialidad coincide con lo que busca la vacante.");
   } else if (factors.specialty.status === "partial") {
     improvements.push(factors.specialty.explanation);
-  } else {
+  } else if (factors.specialty.status === "missing") {
     improvements.push(
-      "Completa tu especialidad en el perfil para recibir una comparación más precisa."
+      factors.specialty.explanation
     );
+  } else {
+    improvements.push("Completa tu especialidad en el perfil para recibir una comparación más precisa.");
   }
 
   if (factors.skills.status === "matched") {
@@ -209,7 +223,9 @@ export default function MatchExplanationPanel({
     );
   } else if (factors.skills.status === "partial") {
     improvements.push(
-      "Alcanzaste el tope de puntos por competencias; añadir más no subirá este puntaje."
+      factors.skills.missingSkills.length > 0
+        ? `Fortalece o acredita: ${factors.skills.missingSkills.join(", ")}.`
+        : "La coincidencia se basa en menciones explícitas; revisa los requisitos completos de la vacante."
     );
   } else {
     improvements.push(
@@ -218,11 +234,9 @@ export default function MatchExplanationPanel({
   }
 
   if (factors.practice.status === "matched") {
-    strengths.push("La vacante menciona práctica profesional o pasantía.");
+    strengths.push("Tu disponibilidad está registrada y es compatible con una nueva oportunidad.");
   } else {
-    improvements.push(
-      "La vacante no indica práctica o pasantía; revisa la descripción para más detalles."
-    );
+    improvements.push(factors.practice.explanation);
   }
 
   return (

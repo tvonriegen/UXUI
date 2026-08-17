@@ -18,7 +18,7 @@ import { usePathname } from "next/navigation";
 import { useRole } from "@/lib/role-context";
 import { useAuth } from "@/lib/auth-context";
 import type { AccountType } from "@/lib/types";
-import { LayoutDashboard, Newspaper, Users, MessageCircle, User, LayoutGrid, Bell, Briefcase } from "lucide-react";
+import { LayoutDashboard, Newspaper, Users, MessageCircle, User, LayoutGrid, Briefcase } from "lucide-react";
 
 // All tabs — filtered per role below
 const ALL_LINKS = [
@@ -27,18 +27,17 @@ const ALL_LINKS = [
   { path: "/school/dashboard", label: "Inicio", icon: LayoutDashboard, accountTypes: ["school"] as AccountType[], badge: false },
   { path: "/external/dashboard", label: "Inicio", icon: LayoutDashboard, accountTypes: ["external"] as AccountType[], badge: false },
   { path: "/external/jobs", label: "Encargos", icon: Briefcase, accountTypes: ["external"] as AccountType[], badge: false },
-  { path: "/muro", label: "Muro", icon: Newspaper, accountTypes: ["student", "company", "school"] as AccountType[], badge: false },
+  { path: "/muro", label: "Muro", icon: Newspaper, accountTypes: ["student", "school"] as AccountType[], badge: false },
   { path: "/administracion", label: "Admin", icon: LayoutGrid, accountTypes: ["school"] as AccountType[], badge: false },
   { path: "/talent", label: "Talento", icon: Users, accountTypes: ["company"] as AccountType[], badge: false },
   { path: "/empleos", label: "Empleos", icon: Briefcase, accountTypes: ["student", "company"] as AccountType[], badge: false },
   { path: "/external/proposals", label: "Propuestas", icon: Users, accountTypes: ["external"] as AccountType[], badge: false },
   { path: "/messages", label: "Chat", icon: MessageCircle, accountTypes: ["student", "company", "school", "external"] as AccountType[], badge: true },
-  { path: "/notifications", label: "Avisos", icon: Bell, accountTypes: ["student", "company", "school", "external"] as AccountType[], badge: true },
   { path: "/profile", label: "Perfil", icon: User, accountTypes: ["student", "company", "school", "external"] as AccountType[], badge: false },
 ];
 
 const CANONICAL_ROUTES: Record<string, Partial<Record<AccountType, string>>> = {
-  "/muro": { student: "/student/feed" },
+  "/muro": { student: "/student/feed", school: "/school/feed" },
   "/talent": { company: "/company/talent" },
   "/empleos": { student: "/student/opportunities", company: "/company/jobs" },
   "/messages": { student: "/student/messages", company: "/company/messages", school: "/school/messages", external: "/external/messages" },
@@ -52,7 +51,7 @@ function canonicalRoute(path: string, accountType: AccountType) {
 
 export default function BottomMobileNav() {
   const pathname    = usePathname();
-  const { unreadCount } = useRole();
+  const { messageUnreadCount } = useRole();
   const { user } = useAuth();
   const accountType = user?.accountType ?? "student";
 
@@ -64,13 +63,14 @@ export default function BottomMobileNav() {
     <nav aria-label="Navegación principal" className="lg:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-1 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-2 bg-white/92 backdrop-blur-xl border-t border-slate-200/60 shadow-[0_-2px_12px_rgba(0,0,0,0.05)]">
       {LINKS.map((link) => {
         const target = canonicalRoute(link.path, accountType);
-        const isActive = pathname === target;
+        const isActive = pathname === target || pathname.startsWith(`${target}/`);
         const IconComp = link.icon;
 
         return (
           <Link
             key={link.path}
             href={target}
+            aria-current={isActive ? "page" : undefined}
             className={`
               flex flex-col items-center justify-center gap-0.5 px-3 py-1 rounded-xl
               transition-all duration-200
@@ -85,9 +85,9 @@ export default function BottomMobileNav() {
               />
 
               {/* Unread badge for messages / notifications */}
-              {link.badge && unreadCount > 0 && (
+              {link.badge && messageUnreadCount > 0 && (
                 <span className="absolute -top-1.5 -right-2 min-w-[15px] h-[15px] flex items-center justify-center bg-red-500 text-white text-[8px] font-bold rounded-full">
-                  {unreadCount}
+                  {messageUnreadCount > 99 ? "99+" : messageUnreadCount}
                 </span>
               )}
             </span>

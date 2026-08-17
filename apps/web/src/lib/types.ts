@@ -41,6 +41,10 @@ export interface Opportunity {
   views_count: number;
   status: OpportunityStatus;
   closes_at: string | null;
+  required_skills: string[];
+  preferred_skills: string[];
+  minimum_experience_years: number | null;
+  work_mode: "onsite" | "hybrid" | "remote" | null;
   created_at: string;
   updated_at: string;
 }

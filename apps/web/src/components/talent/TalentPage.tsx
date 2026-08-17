@@ -4,6 +4,8 @@ import PageLayout from "@/components/layout/PageLayout";
 import { useRole } from "@/lib/role-context";
 import { useAuth } from "@/lib/auth-context";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { fetchOwnProfile } from "@/lib/own-profile-query";
 import { TP_SPECIALTIES } from "@/lib/specialties";
@@ -35,7 +37,7 @@ const ACTIVITIES = [
   { id: "a3", category: "project", title: "Sube tu primer proyecto",         xp: 100, done: false, description: "Añade un proyecto a tu portafolio con imagen y descripción.", icon: Wrench },
   { id: "a4", category: "career",  title: "Postúlate a una práctica",        xp: 50,  done: false, description: "Envía tu primera postulación a una vacante en Empleos.", icon: Target },
   { id: "a5", category: "tech",    title: "Alcanza el Nivel 2",              xp: 0,   done: false, description: "Acumula suficiente XP para subir de nivel.", icon: Star },
-  { id: "a6", category: "career",  title: "Descarga tu CV",                  xp: 20,  done: false, description: "Genera y descarga tu CV desde tu perfil.", icon: BookOpen },
+  { id: "a6", category: "career",  title: "Descarga tu CV",                  xp: 0,   done: false, description: "Genera y descarga tu CV desde tu perfil.", icon: BookOpen },
   { id: "a7", category: "soft",    title: "Mantén una racha de 7 días",      xp: 70,  done: false, description: "Accede a TalentHub durante 7 días consecutivos.", icon: Flame },
   { id: "a8", category: "project", title: "Agrega 3 proyectos al portafolio",xp: 150, done: false, description: "Construye un portafolio sólido con múltiples proyectos.", icon: Trophy },
 ] as const;
@@ -75,15 +77,23 @@ function ActivitiesPlayground() {
 
   const claimXP = async (activityId: string, xpAmount: number) => {
     if (!user?.id || completedIds.has(activityId)) return;
+    let awarded = 0;
     if (xpAmount > 0) {
-      await fetch("/api/xp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: user.id, type: "activity", xp_amount: xpAmount, metadata: { activity_id: activityId } }),
-      }).catch(() => {});
+      try {
+        const response = await fetch("/api/xp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "activity", xp_amount: xpAmount, metadata: { activity_id: activityId } }),
+        });
+        if (!response.ok) return;
+        const result = await response.json();
+        awarded = Number(result.xp_awarded) || 0;
+      } catch {
+        return;
+      }
     }
     setCompletedIds((prev) => new Set(prev).add(activityId));
-    setProfile((p) => p ? { ...p, xp: p.xp + xpAmount } : p);
+    setProfile((p) => p ? { ...p, xp: p.xp + awarded } : p);
   };
 
   const displayed = catFilter === "all"
@@ -291,13 +301,17 @@ function ActivitiesPlayground() {
                         <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600">
                           <CheckCircle size={12} /> Completado
                         </span>
-                      ) : (
+                      ) : act.xp > 0 ? (
                         <button
                           onClick={() => claimXP(act.id, act.xp)}
                           className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all bg-${color}-600 hover:bg-${color}-700 text-white`}
                         >
                           Marcar como completada
                         </button>
+                      ) : (
+                        <span className="text-xs font-semibold text-slate-400">
+                          Se completa automáticamente
+                        </span>
                       )}
                     </div>
                   </div>
@@ -376,6 +390,7 @@ export default function TalentPage() {
   const { role: viewerRole } = useRole();
   const { user } = useAuth();
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   // All hooks must come before any conditional return
   const [profiles, setProfiles] = useState<TalentProfile[]>([]);
@@ -458,7 +473,11 @@ export default function TalentPage() {
 
   const handleContact = async (talent: TalentProfile) => {
     if (!user?.id || !talent.id) return;
-    await requestContact(talent.id, `Solicitud de contacto desde el directorio de talento.`);
+    const result = await requestContact(talent.id, `Solicitud de contacto desde el directorio de talento.`);
+    if (result?.success && !result.requiresSchoolApproval && result.conversationId) {
+      const route = viewerRole === "Empresa" ? "/company/messages" : viewerRole === "Colegio" ? "/school/messages" : "/messages";
+      router.push(`${route}?conversation=${encodeURIComponent(result.conversationId)}`);
+    }
   };
 
   const activeFilterCount = [
@@ -630,12 +649,18 @@ export default function TalentPage() {
                   )}
 
                   <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
-                    <button onClick={() => setExpandedId(isExpanded ? null : t.id)}
+                    <button type="button" onClick={() => setExpandedId(isExpanded ? null : t.id)}
                       className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 font-medium transition-colors"
                     >
                       <ChevronDown size={14} className={`transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                       {isExpanded ? "Menos" : "Ver más"}
                     </button>
+                    <Link
+                      href={`/talent/${encodeURIComponent(t.id)}`}
+                      className="rounded-xl px-3 py-2 text-xs font-bold text-sky-700 hover:bg-sky-50"
+                    >
+                      Ver perfil
+                    </Link>
                     <ContactTalentButton
                       label={ctaLabel}
                       className={ctaClass}

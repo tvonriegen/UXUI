@@ -6,6 +6,27 @@
 import { cookies } from "next/headers";
 import { createAdminClient, createServerSupabaseClient } from "@/lib/supabase-server";
 import { createStudentSchema, editStudentSchema, isValidRut, formatRut } from "@/lib/schemas";
+import { z } from "zod";
+
+const bulkStudentSchema = z.object({
+  name: z.string().trim().min(4, "Nombre completo muy corto").max(101),
+  email: z.string().trim().email("Email inválido").max(254),
+  password: z.string().min(6, "Contraseña de menos de 6 caracteres").max(72),
+  rut: z.string().refine(isValidRut, "RUT inválido"),
+  gender: z.string().trim().transform((value) => {
+    const normalized = value.toLocaleLowerCase("es-CL");
+    return normalized === "masculino" ? "Masculino"
+      : normalized === "femenino" ? "Femenino"
+      : normalized === "otro" ? "Otro"
+      : normalized === "prefiero no decir" ? "Prefiero no decir"
+      : value;
+  }).pipe(z.enum(["Masculino", "Femenino", "Otro", "Prefiero no decir"])),
+  cellphone: z.string().trim().min(7, "Teléfono muy corto").max(20),
+  class_name: z.string().trim().min(1, "Clase requerida").max(30),
+  age: z.coerce.number().int().min(10).max(100),
+  specialty: z.string().trim().max(100).optional(),
+  grade: z.string().trim().max(20).optional(),
+});
 
 // ── createStudent ────────────────────────────────────────
 // Creates a student Auth user + profile row owned by the calling school.
@@ -180,18 +201,16 @@ export async function graduateStudent(studentId: string) {
   const admin = createAdminClient();
 
   // Keep the same account identity and update only the academic stage.
-  const { error: updateErr } = await admin
+  const { data: updatedRows, error: updateErr } = await admin
     .from("student_profiles")
     .update({ student_stage: "graduated", updated_at: new Date().toISOString() })
     .eq("profile_id", studentId)
-    .eq("school_id", callerProfile.id);
+    .eq("school_id", callerProfile.id)
+    .neq("student_stage", "graduated")
+    .select("profile_id");
 
   if (updateErr) return { error: updateErr.message };
-
-  // Keep the canonical Auth metadata stable.
-  await admin.auth.admin.updateUserById(studentId, {
-    app_metadata: { account_type: "student" },
-  });
+  if (!updatedRows?.length) return { error: "El estudiante ya estaba graduado o no está disponible." };
 
   return { success: true };
 }
@@ -215,6 +234,7 @@ export async function bulkCreateStudents(students: Array<{
   if (!Array.isArray(students) || students.length === 0) {
     return { error: "Lista vacía." };
   }
+  if (students.length > 200) return { error: "El máximo por importación es de 200 estudiantes." };
 
   // Verify caller is an authenticated Colegio
   const cookieStore = await cookies();
@@ -238,19 +258,28 @@ export async function bulkCreateStudents(students: Array<{
 
   let created = 0;
   const errors: Array<{ index: number; email: string; message: string }> = [];
+  const seenEmails = new Set<string>();
+  const seenRuts = new Set<string>();
 
   for (let i = 0; i < students.length; i++) {
-    const s = students[i];
-
-    // Per-row RUT validation — skip row and report, do not abort the batch
-    if (!isValidRut(s.rut)) {
-      errors.push({ index: i, email: s.email, message: `RUT inválido: ${s.rut}` });
+    const parsed = bulkStudentSchema.safeParse(students[i]);
+    if (!parsed.success) {
+      errors.push({ index: i, email: students[i]?.email ?? "", message: parsed.error.issues[0]?.message ?? "Fila inválida" });
       continue;
     }
+    const s = parsed.data;
+    const normalizedEmail = s.email.toLocaleLowerCase("es-CL");
+    const normalizedRut = formatRut(s.rut);
+    if (seenEmails.has(normalizedEmail) || seenRuts.has(normalizedRut)) {
+      errors.push({ index: i, email: s.email, message: seenEmails.has(normalizedEmail) ? "Correo duplicado en el archivo." : "RUT duplicado en el archivo." });
+      continue;
+    }
+    seenEmails.add(normalizedEmail);
+    seenRuts.add(normalizedRut);
 
     // Create Auth user
     const { data: newUser, error: createErr } = await admin.auth.admin.createUser({
-      email:         s.email.trim(),
+      email:         normalizedEmail,
       password:      s.password,
       email_confirm: true,
       app_metadata:  { account_type: "student", must_change_password: true },
@@ -267,11 +296,11 @@ export async function bulkCreateStudents(students: Array<{
       {
         id:         newUser.user.id,
         name:       s.name.trim(),
-        email:      s.email.trim(),
+        email:      normalizedEmail,
         role:       "Estudiante",
         account_type: "student",
         school_id:  schoolId,
-        rut:        formatRut(s.rut),
+        rut:        normalizedRut,
         gender:     s.gender   || null,
         cellphone:  s.cellphone.trim(),
         class_name: s.class_name.trim(),

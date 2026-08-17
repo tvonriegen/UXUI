@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import PageLayout from "@/components/layout/PageLayout";
 import Modal from "@/components/ui/Modal";
 import { useAuth } from "@/lib/auth-context";
@@ -34,7 +34,7 @@ import ProposeInterviewModal from "@/components/ats/ProposeInterviewModal";
 import ApplicationTimeline from "@/components/ats/ApplicationTimeline";
 import { mergeOpportunitySources, resolveApplicationOpportunityId, type LegacyJobPosting } from "@/lib/services/opportunities";
 import type { Opportunity } from "@/lib/types";
-import { createOpportunity } from "@/app/actions/opportunities";
+import { closeOpportunity, createOpportunity, updateOpportunity } from "@/app/actions/opportunities";
 
 // ── Types ─────────────────────────────────────────────────
 
@@ -43,14 +43,18 @@ interface JobPosting {
   type: string; specialty: string; salary_min: number | null;
   salary_max: number | null; active: boolean; created_at: string;
   company_id: string; max_candidates: number | null; views_count: number;
+  required_skills?: string[]; preferred_skills?: string[];
+  minimum_experience_years?: number | null;
+  work_mode?: "onsite" | "hybrid" | "remote" | null;
   company?: { name: string; avatar: string; };
+  source?: "legacy" | "canonical";
 }
 
 interface Applicant {
   id: string; job_id: string | null; opportunity_id: string | null; applicant_id: string;
   status: AtsStatus;
   priority: number; created_at: string;
-  profile?: { id: string; name: string; avatar: string | null; specialty: string | null; };
+  profile?: { id: string; name: string; avatar: string | null; specialty: string | null; availability?: string | null; years_experience?: number | null; };
   matchScore?: number;
 }
 
@@ -110,6 +114,7 @@ export default function EmpleosPage() {
   const { user } = useAuth();
   const { role } = useRole();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const isCompany = role === "Empresa";
   const { toast }          = useToast();
   const confirmFn          = useConfirm();
@@ -137,9 +142,11 @@ export default function EmpleosPage() {
   } | null>(null);
 
   // Student view: show applications with timelines
-  const [showApplications, setShowApplications] = useState(() => searchParams.get("view") === "applications");
+  const [showApplications, setShowApplications] = useState(() =>
+    pathname === "/student/applications" || searchParams.get("view") === "applications"
+  );
   const [myApplications,   setMyApplications]   = useState<{
-    id: string; job_id: string; status: AtsStatus; job_title: string; company_name: string; created_at: string;
+    id: string; opportunity_id: string; status: AtsStatus; job_title: string; company_name: string; created_at: string;
   }[]>([]);
   const [loadingApps, setLoadingApps] = useState(false);
 
@@ -150,6 +157,10 @@ export default function EmpleosPage() {
   const [fType,          setFType]          = useState("full-time");
   const [fSpecialty,     setFSpecialty]     = useState("");
   const [fMaxCandidates, setFMaxCandidates] = useState<number | "">(10);
+  const [fRequiredSkills, setFRequiredSkills] = useState("");
+  const [fPreferredSkills, setFPreferredSkills] = useState("");
+  const [fMinimumExperience, setFMinimumExperience] = useState<number | "">(0);
+  const [fWorkMode, setFWorkMode] = useState<"onsite" | "hybrid" | "remote">("onsite");
 
   // Applicant management (company view)
   const [applicantMap,      setApplicantMap]      = useState<Record<string, Applicant[]>>({});
@@ -159,6 +170,8 @@ export default function EmpleosPage() {
   // Smart matching — student profile data
   const [mySkills,    setMySkills]    = useState<string[]>([]);
   const [mySpecialty, setMySpecialty] = useState("");
+  const [myAvailability, setMyAvailability] = useState<string | null>(null);
+  const [myYearsExperience, setMyYearsExperience] = useState<number | null>(null);
 
   // Application readiness state
   const [preparingJobId, setPreparingJobId] = useState<string | null>(null);
@@ -253,7 +266,7 @@ export default function EmpleosPage() {
       { count: portfolioCount, error: portfolioError },
       { count: certificationCount, error: certificationError },
     ] = await Promise.all([
-      supabase.from("profiles").select("specialty,bio,availability").eq("id", user.id).single(),
+      supabase.from("profiles").select("specialty,bio,availability,years_experience").eq("id", user.id).single(),
       supabase.from("user_skills").select("skills(name)").eq("user_id", user.id),
       supabase.from("portfolio_items").select("id", { count: "exact", head: true }).eq("user_id", user.id),
       supabase.from("certifications").select("id", { count: "exact", head: true }).eq("user_id", user.id),
@@ -267,6 +280,8 @@ export default function EmpleosPage() {
       const availability = (prof as { availability?: string | null }).availability ?? null;
       setProfileForReadiness({ status: "loaded", specialty, bio, availability });
       setMySpecialty(specialty ?? "");
+      setMyAvailability((prof as { availability?: string | null }).availability ?? null);
+      setMyYearsExperience((prof as { years_experience?: number | null }).years_experience ?? null);
     }
 
     if (skillsError || !skillsData) {
@@ -292,30 +307,30 @@ export default function EmpleosPage() {
 
   const fetchCompanyStats = useCallback(async () => {
     if (!isCompany || !user?.id) return;
-    const { data: jobRows } = await supabase
-      .from("job_postings")
-      .select("id, active")
-      .eq("company_id", user.id);
-
-    if (!jobRows?.length) {
+    const [{ data: jobRows }, { data: opportunityRows }] = await Promise.all([
+      supabase.from("job_postings").select("id, active").eq("company_id", user.id),
+      supabase.from("opportunities").select("id, status").eq("publisher_id", user.id).eq("publisher_type", "company"),
+    ]);
+    const legacyIds = (jobRows ?? []).map((job) => job.id);
+    const canonicalIds = (opportunityRows ?? []).map((opportunity) => opportunity.id)
+      .filter((id) => !legacyIds.includes(id));
+    if (legacyIds.length === 0 && canonicalIds.length === 0) {
       setCompanyStats({ activeJobs: 0, totalApplicants: 0, interviewing: 0, hired: 0 });
       return;
     }
-
-    const ids        = jobRows.map((j) => j.id);
-    const activeJobs = jobRows.filter((j) => j.active).length;
-
-    const [totalRes, interviewingRes, hiredRes] = await Promise.all([
-      supabase.from("job_applications").select("id", { count: "exact", head: true }).in("job_id", ids),
-      supabase.from("job_applications").select("id", { count: "exact", head: true }).in("job_id", ids).eq("status", "interviewing"),
-      supabase.from("job_applications").select("id", { count: "exact", head: true }).in("job_id", ids).eq("status", "hired"),
+    const [legacyApplications, canonicalApplications] = await Promise.all([
+      legacyIds.length ? supabase.from("job_applications").select("id,status").in("job_id", legacyIds) : Promise.resolve({ data: [] }),
+      canonicalIds.length ? supabase.from("job_applications").select("id,status").in("opportunity_id", canonicalIds) : Promise.resolve({ data: [] }),
     ]);
+    const applications = [...(legacyApplications.data ?? []), ...(canonicalApplications.data ?? [])];
+    const activeJobs = (jobRows ?? []).filter((job) => job.active).length
+      + (opportunityRows ?? []).filter((opportunity) => !legacyIds.includes(opportunity.id) && opportunity.status === "open").length;
 
     setCompanyStats({
       activeJobs,
-      totalApplicants: totalRes.count ?? 0,
-      interviewing:    interviewingRes.count ?? 0,
-      hired:           hiredRes.count ?? 0,
+      totalApplicants: applications.length,
+      interviewing: applications.filter((application) => application.status === "interviewing").length,
+      hired: applications.filter((application) => application.status === "hired").length,
     });
   }, [isCompany, user?.id]);
 
@@ -333,6 +348,7 @@ export default function EmpleosPage() {
     setEditJob(null);
     setFTitle(""); setFDesc(""); setFLocation(""); setFType("full-time");
     setFSpecialty(""); setFMaxCandidates(10);
+    setFRequiredSkills(""); setFPreferredSkills(""); setFMinimumExperience(0); setFWorkMode("onsite");
     setSaveError(null);
     setCreateOpen(true);
   };
@@ -342,6 +358,10 @@ export default function EmpleosPage() {
     setFTitle(job.title); setFDesc(job.description); setFLocation(job.location ?? "");
     setFType(job.type); setFSpecialty(job.specialty ?? "");
     setFMaxCandidates(job.max_candidates ?? 10);
+    setFRequiredSkills((job.required_skills ?? []).join(", "));
+    setFPreferredSkills((job.preferred_skills ?? []).join(", "));
+    setFMinimumExperience(job.minimum_experience_years ?? 0);
+    setFWorkMode(job.work_mode ?? "onsite");
     setSaveError(null);
     setCreateOpen(true);
   };
@@ -355,11 +375,17 @@ export default function EmpleosPage() {
     }
     setLoadingApplicants(jobId);
 
-    const { data } = await supabase
+    const { data, error: applicantsError } = await supabase
       .from("job_applications")
-      .select("id, job_id, opportunity_id, applicant_id, status, created_at, profiles!job_applications_student_id_fkey(id, name, avatar, specialty)")
+      .select("id, job_id, opportunity_id, applicant_id, status, created_at, profiles!job_applications_student_id_fkey(id, name, avatar, specialty, availability, years_experience)")
       .or(`job_id.eq.${jobId},opportunity_id.eq.${jobId}`)
       .order("created_at", { ascending: true });
+
+    if (applicantsError) {
+      setLoadingApplicants(null);
+      toast({ type: "error", title: "No se pudieron cargar los postulantes", description: applicantsError.message });
+      return;
+    }
 
     const raw = data ?? [];
 
@@ -392,8 +418,8 @@ export default function EmpleosPage() {
         ? computeMatchScore(skills, specialty, {
             id: jobId, title: job.title,
             description: job.description, specialty: job.specialty ?? "",
-            requirements: "",
-          })
+            requirements: "", requiredSkills: job.required_skills, preferredSkills: job.preferred_skills,
+          }, { availability: r.profiles?.availability, yearsExperience: r.profiles?.years_experience })
         : 0;
 
       return {
@@ -406,7 +432,7 @@ export default function EmpleosPage() {
         priority:     idx + 1,
         created_at:   r.created_at,
         profile:      r.profiles
-          ? { id: r.profiles.id, name: r.profiles.name, avatar: r.profiles.avatar, specialty: r.profiles.specialty }
+          ? { id: r.profiles.id, name: r.profiles.name, avatar: r.profiles.avatar, specialty: r.profiles.specialty, availability: r.profiles.availability, years_experience: r.profiles.years_experience }
           : undefined,
         matchScore,
       };
@@ -433,7 +459,8 @@ export default function EmpleosPage() {
   };
 
   const movePriority = async (jobId: string, appId: string, direction: "up" | "down") => {
-    const list = [...(applicantMap[jobId] ?? [])];
+    const original = [...(applicantMap[jobId] ?? [])];
+    const list = [...original];
     const idx  = list.findIndex((a) => a.id === appId);
     if (idx === -1) return;
     const swapIdx = direction === "up" ? idx - 1 : idx + 1;
@@ -441,9 +468,13 @@ export default function EmpleosPage() {
     [list[idx], list[swapIdx]] = [list[swapIdx], list[idx]];
     const updated = list.map((a, i) => ({ ...a, priority: i + 1 }));
     setApplicantMap((prev) => ({ ...prev, [jobId]: updated }));
-    Promise.all(
+    const results = await Promise.all(
       updated.map((a) => supabase.from("job_applications").update({ priority: a.priority }).eq("id", a.id))
-    ).catch(() => {});
+    );
+    if (results.some((result) => result.error)) {
+      setApplicantMap((prev) => ({ ...prev, [jobId]: original }));
+      toast({ type: "error", title: "No se pudo cambiar la prioridad", description: "Se restauró el orden anterior." });
+    }
   };
 
   const handleSave = async () => {
@@ -460,13 +491,45 @@ export default function EmpleosPage() {
     }
 
     const maxCand = fMaxCandidates === "" ? null : Number(fMaxCandidates);
+    const requiredSkills = Array.from(new Set(fRequiredSkills.split(",").map((skill) => skill.trim()).filter(Boolean)));
+    const preferredSkills = Array.from(new Set(fPreferredSkills.split(",").map((skill) => skill.trim()).filter(Boolean)));
+    const matchingFields = {
+      requiredSkills, preferredSkills,
+      minimumExperienceYears: fMinimumExperience === "" ? undefined : Number(fMinimumExperience),
+      workMode: fWorkMode,
+    };
     if (editJob) {
-      const { error: err } = await supabase
-        .from("job_postings")
-        .update({ title: fTitle, description: fDesc, location: fLocation, type: fType, specialty: fSpecialty, max_candidates: maxCand })
-        .eq("id", editJob.id)
-        .eq("company_id", user.id);
-      if (err) { setSaveError(err.message); setSaving(false); return; }
+      if (editJob.source === "canonical") {
+        const result = await updateOpportunity(editJob.id, {
+          opportunityType: fType === "pasantia" ? "internship" : "job",
+          title: fTitle,
+          description: fDesc,
+          specialty: fSpecialty,
+          location: fLocation || "Remoto",
+          maxCandidates: maxCand ?? undefined,
+          ...matchingFields,
+        });
+        if (result.error) { setSaveError(result.error); setSaving(false); return; }
+      } else {
+        const { error: err } = await supabase
+          .from("job_postings")
+          .update({ title: fTitle, description: fDesc, location: fLocation, type: fType, specialty: fSpecialty, max_candidates: maxCand })
+          .eq("id", editJob.id)
+          .eq("company_id", user.id);
+        if (err) { setSaveError(err.message); setSaving(false); return; }
+        // Legacy rows have a canonical opportunity with the same id. Keep its
+        // structured matching requirements in sync while dual reads remain.
+        const canonicalSync = await updateOpportunity(editJob.id, {
+          opportunityType: fType === "pasantia" ? "internship" : "job",
+          title: fTitle,
+          description: fDesc,
+          specialty: fSpecialty,
+          location: fLocation || "Remoto",
+          maxCandidates: maxCand ?? undefined,
+          ...matchingFields,
+        });
+        if (canonicalSync.error) { setSaveError(canonicalSync.error); setSaving(false); return; }
+      }
     } else {
       const canonicalResult = await createOpportunity({
         opportunityType: fType === "pasantia" ? "internship" : "job",
@@ -475,6 +538,7 @@ export default function EmpleosPage() {
         specialty: fSpecialty,
         location: fLocation || "Remoto",
         maxCandidates: maxCand ?? undefined,
+        ...matchingFields,
       });
       if (canonicalResult.error) {
         setSaveError(canonicalResult.error);
@@ -497,39 +561,96 @@ export default function EmpleosPage() {
   };
 
   const handleDelete = async (jobId: string) => {
+    const job = jobs.find((item) => item.id === jobId);
+    const isCanonical = job?.source === "canonical";
     const ok = await confirmFn({
-      title:        "¿Eliminar esta vacante?",
-      body:         "Se eliminarán también todas las postulaciones asociadas. Esta acción es irreversible.",
+      title:        isCanonical ? "¿Cerrar esta vacante?" : "¿Eliminar esta vacante?",
+      body:         isCanonical
+        ? "La vacante dejará de recibir postulaciones y conservará su historial."
+        : "Se eliminarán también todas las postulaciones asociadas. Esta acción es irreversible.",
       danger:       true,
-      confirmLabel: "Eliminar",
+      confirmLabel: isCanonical ? "Cerrar vacante" : "Eliminar",
     });
     if (!ok) return;
-    await supabase.from("job_postings").delete().eq("id", jobId).eq("company_id", user?.id ?? "");
+    if (isCanonical) {
+      const result = await closeOpportunity(jobId);
+      if (result.error) {
+        toast({ type: "error", title: "No se pudo cerrar la vacante", description: result.error });
+        return;
+      }
+    } else {
+      const { error: deleteError } = await supabase.from("job_postings").delete().eq("id", jobId).eq("company_id", user?.id ?? "");
+      if (deleteError) {
+        toast({ type: "error", title: "No se pudo eliminar la vacante", description: deleteError.message });
+        return;
+      }
+    }
     await fetchJobs();
     await fetchCompanyStats();
-    toast({ type: "success", title: "Vacante eliminada" });
+    toast({ type: "success", title: isCanonical ? "Vacante cerrada" : "Vacante eliminada" });
   };
 
   const fetchMyApplicationsWithTimeline = useCallback(async () => {
     if (!user?.id || isCompany) return;
     setLoadingApps(true);
-    const { data } = await supabase
+    const { data, error: applicationsError } = await supabase
       .from("job_applications")
-      .select("id, job_id, status, created_at, job_postings!inner(title, profiles!job_postings_company_id_fkey(name))")
+      .select("id, job_id, opportunity_id, status, created_at")
       .eq("applicant_id", user.id)
       .order("created_at", { ascending: false });
+
+    if (applicationsError) {
+      setError("No se pudieron cargar tus postulaciones.");
+      setLoadingApps(false);
+      return;
+    }
+
+    const applications = data ?? [];
+    const opportunityIds = applications
+      .map((application) => resolveApplicationOpportunityId(application))
+      .filter((id): id is string => Boolean(id));
+    const { data: opportunityRows, error: opportunitiesError } = opportunityIds.length
+      ? await supabase
+          .from("opportunities")
+          .select("id, title, publisher_id")
+          .in("id", opportunityIds)
+      : { data: [], error: null };
+
+    if (opportunitiesError) {
+      setError("No se pudo cargar el detalle de tus postulaciones.");
+    }
+
+    const publisherIds = Array.from(new Set(
+      (opportunityRows ?? []).map((opportunity) => opportunity.publisher_id as string)
+    ));
+    const { data: publisherRows } = publisherIds.length
+      ? await supabase.from("profiles").select("id, name").in("id", publisherIds)
+      : { data: [] };
+    const publisherNames = new Map((publisherRows ?? []).map((publisher) => [publisher.id as string, publisher.name as string]));
+    const opportunities = new Map((opportunityRows ?? []).map((opportunity) => [opportunity.id as string, opportunity]));
+
     setMyApplications(
-      (data ?? []).map((a) => ({
-        id:           a.id as string,
-        job_id:       a.job_id as string,
-        status:       a.status as AtsStatus,
-        created_at:   a.created_at as string,
-        job_title:    (a.job_postings as { title?: string; profiles?: { name?: string } | null } | null)?.title ?? "Vacante",
-        company_name: (a.job_postings as { title?: string; profiles?: { name?: string } | null } | null)?.profiles?.name ?? "Empresa",
-      }))
+      applications.map((application) => {
+        const opportunityId = resolveApplicationOpportunityId(application) ?? "";
+        const opportunity = opportunities.get(opportunityId);
+        return {
+          id: application.id as string,
+          opportunity_id: opportunityId,
+          status: application.status as AtsStatus,
+          created_at: application.created_at as string,
+          job_title: (opportunity?.title as string | undefined) ?? "Vacante",
+          company_name: opportunity
+            ? publisherNames.get(opportunity.publisher_id as string) ?? "Empresa"
+            : "Empresa",
+        };
+      })
     );
     setLoadingApps(false);
   }, [user?.id, isCompany]);
+
+  useEffect(() => {
+    if (showApplications) fetchMyApplicationsWithTimeline();
+  }, [showApplications, fetchMyApplicationsWithTimeline]);
 
   const handleApply = async (jobId: string): Promise<boolean> => {
     if (!user?.id) return false;
@@ -559,7 +680,8 @@ export default function EmpleosPage() {
     const { error: err } = await supabase
       .from("job_applications")
       .insert({
-        job_id: jobId,
+        job_id: null,
+        opportunity_id: jobId,
         applicant_id: user.id,
         student_id: user.id,
         status: "pending",
@@ -573,14 +695,20 @@ export default function EmpleosPage() {
       setAppliedIds((prev) => new Set(prev).add(jobId));
       setPreparingJobId(null);
       // XP reward for applying
-      fetch("/api/xp", {
+      const xpResponse = await fetch("/api/xp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: "job_apply", xp_amount: 50, metadata: { job_id: jobId } }),
-      }).catch(() => {});
+      }).catch(() => null);
+      const xpResult = xpResponse?.ok ? await xpResponse.json().catch(() => null) : null;
+      const awardedXp = Number(xpResult?.xp_awarded) || 0;
       // Quest progress: apply_job
       trackQuest("apply_job");
-      toast({ type: "success", title: "¡Postulación enviada!", description: "+50 XP" });
+      toast({
+        type: "success",
+        title: "¡Postulación enviada!",
+        description: awardedXp > 0 ? `+${awardedXp} XP` : undefined,
+      });
       success = true;
     } else {
       const isDuplicate = err.code === "23505";
@@ -617,13 +745,15 @@ export default function EmpleosPage() {
   }, []);
 
   const getJobReadiness = useCallback((job: JobPosting) => {
-    const score = computeMatchScore(mySkills, mySpecialty, {
+    const explanation = computeExplainableMatch({
       id: job.id,
       title: job.title,
       description: job.description,
       specialty: job.specialty ?? "",
       requirements: "",
-    });
+      requiredSkills: job.required_skills, preferredSkills: job.preferred_skills,
+      minimumExperienceYears: job.minimum_experience_years, workMode: job.work_mode,
+    }, mySpecialty, mySkills, { availability: myAvailability, yearsExperience: myYearsExperience });
     return computeApplicationReadiness({
       isAuthenticated: !!user?.id,
       profile: profileForReadiness,
@@ -638,9 +768,14 @@ export default function EmpleosPage() {
         hasApplied: appliedIds.has(job.id),
         isApplying: applying === job.id,
       },
-      match: { score, label: getMatchLabel(score) },
+      match: {
+        score: explanation.total,
+        label: explanation.label,
+        missingSkills: explanation.factors.skills.missingSkills,
+        structuredRequirements: explanation.factors.skills.isStructured,
+      },
     });
-  }, [user?.id, profileForReadiness, skillsForReadiness, evidenceForReadiness, appliedIds, applying, mySkills, mySpecialty]);
+  }, [user?.id, profileForReadiness, skillsForReadiness, evidenceForReadiness, appliedIds, applying, mySkills, mySpecialty, myAvailability, myYearsExperience]);
 
   const toggleFollow = async (companyId: string) => {
     if (!user?.id || isCompany) return;
@@ -696,10 +831,7 @@ export default function EmpleosPage() {
             )}
             {!isCompany && (
               <button
-                onClick={() => {
-                  setShowApplications((v) => !v);
-                  if (!myApplications.length) fetchMyApplicationsWithTimeline();
-                }}
+                onClick={() => setShowApplications((v) => !v)}
                 className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors btn-press ${
                   showApplications
                     ? "bg-sky-600 text-white"
@@ -843,8 +975,9 @@ export default function EmpleosPage() {
                             const score = computeMatchScore(mySkills, mySpecialty, {
                               id: job.id, title: job.title,
                               description: job.description, specialty: job.specialty ?? "",
-                              requirements: "",
-                            });
+                              requirements: "", requiredSkills: job.required_skills, preferredSkills: job.preferred_skills,
+                              minimumExperienceYears: job.minimum_experience_years, workMode: job.work_mode,
+                            }, { availability: myAvailability, yearsExperience: myYearsExperience });
                             const color = getMatchColor(score);
                             return (
                               <span className={`flex items-center gap-1 ${MATCH_BADGE_CLASSES[color]} px-2 py-0.5 rounded-md font-bold`}>
@@ -877,10 +1010,12 @@ export default function EmpleosPage() {
                                   title: job.title,
                                   description: job.description,
                                   specialty: job.specialty ?? "",
-                                  requirements: "",
+                                  requirements: "", requiredSkills: job.required_skills, preferredSkills: job.preferred_skills,
+                                  minimumExperienceYears: job.minimum_experience_years, workMode: job.work_mode,
                                 },
                                 mySpecialty,
-                                mySkills
+                                mySkills,
+                                { availability: myAvailability, yearsExperience: myYearsExperience }
                               )}
                             />
                           </>
@@ -988,6 +1123,7 @@ export default function EmpleosPage() {
                                       <button
                                         onClick={() => movePriority(job.id, app.id, "up")}
                                         disabled={idx === 0}
+                                        aria-label={`Subir prioridad de ${app.profile?.name ?? "candidato"}`}
                                         className="p-0.5 text-slate-300 hover:text-slate-600 disabled:opacity-20"
                                       >
                                         <ArrowUp size={11} />
@@ -995,6 +1131,7 @@ export default function EmpleosPage() {
                                       <button
                                         onClick={() => movePriority(job.id, app.id, "down")}
                                         disabled={idx === jobApplicants.length - 1}
+                                        aria-label={`Bajar prioridad de ${app.profile?.name ?? "candidato"}`}
                                         className="p-0.5 text-slate-300 hover:text-slate-600 disabled:opacity-20"
                                       >
                                         <ArrowDown size={11} />
@@ -1008,6 +1145,7 @@ export default function EmpleosPage() {
                                       ) : (
                                         <select
                                           value={app.status}
+                                          aria-label={`Estado de ${app.profile?.name ?? "candidato"}`}
                                           onChange={(e) => updateApplicantStatus(job.id, app.id, e.target.value as AtsStatus)}
                                           disabled={updatingApp !== null}
                                           className={`text-[11px] font-bold rounded-lg border px-2 py-1.5 appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-violet-400 transition-colors pr-5 ${STATUS_STYLES[app.status]}`}
@@ -1024,6 +1162,7 @@ export default function EmpleosPage() {
                                     {(app.status === "reviewing" || app.status === "interviewing") && (
                                       <button
                                         title="Proponer entrevista"
+                                        aria-label={`Proponer entrevista a ${app.profile?.name ?? "candidato"}`}
                                         onClick={() => setProposeFor({
                                           applicationId: app.id,
                                           studentName:   app.profile?.name ?? "Candidato",
@@ -1076,7 +1215,9 @@ export default function EmpleosPage() {
                               LinkedIn
                             </button>
                             <button onClick={() => openEdit(job)} className="px-3 py-1.5 rounded-xl text-xs font-bold text-violet-600 bg-violet-50 hover:bg-violet-100 transition-colors">Editar</button>
-                            <button onClick={() => handleDelete(job.id)} className="px-3 py-1.5 rounded-xl text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 transition-colors">Eliminar</button>
+                            <button onClick={() => handleDelete(job.id)} className="px-3 py-1.5 rounded-xl text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 transition-colors">
+                              {job.source === "canonical" ? "Cerrar" : "Eliminar"}
+                            </button>
                           </>
                         ) : (
                           <>
@@ -1156,10 +1297,12 @@ export default function EmpleosPage() {
                                 title: selectedJob.title,
                                 description: selectedJob.description,
                                 specialty: selectedJob.specialty ?? "",
-                                requirements: "",
+                                requirements: "", requiredSkills: selectedJob.required_skills, preferredSkills: selectedJob.preferred_skills,
+                                minimumExperienceYears: selectedJob.minimum_experience_years, workMode: selectedJob.work_mode,
                               },
                               mySpecialty,
-                              mySkills
+                              mySkills,
+                              { availability: myAvailability, yearsExperience: myYearsExperience }
                             )}
                           />
                         </div>
@@ -1262,6 +1405,29 @@ export default function EmpleosPage() {
             <input value={fLocation} onChange={(e) => setFLocation(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none" placeholder="Ej: San José, Costa Rica" />
           </div>
           <div>
+            <label htmlFor="required-skills" className="text-xs font-semibold text-slate-500 mb-1.5 block">Competencias requeridas</label>
+            <input id="required-skills" value={fRequiredSkills} onChange={(e) => setFRequiredSkills(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none" placeholder="Ej: PLC Siemens, AutoCAD, lectura de planos" />
+            <p className="text-[11px] text-slate-500 mt-1">Sepáralas con comas. Se usarán para explicar al estudiante qué cumple y qué necesita fortalecer.</p>
+          </div>
+          <div>
+            <label htmlFor="preferred-skills" className="text-xs font-semibold text-slate-500 mb-1.5 block">Competencias deseables</label>
+            <input id="preferred-skills" value={fPreferredSkills} onChange={(e) => setFPreferredSkills(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none" placeholder="Ej: Inglés técnico, trabajo en equipo" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="minimum-experience" className="text-xs font-semibold text-slate-500 mb-1.5 block">Experiencia mínima (años)</label>
+              <input id="minimum-experience" type="number" min={0} max={50} value={fMinimumExperience} onChange={(e) => setFMinimumExperience(e.target.value === "" ? "" : Number(e.target.value))} className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 outline-none" />
+            </div>
+            <div>
+              <label htmlFor="work-mode" className="text-xs font-semibold text-slate-500 mb-1.5 block">Modalidad</label>
+              <select id="work-mode" value={fWorkMode} onChange={(e) => setFWorkMode(e.target.value as typeof fWorkMode)} className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-sky-200 outline-none bg-white">
+                <option value="onsite">Presencial</option>
+                <option value="hybrid">Híbrida</option>
+                <option value="remote">Remota</option>
+              </select>
+            </div>
+          </div>
+          <div>
             <label className="text-xs font-semibold text-slate-500 mb-1.5 block">Límite máximo de candidatos aceptados</label>
             <input
               type="number" min={1} max={999}
@@ -1273,6 +1439,7 @@ export default function EmpleosPage() {
             <p className="text-[11px] text-slate-400 mt-1">El sistema bloqueará aceptar más candidatos cuando se alcance este límite.</p>
           </div>
           <button
+            type="button"
             onClick={handleSave}
             disabled={saving || !fTitle.trim() || !fDesc.trim()}
             className="w-full bg-violet-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-violet-700 disabled:opacity-40 transition-colors btn-press flex items-center justify-center gap-2"
