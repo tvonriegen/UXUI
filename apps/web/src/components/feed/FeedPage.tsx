@@ -640,7 +640,7 @@ export default function MuroPage() {
 
   return (
     <PageLayout>
-      <div className="p-4 md:p-6 lg:p-8 max-w-6xl mx-auto w-full space-y-5">
+      <div className="w-full max-w-6xl mx-auto px-3 py-4 sm:p-4 md:p-6 lg:p-8 space-y-5 min-w-0 overflow-x-hidden">
 
         <MuroHeader
           muted={muted}
@@ -724,7 +724,7 @@ export default function MuroPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
           {/* Feed Column */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-2 space-y-4 min-w-0">
 
             {feedError && !isFetching && (
               <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 flex flex-wrap items-center justify-between gap-3">
@@ -780,7 +780,7 @@ export default function MuroPage() {
 
                     <div className="p-5">
                       {/* Company header */}
-                      <div className="flex items-center gap-2.5 mb-3">
+                      <div className="flex items-start gap-2.5 mb-3 min-w-0">
                         {post.authorAvatar ? (
                           <img src={post.authorAvatar} alt={post.authorName || post.author} className="w-9 h-9 rounded-xl object-cover" />
                         ) : (
@@ -793,7 +793,7 @@ export default function MuroPage() {
                           <span className="text-[10px] text-violet-500 ml-2 bg-violet-50 px-1.5 py-0.5 rounded font-medium">Empresa</span>
                           <p className="text-[10px] text-slate-400">{post.createdAt}</p>
                         </div>
-                        <span className="ml-auto text-[10px] bg-violet-50 text-violet-600 font-bold px-2.5 py-1 rounded-full border border-violet-100 flex items-center gap-1">
+                        <span className="ml-auto shrink-0 text-[10px] bg-violet-50 text-violet-600 font-bold px-2.5 py-1 rounded-full border border-violet-100 flex items-center gap-1">
                           <Briefcase size={10} /> Oferta
                         </span>
                       </div>
@@ -814,7 +814,7 @@ export default function MuroPage() {
                       })()}
 
                       {/* Job title & description */}
-                      <h3 className="font-bold text-lg mb-1">{post.title}</h3>
+                      <h2 className="font-bold text-lg mb-1">{post.title}</h2>
                       <p className="text-sm text-slate-500 line-clamp-2 mb-3">
                         {post.content || post.description}
                       </p>
@@ -945,7 +945,7 @@ export default function MuroPage() {
                       </div>
                     </div>
 
-                    <h3 className="font-bold text-lg mb-1.5">{post.title}</h3>
+                    <h2 className="font-bold text-lg mb-1.5">{post.title}</h2>
                     <p className="text-sm text-slate-500 line-clamp-2 mb-4">
                       {post.content || post.description}
                     </p>
@@ -1145,13 +1145,19 @@ export default function MuroPage() {
                       onClick={() => setTagFilter(tag)}
                       className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors text-left group"
                     >
-                      <span className="text-xs font-bold text-slate-300 w-5">#{i + 1}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold group-hover:text-sky-700 transition-colors">
+                      <span className="text-xs font-bold text-slate-300 w-5">
+                        #{i + 1}
+                      </span>
+
+                      <span className="flex-1 min-w-0 block">
+                        <span className="block text-sm font-semibold group-hover:text-sky-700 transition-colors">
                           {tag}
-                        </p>
-                        <p className="text-[10px] text-slate-400">{count} publicaciones</p>
-                      </div>
+                        </span>
+
+                        <span className="block text-[10px] text-slate-400">
+                          {count} publicaciones
+                        </span>
+                      </span>
                     </button>
                   );
                 })}

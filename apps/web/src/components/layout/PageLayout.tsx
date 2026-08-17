@@ -68,7 +68,7 @@ export default function PageLayout({ children }: PageLayoutProps) {
         fill-mode:both, which would break position:fixed descendants.
         Modal.tsx uses createPortal to escape this stacking context.
       */}
-      <main id="main-content" tabIndex={-1} className="flex-1 lg:ml-56 pt-16 pb-24 lg:pb-6 flex flex-col animate-fade-in-up">
+      <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 lg:ml-56 pt-16 pb-24 lg:pb-6 flex flex-col overflow-x-hidden">
         {children}
       </main>
       <BottomMobileNav />

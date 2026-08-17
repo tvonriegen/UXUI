@@ -226,13 +226,13 @@ export default function TopNavBar() {
               aria-expanded={userDdOpen}
               aria-controls="user-navigation-panel"
             >
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center text-white font-bold text-xs ring-2 ring-white shadow-sm group-hover:ring-sky-200 transition-all overflow-hidden">
+              <span className="h-8 w-8 rounded-full bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center text-white font-bold text-xs ring-2 ring-white shadow-sm group-hover:ring-sky-200 transition-all overflow-hidden">
                 {user?.avatar ? (
                   <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
                 ) : (
                   initials
                 )}
-              </div>
+              </span>
             </button>
 
             {userDdOpen && (

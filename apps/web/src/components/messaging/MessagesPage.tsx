@@ -535,7 +535,9 @@ export default function MessagesPage() {
               <div className="text-center py-10 text-sm text-slate-400">No hay conversaciones aún.</div>
             )}
             {filtered.map((c) => (
-              <button key={c.id} onClick={() => openConvo(c)}
+              <button
+                key={c.id}
+                onClick={() => openConvo(c)}
                 aria-pressed={activeConvo?.id === c.id}
                 className={`w-full flex items-center gap-3 p-4 transition-colors text-left ${
                   activeConvo?.id === c.id
@@ -546,42 +548,66 @@ export default function MessagesPage() {
                 }`}
               >
                 {/* Avatar */}
-                <div className="relative shrink-0">
+                <span className="relative shrink-0">
                   {c.other.avatar ? (
-                    <img src={c.other.avatar} alt={c.other.name} className="w-11 h-11 rounded-full object-cover" />
+                    <img
+                      src={c.other.avatar}
+                      alt={c.other.name}
+                      className="w-11 h-11 rounded-full object-cover"
+                    />
                   ) : (
-                    <div className="w-11 h-11 rounded-full bg-sky-100 flex items-center justify-center text-sm font-bold text-sky-700">
+                    <span className="w-11 h-11 rounded-full bg-sky-100 flex items-center justify-center text-sm font-bold text-sky-700">
                       {c.other.name.charAt(0).toUpperCase()}
-                    </div>
+                    </span>
                   )}
-                </div>
+                </span>
 
                 {/* Text content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline justify-between gap-1">
-                    <p className={`text-sm truncate ${c.unread > 0 ? "font-bold text-slate-900" : "font-semibold text-slate-700"}`}>
+                <span className="flex-1 min-w-0 block">
+                  <span className="flex items-baseline justify-between gap-1">
+                    <span
+                      className={`block text-sm truncate ${
+                        c.unread > 0
+                          ? "font-bold text-slate-900"
+                          : "font-semibold text-slate-700"
+                      }`}
+                    >
                       {c.other.name}
-                    </p>
+                    </span>
+
                     <span className="text-[10px] text-slate-400 shrink-0">
                       {c.last_message_at ? fmtRelative(c.last_message_at) : ""}
                     </span>
-                  </div>
-                  <div className="flex items-center justify-between gap-1 mt-0.5">
-                    <p className={`text-xs truncate ${c.unread > 0 ? "text-slate-700 font-medium" : "text-slate-400"}`}>
+                  </span>
+
+                  <span className="flex items-center justify-between gap-1 mt-0.5">
+                    <span
+                      className={`block text-xs truncate ${
+                        c.unread > 0
+                          ? "text-slate-700 font-medium"
+                          : "text-slate-400"
+                      }`}
+                    >
                       {c.lastSenderId === user?.id && (
                         <span className="mr-0.5 inline-flex items-center">
                           <CheckCheck size={11} className="text-sky-500" />
                         </span>
                       )}
-                      {c.lastPreview || <span className="italic">Sin mensajes</span>}
-                    </p>
+
+                      {c.lastPreview || (
+                        <span className="italic">
+                          Sin mensajes
+                        </span>
+                      )}
+                    </span>
+
                     {c.unread > 0 && (
                       <span className="bg-sky-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shrink-0">
                         {c.unread > 99 ? "99+" : c.unread}
                       </span>
                     )}
-                  </div>
-                </div>
+                  </span>
+                </span>
               </button>
             ))}
           </div>

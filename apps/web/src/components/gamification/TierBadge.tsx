@@ -55,9 +55,12 @@ export default function TierBadge({ tier, size = "md", showLabel = true, classNa
   return (
     <span
       className={`inline-flex items-center ${sizeCls} rounded-full font-extrabold ${meta.cls} ${className}`}
-      aria-label={`Rango ${tier}`}
     >
-      <Icon size={iconSize} strokeWidth={2.5} />
+      <Icon
+        size={iconSize}
+        strokeWidth={2.5}
+        aria-hidden="true"
+      />
       {showLabel && <span>{tier}</span>}
     </span>
   );
