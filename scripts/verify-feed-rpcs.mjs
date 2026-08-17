@@ -1,19 +1,20 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const rootDir = resolve(new URL("..", import.meta.url).pathname);
+const rootDir = fileURLToPath(new URL("..", import.meta.url));
 const migration = readFileSync(
   resolve(rootDir, "supabase/migrations/20260728000003_restore_feed_rpcs.sql"),
   "utf8",
-);
+).replace(/\r\n/g, "\n");
 const securityMigration = readFileSync(
   resolve(rootDir, "supabase/migrations/20260729000001_harden_feed_rpc_security.sql"),
   "utf8",
-);
+).replace(/\r\n/g, "\n");
 const feedPage = readFileSync(
   resolve(rootDir, "apps/web/src/components/feed/FeedPage.tsx"),
   "utf8",
-);
+).replace(/\r\n/g, "\n");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);

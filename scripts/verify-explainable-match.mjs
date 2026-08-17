@@ -104,6 +104,7 @@ const cases = [
     }),
     specialty: "Informática",
     skills: ["react", "nodejs", "javascript", "typescript", "html", "css", "python", "sql", "aws", "docker"],
+    student: { availability: "Disponible" },
     expectedTotal: 100,
   },
   {
@@ -117,8 +118,8 @@ const cases = [
 
 let passed = 0;
 for (const testCase of cases) {
-  const explanation = computeExplainableMatch(testCase.job, testCase.specialty, testCase.skills);
-  const legacyScore = computeMatchScore(testCase.skills, testCase.specialty, testCase.job);
+  const explanation = computeExplainableMatch(testCase.job, testCase.specialty, testCase.skills, testCase.student);
+  const legacyScore = computeMatchScore(testCase.skills, testCase.specialty, testCase.job, testCase.student);
 
   if (explanation.total !== testCase.expectedTotal) {
     throw new Error(
