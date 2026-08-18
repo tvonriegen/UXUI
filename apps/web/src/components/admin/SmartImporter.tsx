@@ -11,7 +11,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { bulkCreateStudents } from "@/app/actions/school";
-import { isValidRut } from "@/lib/schemas";
+import { isValidRut, passwordSchema } from "@/lib/schemas";
 import {
   Upload, X, ChevronRight, ChevronLeft, AlertTriangle, CheckCircle2,
   Loader2, FileText, Users, Trash2,
@@ -51,7 +51,7 @@ const FIELD_PLACEHOLDERS: Record<FieldKey, string> = {
   firstName:    "Ej: Juan",
   lastName:     "Ej: Pérez",
   email:        "Ej: juan@colegio.cl",
-  tempPassword: "Mín. 6 caracteres",
+  tempPassword: "12+ caracteres, mayúscula, minúscula, número y especial",
   rut:          "Ej: 12.345.678-9",
   gender:       "Masculino / Femenino / Otro",
   cellphone:    "Ej: +56912345678",
@@ -202,8 +202,14 @@ function validateRow(
   if (!get("email")) errors.email = "Requerido";
   else if (!EMAIL_RE.test(get("email"))) errors.email = "Correo inválido";
 
-  if (!get("tempPassword")) errors.tempPassword = "Requerido";
-  else if (get("tempPassword").length < 6) errors.tempPassword = "Mínimo 6 caracteres";
+  const password = get("tempPassword");
+  if (!password) errors.tempPassword = "Requerido";
+  else {
+    const passwordResult = passwordSchema.safeParse(password);
+    if (!passwordResult.success) {
+      errors.tempPassword = passwordResult.error.issues[0]?.message ?? "Contraseña inválida";
+    }
+  }
 
   if (!get("rut")) errors.rut = "Requerido";
   else if (!isValidRut(get("rut"))) errors.rut = "RUT inválido";

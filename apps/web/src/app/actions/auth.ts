@@ -31,7 +31,7 @@ export async function registerAccount(input: {
   const { data: created, error: createError } = await admin.auth.admin.createUser({
     email,
     password: parsed.data.password,
-    // Temporary product decision: allow immediate login while email verification is paused.
+    // Email verification is intentionally paused for this release.
     email_confirm: true,
     app_metadata: { account_type: accountType },
     user_metadata: {
@@ -75,5 +75,5 @@ export async function registerAccount(input: {
     return { error: detailError.message };
   }
 
-  return { success: true, requiresEmailVerification: false };
+  return { success: true };
 }

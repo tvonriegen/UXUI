@@ -1,6 +1,6 @@
 "use client";
 // ──────────────────────────────────────────────────────────────────
-// ChatWidget — floating AI assistant (all authenticated roles)
+// ChatWidget — floating AI assistant (disabled for the stabilization release)
 // Epic 3: Context-Aware Agentic Chatbot
 // ──────────────────────────────────────────────────────────────────
 
@@ -95,7 +95,8 @@ export default function ChatWidget() {
 
   const clearHistory = useCallback(() => setMessages([]), []);
 
-  const aiEnabled = process.env.NEXT_PUBLIC_ENABLE_AI_CHAT === "true";
+  // Reversible: restore the env flag when the release is ready for AI again.
+  const aiEnabled = false;
 
   const sendMessage = useCallback(async () => {
     const text = input.trim();
@@ -203,7 +204,7 @@ export default function ChatWidget() {
   }, [input, messages, streaming, aiEnabled]);
 
   // Only render for authenticated users
-  if (!user || (role !== "Empresa" && role !== "Colegio")) return null;
+  if (!aiEnabled || !user || (role !== "Empresa" && role !== "Colegio")) return null;
 
   const cfg       = ROLE_CONFIG[role] ?? FALLBACK_CONFIG;
   const { accent: accentCls, hover: hoverCls, bubble: bubbleCls } = cfg;

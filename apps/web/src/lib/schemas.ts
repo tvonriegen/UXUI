@@ -48,15 +48,20 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Contraseña requerida"),
 });
 
+export const passwordSchema = z.string()
+  .min(12, "La contraseña debe tener al menos 12 caracteres")
+  .max(72, "La contraseña no puede superar 72 caracteres")
+  .regex(/[a-z]/, "Debe incluir al menos una letra minúscula")
+  .regex(/[A-Z]/, "Debe incluir al menos una letra mayúscula")
+  .regex(/[0-9]/, "Debe incluir al menos un número")
+  .regex(/[^a-zA-Z0-9]/, "Debe incluir al menos un carácter especial");
+
 // Public registration is temporarily limited to Empresa and Estudiante.
 // Colegio access remains invitation/approval-only and external client accounts are reserved.
 export const registerSchema = z.object({
   name:     z.string().min(2, "El nombre debe tener al menos 2 caracteres").max(100),
   email:    z.string().email("Email inválido"),
-  password: z.string()
-    .min(6, "La contraseña debe tener al menos 6 caracteres")
-    .regex(/[0-9]/, "Debe incluir al menos un número")
-    .regex(/[^a-zA-Z0-9]/, "Debe incluir al menos un carácter especial"),
+  password: passwordSchema,
   confirmPassword: z.string(),
   accountType: z.enum(["company", "student"], {
     error: () => ({ message: "Solo Empresa y Estudiante pueden registrarse aquí." }),
@@ -93,9 +98,7 @@ export const createStudentSchema = z.object({
   firstName:    z.string().min(2, "Nombre muy corto").max(50),
   lastName:     z.string().min(2, "Apellido muy corto").max(50),
   email:        z.string().email("Email inválido"),
-  tempPassword: z.string()
-    .min(6,  "Mínimo 6 caracteres")
-    .max(72, "Máximo 72 caracteres"),
+  tempPassword: passwordSchema,
   rut:          rutSchema,
   gender:       z.enum(["Masculino","Femenino","Otro","Prefiero no decir"], {
     error: () => ({ message: "Género inválido" }),

@@ -1097,7 +1097,7 @@ export default function AdministracionPage({ initialSection }: AdministrationPag
               value={newStPassword}
               onChange={(e) => setNewStPassword(e.target.value)}
               className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-amber-200 focus:border-amber-400 outline-none"
-              placeholder="Mín. 6 caracteres"
+              placeholder="12+ caracteres, mayúscula, minúscula, número y especial"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">

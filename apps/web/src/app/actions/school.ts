@@ -5,13 +5,13 @@
 
 import { cookies } from "next/headers";
 import { createAdminClient, createServerSupabaseClient } from "@/lib/supabase-server";
-import { createStudentSchema, editStudentSchema, isValidRut, formatRut } from "@/lib/schemas";
+import { createStudentSchema, editStudentSchema, isValidRut, formatRut, passwordSchema } from "@/lib/schemas";
 import { z } from "zod";
 
 const bulkStudentSchema = z.object({
   name: z.string().trim().min(4, "Nombre completo muy corto").max(101),
   email: z.string().trim().email("Email inválido").max(254),
-  password: z.string().min(6, "Contraseña de menos de 6 caracteres").max(72),
+  password: passwordSchema,
   rut: z.string().refine(isValidRut, "RUT inválido"),
   gender: z.string().trim().transform((value) => {
     const normalized = value.toLocaleLowerCase("es-CL");

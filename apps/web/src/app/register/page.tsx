@@ -198,7 +198,7 @@ export default function RegisterPage() {
                   autoComplete="new-password"
                   value={password}
                   onChange={(e) => { setPassword(e.target.value); setError(""); }}
-                  placeholder="Mín. 6 car., 1 número, 1 especial"
+                  placeholder="Mín. 12 car., mayúscula, minúscula, número y especial"
                   className="w-full px-4 py-3 pr-11 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-200 focus:border-sky-400 outline-none transition-all"
                 />
                 <button

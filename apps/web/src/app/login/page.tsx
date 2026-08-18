@@ -8,18 +8,9 @@ import Link       from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import PublicShell from "@/components/layout/PublicShell";
-import { Eye, EyeOff, LogIn, AlertCircle, Zap } from "lucide-react";
+import { Eye, EyeOff, LogIn, AlertCircle } from "lucide-react";
 import { loginSchema } from "@/lib/schemas";
 import { trackAnalyticsEvent } from "@/lib/analytics";
-
-const DEMO_ACCOUNTS = [
-  { label: "🏫 Colegio",    email: "colegio@demo.cr",  role: "Colegio"    },
-  { label: "🎓 Estudiante", email: "alan@demo.cr",     role: "Estudiante" },
-  { label: "🎓 Estudiante", email: "ian@demo.cr",      role: "Estudiante" },
-  { label: "🏢 Empresa",    email: "google@demo.cr",   role: "Empresa"    },
-] as const;
-
-const DEMO_PASSWORD = "Demo1234!";
 
 const LOGIN_ROUTE_ERRORS: Record<string, string> = {
   profile: "Tu cuenta no tiene un perfil válido. Contacta al administrador para recuperar el acceso.",
@@ -37,8 +28,6 @@ export default function LoginPage({ searchParams }: { searchParams?: { error?: s
     searchParams?.error ? LOGIN_ROUTE_ERRORS[searchParams.error] ?? "No se pudo validar la cuenta." : ""
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [demoLoading,  setDemoLoading]  = useState<string | null>(null);
-  const demoMode = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
   // Already authenticated → go to dashboard
   useEffect(() => {
@@ -60,25 +49,11 @@ export default function LoginPage({ searchParams }: { searchParams?: { error?: s
     const { error: authError } = await login(email.trim(), password);
     if (!authError) {
       trackAnalyticsEvent("login", { method: "password" });
-      window.location.assign("/");
+      router.replace("/");
       return;
     } else {
       setError("Correo o contraseña incorrectos.");
       setIsSubmitting(false);
-    }
-  };
-
-  const handleDemoLogin = async (demoEmail: string) => {
-    setError("");
-    setDemoLoading(demoEmail);
-    const { error: authError } = await login(demoEmail, DEMO_PASSWORD);
-    if (!authError) {
-      trackAnalyticsEvent("login", { method: "demo" });
-      window.location.assign("/");
-      return;
-    } else {
-      setError(`No se pudo acceder a la cuenta demo. Asegúrate de haber ejecutado /api/seed primero.`);
-      setDemoLoading(null);
     }
   };
 
@@ -197,42 +172,6 @@ export default function LoginPage({ searchParams }: { searchParams?: { error?: s
             </p>
           </div>
 
-          {/* ── Demo bypass section ── */}
-          {demoMode && <div className="px-8 pb-8">
-            <div className="border-t border-slate-100 pt-5">
-              <div className="flex items-center gap-2 mb-3">
-                <Zap size={14} className="text-amber-500" />
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Acceso rápido — Cuentas Demo
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                {DEMO_ACCOUNTS.map((acc) => (
-                  <button
-                    key={acc.email}
-                    type="button"
-                    onClick={() => handleDemoLogin(acc.email)}
-                    disabled={demoLoading !== null || isSubmitting}
-                    className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {demoLoading === acc.email ? (
-                      <svg className="animate-spin w-3.5 h-3.5 text-sky-500 shrink-0" viewBox="0 0 24 24" fill="none">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                      </svg>
-                    ) : null}
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-slate-700 truncate">{acc.label}</p>
-                      <p className="text-[10px] text-slate-400 truncate">{acc.email}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-              <p className="text-[10px] text-slate-400 text-center mt-2">
-                Contraseña de todas: <span className="font-mono font-bold text-slate-500">Demo1234!</span>
-              </p>
-            </div>
-          </div>}
         </div>
 
       </div>

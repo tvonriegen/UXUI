@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { loginSchema, registerSchema } from "@/lib/schemas";
+import { createStudentSchema, loginSchema, passwordSchema, registerSchema } from "@/lib/schemas";
 
 describe("auth schemas", () => {
   it.each(["company", "student"])("accepts public account type %s", (accountType) => {
     const result = registerSchema.safeParse({
       name: "Ada Lovelace",
       email: "ada@example.com",
-      password: "Secure1!",
-      confirmPassword: "Secure1!",
+      password: "SecurePassword1!",
+      confirmPassword: "SecurePassword1!",
       accountType,
     });
 
@@ -18,8 +18,8 @@ describe("auth schemas", () => {
     const result = registerSchema.safeParse({
       name: "Alan Turing",
       email: "alan@example.com",
-      password: "Secure1!",
-      confirmPassword: "Secure1!",
+      password: "SecurePassword1!",
+      confirmPassword: "SecurePassword1!",
       accountType: "external",
     });
 
@@ -30,8 +30,8 @@ describe("auth schemas", () => {
     const result = registerSchema.safeParse({
       name: "Ada Lovelace",
       email: "ada@example.com",
-      password: "Secure1!",
-      confirmPassword: "Different1!",
+      password: "SecurePassword1!",
+      confirmPassword: "DifferentPassword1!",
       accountType: "student",
     });
 
@@ -42,5 +42,10 @@ describe("auth schemas", () => {
   it("requires a password for login", () => {
     const result = loginSchema.safeParse({ email: "ada@example.com", password: "" });
     expect(result.success).toBe(false);
+  });
+
+  it("shares the hardened password policy with student creation", () => {
+    expect(passwordSchema.safeParse("Secure1!").success).toBe(false);
+    expect(createStudentSchema.shape.tempPassword.safeParse("SecurePassword1!").success).toBe(true);
   });
 });

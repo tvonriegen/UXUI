@@ -4,7 +4,6 @@ import { NextResponse, type NextRequest } from "next/server";
 const PUBLIC_EXACT = new Set(["/", "/login", "/register"]);
 const PUBLIC_PREFIXES = [
   "/api/health",
-  "/api/seed",
   "/explore",
   "/freelance",
   "/how-it-works",

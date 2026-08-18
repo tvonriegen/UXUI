@@ -11,9 +11,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { clearMustChangePassword } from "@/app/actions/school";
+import { passwordSchema } from "@/lib/schemas";
 import { Eye, EyeOff, KeyRound, AlertCircle, CheckCircle } from "lucide-react";
 
-const MIN_LENGTH = 8;
+const MIN_LENGTH = 12;
 
 function getStrength(pwd: string): { score: number; label: string; color: string } {
   let score = 0;
@@ -43,12 +44,9 @@ export default function ChangePasswordPage() {
     e.preventDefault();
     setError("");
 
-    if (newPassword.length < MIN_LENGTH) {
-      setError(`La contraseña debe tener al menos ${MIN_LENGTH} caracteres.`);
-      return;
-    }
-    if (!/[0-9]/.test(newPassword) || !/[^a-zA-Z0-9]/.test(newPassword)) {
-      setError("La contraseña debe incluir al menos un número y un carácter especial.");
+    const passwordResult = passwordSchema.safeParse(newPassword);
+    if (!passwordResult.success) {
+      setError(passwordResult.error.issues[0]?.message ?? "Contraseña inválida.");
       return;
     }
     if (newPassword !== confirm) {

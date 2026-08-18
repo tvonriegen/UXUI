@@ -26,12 +26,12 @@ describe("registerAccount", () => {
     mocks.from.mockImplementation(() => ({ upsert: mocks.upsert }));
   });
 
-  it("creates a public account with email confirmation temporarily bypassed", async () => {
+  it("creates a public account with immediate email confirmation", async () => {
     const result = await registerAccount({
       name: "Prueba Estudiante",
       email: "externo@example.com",
-      password: "Secure1!",
-      confirmPassword: "Secure1!",
+      password: "SecurePassword1!",
+      confirmPassword: "SecurePassword1!",
       accountType: "student",
     });
 
@@ -39,10 +39,39 @@ describe("registerAccount", () => {
       email: "externo@example.com",
       email_confirm: true,
       app_metadata: { account_type: "student" },
+      user_metadata: { account_type: "student", role: "Estudiante", name: "Prueba Estudiante" },
     }));
-    expect(result).toEqual({ success: true, requiresEmailVerification: false });
+    expect(result).toEqual({ success: true });
     expect(mocks.upsert).toHaveBeenCalledTimes(2);
     expect(mocks.from).toHaveBeenNthCalledWith(1, "profiles");
     expect(mocks.from).toHaveBeenNthCalledWith(2, "student_profiles");
+  });
+
+  it("cleans up the auth user when profile creation fails", async () => {
+    mocks.upsert.mockResolvedValueOnce({ error: { message: "profile failed" } });
+
+    const result = await registerAccount({
+      name: "Prueba Estudiante", email: "externo@example.com",
+      password: "SecurePassword1!", confirmPassword: "SecurePassword1!", accountType: "student",
+    });
+
+    expect(result).toEqual({ error: "profile failed" });
+    expect(mocks.deleteUser).toHaveBeenCalledWith("user-1");
+  });
+
+  it("cleans up the auth user when company detail creation fails", async () => {
+    mocks.upsert
+      .mockResolvedValueOnce({ error: null })
+      .mockResolvedValueOnce({ error: { message: "company detail failed" } });
+
+    const result = await registerAccount({
+      name: "Prueba Empresa", email: "empresa@example.com",
+      password: "SecurePassword1!", confirmPassword: "SecurePassword1!", accountType: "company",
+    });
+
+    expect(result).toEqual({ error: "company detail failed" });
+    expect(mocks.from).toHaveBeenNthCalledWith(1, "profiles");
+    expect(mocks.from).toHaveBeenNthCalledWith(2, "company_profiles");
+    expect(mocks.deleteUser).toHaveBeenCalledWith("user-1");
   });
 });
