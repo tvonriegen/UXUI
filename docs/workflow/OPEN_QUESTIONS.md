@@ -26,8 +26,8 @@
 ## Q2 - Deployment configuration
 
 - Type: Operational.
-- Status: Open.
-- Configure `SEED_SECRET` in every deployed environment and confirm `/api/seed` returns `503` when deployment configuration is incomplete.
+- Status: **Closed / Superseded (2026-08-18).**
+- Configure `SEED_SECRET` in every deployed environment and confirm `/api/seed` returns `503` when deployment configuration is incomplete. **Superseded by the stabilization release (2026-08-18):** la ruta `/api/seed` fue eliminada de la aplicación; `SEED_SECRET` ya no se configura en ningún entorno y las cuentas demo se provisionan por proceso local/staging controlado (ver `docs/technical/STABILIZATION_RELEASE.md`). La pregunta original queda registrada como trazabilidad histórica.
 
 ## Q3 - Dependency vulnerabilities
 

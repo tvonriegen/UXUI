@@ -32,5 +32,5 @@ All passed locally on 2026-07-26.
 ## Pending
 
 - Run the complete authenticated negative RLS matrix for cross-company, cross-school and external access.
-- Configure `SEED_SECRET` in deployed environments before using `/api/seed`.
+- Configure `SEED_SECRET` in deployed environments before using `/api/seed`. **[HISTORICAL — SUPERSEDED 2026-08-18]** La ruta `/api/seed` fue eliminada de la aplicación en el release de estabilización; `SEED_SECRET` ya no tiene consumidor y las cuentas demo se provisionan por proceso local/staging controlado. Este pendiente queda sin objeto.
 - The local Supabase CLI remains unavailable; remote migration execution used Supabase MCP.

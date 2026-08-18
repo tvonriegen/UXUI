@@ -1,12 +1,62 @@
 # TalentHub Next Actions
 
-## Current State (2026-08-13) — plan de promoción vigente
+## Current State (2026-08-18) — plan de release de estabilización
 
 > **Bloque canónico actual.** Los bloques con fecha anterior se conservan como historial
 > (incluidos los de ADR-004, que siguen siendo válidos como estado de gates de
-> identidad/organizaciones). Este bloque refleja el estado real de la rama y el plan
-> explícito de promoción; sólo se ejecutaron comandos git de lectura y `git diff --check`
-> en esta sesión de documentación (no lint/typecheck/test/build/`verify:*`/SQL/migraciones).
+> identidad/organizaciones). Las afirmaciones de rama/commit del bloque 2026-08-13 quedan
+> superadas por este bloque. Actualización de documentación operativa únicamente; sólo se
+> ejecutaron comandos git de lectura y `git diff --check` (no lint/typecheck/test/build/
+> `verify:*`/SQL/migraciones).
+
+- **Rama:** `main` (HEAD `d786527`). El trabajo de release-readiness de
+  `stabilization/release-readiness` (HEAD `ef3b428`) **ya está fusionado en `main`**; el plan
+  de promoción fast-forward del bloque 2026-08-13 quedó obsoleto. `main` local está **26
+  commits por delante de `origin/main`** (sin push).
+- **Working tree:** **una implementación concurrente del release (no esta sesión de docs) tiene
+  cambios de código sin commitear** — registro público con `admin.auth.admin.createUser` +
+  `email_confirm: true` (login inmediato) en `actions/auth.ts`, eliminación de `/api/seed`
+  (`route.ts` + `middleware.ts`), AI Chat desmontado (`ChatWidget.tsx` con `aiEnabled = false`
+  y `/api/chat` como stub 503),
+  política de contraseña 12+ (`schemas.ts`), ajustes en login/register y tests — más el nuevo
+  `docs/technical/STABILIZATION_RELEASE.md`. Revisar y commitar junto con esta actualización de
+  documentación.
+- **Entornos confirmados:** staging Supabase `uwkigsomnkhwjcfrgdts`; producción Supabase
+  `eghskwwupruomiactvji`; Preview Vercel `https://uxui-jad2.vercel.app/`.
+- **Decisiones de release (alcance revisado 2026-08-18):** email verification **FUERA del
+  release** (no configurar ni exigir Email confirmations/SMTP en los gates; la decisión previa
+  de "email verification obligatoria" queda superada); **AI Chat fuera del release** (UI/endpoint
+  hard-disabled; no configurar flags ni credenciales Anthropic); **`/api/seed` fuera del
+  release** (ruta eliminada por la implementación concurrente; cuentas demo por proceso
+  local/staging controlado); owner de validación **Product Owner**; ventana objetivo
+  **2 horas**. El registro público del working tree ya cumple el alcance
+  (`admin.auth.admin.createUser` con `email_confirm: true`, creación de perfiles y
+  `{ success: true }`); no hay código pendiente de reconciliación.
+- **Plan vigente (en este orden):**
+  1. **Revisar y commitar la implementación concurrente del release** (código + `docs/technical/
+     STABILIZATION_RELEASE.md`) junto con esta actualización de documentación; verificar con
+     `npm run lint && npm run typecheck && npm test && npm run build && npm run test:release &&
+     npm run verify:release && git diff --check`.
+  2. **Push de `main` a `origin/main`** (26 commits) con autorización explícita.
+  3. **Configuración manual (no validable localmente):** variables de entorno Vercel (Preview y
+     producción, owner del proyecto Vercel): sin `SEED_SECRET` (ruta `/api/seed` eliminada) y sin
+     flags AI (`ENABLE_AI_CHAT` / `NEXT_PUBLIC_ENABLE_AI_CHAT`) ni `ANTHROPIC_API_KEY` (retirados
+     de `.env.example`, sin consumidores en la aplicación). **No configurar Email confirmations/SMTP**: email verification está fuera
+     de este release.
+  4. **Validación runtime en staging `uwkigsomnkhwjcfrgdts`:** fixtures S1
+     (`provision-runtime-profile-fixtures.mjs`), secretos `RUNTIME_*` en el entorno GitHub
+     `staging`, y workflows manuales `Runtime Supabase Smoke` y `S1 Runtime Profile Boundary`.
+  5. **Cierre de hallazgos de release:** matriz RLS en staging, hallazgos de seguridad del
+     handoff §8.1.b, triage de las 20 vulnerabilidades de `apps/web`.
+  6. **Limpieza Git:** borrar la rama `stabilization/release-readiness` ya fusionada (local y
+     remota) con autorización.
+
+## Current State (2026-08-13) — plan de promoción vigente [HISTORICAL — SUPERSEDED BY 2026-08-18]
+
+> **Bloque histórico.** Superado por el bloque "Current State (2026-08-18)" de arriba: el
+> trabajo fue fusionado en `main` y el working tree quedó limpio en ese momento (los cambios sin
+> commitear de la implementación concurrente del release se describen en el bloque canónico de
+> arriba). Se conserva como trazabilidad.
 
 - **Rama:** `stabilization/release-readiness`, HEAD `ef3b428` **ya remoto** (0 ahead / 0 behind con `origin`), **10 commits sobre `main`**. `main` es ancestro de `HEAD` → promoción por **fast-forward directo**.
 - **Trabajo local sin commitear:** 10 archivos de app de dashboard tolerante / logout hardening + `package.json` (script `verify:storage-migration`).
@@ -57,7 +107,7 @@
 6. Build and review a schema baseline without copying production data.
 7. Configure isolated staging fixtures for Student, Company, School and External.
 8. Set the canonical `RUNTIME_*` GitHub secrets in the `staging` environment.
-9. Trigger `Runtime Supabase Smoke` and `Runtime Security Smoke Tests` manually.
+9. Trigger `Runtime Supabase Smoke` and `S1 Runtime Profile Boundary` manually.
 10. Record pass/fail evidence and resolve any RLS or RPC regression before production use.
 11. Re-run `supabase_get_advisors(type=security)` and `supabase_get_advisors(type=performance)` from a session where `supabase_list_tables` works, to refresh the live advisor snapshot; the introspection calls timed out in this session.
 
@@ -70,7 +120,7 @@
 
 ## Security And Data
 
-16. Address the security review findings from `docs/workflow/HANDOFF.md` §8.1.b in priority order: CRITICAL broad authenticated `profiles` SELECT and `updateApplicationStatusSA` first; HIGH in-memory rate limiter, `/api/chat` rate limit, `/api/seed` response shape, `contact_requests` ownership double-check; MEDIUM CORS localhost fallback, optional service role, HSTS.
+16. Address the security review findings from `docs/workflow/HANDOFF.md` §8.1.b in priority order: CRITICAL broad authenticated `profiles` SELECT and `updateApplicationStatusSA` first; HIGH in-memory rate limiter, `/api/chat` rate limit, `contact_requests` ownership double-check (el hallazgo HIGH de `/api/seed` response shape quedó **resuelto por eliminación de la ruta** en el release 2026-08-18; el hallazgo `/api/chat` quedó neutralizado por el stub 503 del release 2026-08-18); MEDIUM CORS localhost fallback, optional service role (el hallazgo HSTS quedó **resuelto** por el header emitido en `next.config.js` en el release 2026-08-18).
 17. Narrow authenticated `profiles` reads and replace broad compatibility policy by resource-specific reads.
 18. Finish legacy `job_postings` dual-read and dual-write migration.
 19. Validate `opportunity_proposals`, evidence, contact mediation, interviews and timeline transitions runtime.
@@ -104,10 +154,10 @@ These items are the read-only follow-ups to the gap analysis in `docs/architectu
 
 These items are derived from the read-only inventories in `docs/technical/KNOWN_ISSUES.md` § "Read-Only Inventories (2026-08-05)". They do not change the release gate, do not commit, and do not push. They are scoped to documentation and to planning only; no code, migration, dependency, lockfile, or workflow file is touched by this docs pass. Staging + baseline remain the binding preconditions for any RLS-related fix.
 
-26. Document the `createAdminClient` distribution and the validate-with-RLS / mutate-with-admin contract in `docs/architecture/SECURITY_MODEL.md`. The pattern is uniform across auth / school / company / API seed / chat / gamification; it is currently not captured in `SECURITY_MODEL.md`.
+26. Document the `createAdminClient` distribution and the validate-with-RLS / mutate-with-admin contract in `docs/architecture/SECURITY_MODEL.md`. The pattern is uniform across auth / school / company / chat / gamification (el seed endpoint fue eliminado en el release 2026-08-18); it is currently not captured in `SECURITY_MODEL.md`.
 27. Treat `updateApplicationStatus` (legacy) and `updateApplicationStatusSA` as a **single** CRITICAL finding, complementary to item 16: the admin-client write is constrained only by `applicationId`, and `jobId` is not re-bound. The recommended fix — `.eq("job_id", jobId)` on the RLS-bound path plus a structural verifier case — must be validated against the staging fixture, not just locally.
-28. Add `rateLimit(...)` to `POST /api/chat`, conditioned on `ENABLE_AI_CHAT === "true"` and keyed by `user.id`. `/api/chat` is the only `/api/*` route with paid outbound calls that does not consume the in-memory limiter.
-29. Decide whether the `/api/seed` success response should return only account IDs (and not `password: DEMO_PASSWORD`); document the decision in `SECURITY_MODEL.md` and `RUNTIME_SECURITY_RUNBOOK.md`. Audit-log every successful `POST /api/seed` call regardless of the decision.
+28. ~~Add `rateLimit(...)` to `POST /api/chat`, conditioned on `ENABLE_AI_CHAT === "true"` and keyed by `user.id`. `/api/chat` is the only `/api/*` route with paid outbound calls that does not consume the in-memory limiter.~~ — **SUPERSEDED (2026-08-18):** la ruta `/api/chat` es un stub 503 sin llamadas salientes ni flags (`ENABLE_AI_CHAT`/`NEXT_PUBLIC_ENABLE_AI_CHAT`/`ANTHROPIC_API_KEY` retirados); el rate limit sólo aplica si AI Chat se reactiva. Se conserva como trazabilidad del hallazgo HIGH.
+29. ~~Decide whether the `/api/seed` success response should return only account IDs (and not `password: DEMO_PASSWORD`)~~ — **moot / resuelto por eliminación de la ruta en el release 2026-08-18.** La ruta `/api/seed` ya no existe; no aplica decidir el shape de su respuesta ni auditar llamadas `POST /api/seed`. El ítem se conserva como trazabilidad del hallazgo HIGH original.
 30. Decide whether to keep the in-memory `rateLimit` (currently protecting only `xp`, `quests`, `streak`) and add a shared-store limiter for the rest of the API, or to retire the in-memory implementation. Either way, do not claim a fix in this branch.
 31. Triage the four direct `apps/web` dependency advisories (`xlsx`, `next`, `eslint-config-next`, `@sentry/nextjs`) in the order: (a) `xlsx` — replacement is the only path, no fix available; (b) `next` + `eslint-config-next` — major bump requires compatibility review; (c) `@sentry/nextjs` — minor/patch available, retires OpenTelemetry transitives as a side effect. Re-run `npm audit --omit=optional` after each change. The 16 transitive advisories are not independently actionable while the direct packages are pinned.
 
@@ -130,10 +180,10 @@ For the local release gate, run `npm run test:release` and `npm run verify:relea
 
 These items are the read-only corrections to `docs/architecture/IDENTITY_ORGANIZATION_GAP_ANALYSIS.md` and `docs/architecture/ADR/ADR-004-identity-organizations-and-resource-ownership.md` per the auditor's findings. They do not change the release gate, do not commit, and do not push. They are scoped to documentation only; no migration, no SQL, no policy, no server action, no component, no test, no dependency, no lockfile and no workflow file is touched. Staging + baseline remain the binding preconditions for any RLS-related work; they are not relaxed by this mission. **The numbering below is the corrected order** (read-only inventory follow-ups 26-31 first, then the identity / organizations pass 32-35); the historical ordering of the previous "32-35 before 26-31" sections in this file is preserved as **historical** (see the "Documentation Pass [HISTORICAL]" block above) and is **not** the canonical ordering going forward.
 
-26. Document the `createAdminClient` distribution and the validate-with-RLS / mutate-with-admin contract in `docs/architecture/SECURITY_MODEL.md`. The pattern is uniform across auth / school / company / API seed / chat / gamification; it is currently not captured in `SECURITY_MODEL.md`.
+26. Document the `createAdminClient` distribution and the validate-with-RLS / mutate-with-admin contract in `docs/architecture/SECURITY_MODEL.md`. The pattern is uniform across auth / school / company / chat / gamification (el seed endpoint fue eliminado en el release 2026-08-18); it is currently not captured in `SECURITY_MODEL.md`.
 27. Treat `updateApplicationStatus` (legacy) and `updateApplicationStatusSA` as a **single** CRITICAL finding, complementary to item 16: the admin-client write is constrained only by `applicationId`, and `jobId` is not re-bound. The recommended fix — `.eq("job_id", jobId)` on the RLS-bound path plus a structural verifier case — must be validated against the staging fixture, not just locally.
-28. Add `rateLimit(...)` to `POST /api/chat`, conditioned on `ENABLE_AI_CHAT === "true"` and keyed by `user.id`. `/api/chat` is the only `/api/*` route with paid outbound calls that does not consume the in-memory limiter.
-29. Decide whether the `/api/seed` success response should return only account IDs (and not `password: DEMO_PASSWORD`); document the decision in `SECURITY_MODEL.md` and `RUNTIME_SECURITY_RUNBOOK.md`. Audit-log every successful `POST /api/seed` call regardless of the decision.
+28. ~~Add `rateLimit(...)` to `POST /api/chat`, conditioned on `ENABLE_AI_CHAT === "true"` and keyed by `user.id`. `/api/chat` is the only `/api/*` route with paid outbound calls that does not consume the in-memory limiter.~~ — **SUPERSEDED (2026-08-18):** la ruta `/api/chat` es un stub 503 sin llamadas salientes ni flags (`ENABLE_AI_CHAT`/`NEXT_PUBLIC_ENABLE_AI_CHAT`/`ANTHROPIC_API_KEY` retirados); el rate limit sólo aplica si AI Chat se reactiva. Se conserva como trazabilidad del hallazgo HIGH.
+29. ~~Decide whether the `/api/seed` success response should return only account IDs (and not `password: DEMO_PASSWORD`)~~ — **moot / resuelto por eliminación de la ruta en el release 2026-08-18.** La ruta `/api/seed` ya no existe; no aplica decidir el shape de su respuesta ni auditar llamadas `POST /api/seed`. El ítem se conserva como trazabilidad del hallazgo HIGH original.
 30. Decide whether to keep the in-memory `rateLimit` (currently protecting only `xp`, `quests`, `streak`) and add a shared-store limiter for the rest of the API, or to retire the in-memory implementation. Either way, do not claim a fix in this branch.
 31. Triage the four direct `apps/web` dependency advisories (`xlsx`, `next`, `eslint-config-next`, `@sentry/nextjs`) in the order: (a) `xlsx` — replacement is the only path, no fix available; (b) `next` + `eslint-config-next` — major bump requires compatibility review; (c) `@sentry/nextjs` — minor/patch available, retires OpenTelemetry transitives as a side effect. Re-run `npm audit --omit=optional` after each change. The 16 transitive advisories are not independently actionable while the direct packages are pinned.
 

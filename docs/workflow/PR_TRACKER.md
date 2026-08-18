@@ -16,7 +16,7 @@
 - `main` is the active integration branch. `foundation/identity-access` remains for historical traceability.
 - Integration uses direct merge commits and does not use pull requests.
 - Historical branch names remain in commit ancestry for traceability, but no longer represent active work.
-- Runtime Supabase staging verification is defined by `Runtime Security Smoke Tests` and is not claimed complete until its isolated fixtures run.
+- Runtime Supabase staging verification is defined by the manual `Runtime Supabase Smoke` and `S1 Runtime Profile Boundary` workflows (`.github/workflows/runtime-smoke.yml` y `runtime-security.yml`) and is not claimed complete until its isolated fixtures run.
 
 ## Restructuring policy
 

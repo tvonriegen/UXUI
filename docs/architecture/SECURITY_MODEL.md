@@ -6,7 +6,7 @@
 ## Current Controls
 
 - Browser code receives only publishable Supabase configuration; service-role credentials remain server-only and are never exposed through public environment names.
-- SSR and browser clients are separated, security headers are configured, and seed access is restricted outside local development.
+- SSR and browser clients are separated, security headers are configured (including `Strict-Transport-Security` para producción en `next.config.js`), and the public `/api/seed` endpoint was **removed in the stabilization release (2026-08-18)** — demo accounts are provisioned through a controlled local/staging process, never from a public route. AI Chat stays out of the release: el componente se conserva montado con `aiEnabled = false` hard-codeado (`ChatWidget.tsx`) y `/api/chat` es un stub que responde 503; no hay llamadas a Anthropic ni flags/credenciales (`ENABLE_AI_CHAT` / `NEXT_PUBLIC_ENABLE_AI_CHAT` / `ANTHROPIC_API_KEY` retirados de `.env.example` y sin consumidores en `apps/web/src`; el `env` de `next.config.js` sólo expone variables `NEXT_PUBLIC_*` y nunca los definió).
 - Current RLS and server actions are the audited baseline. Any remaining legacy `role`, direct `school_id` or admin-client behavior is transitional evidence, not the target authority.
 
 ## Canonical Authorization

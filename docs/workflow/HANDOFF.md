@@ -1,13 +1,52 @@
 # TalentHub Project Handoff
 
-## Current State (2026-08-13)
+## Current State (2026-08-18) — release de estabilización
 
-> **Bloque canónico actual.** Todo lo que sigue hasta §14 es trazabilidad histórica
-> (pases de documentación 2026-08-05 y anteriores). Las afirmaciones fechadas que
-> contradigan este bloque quedan superadas por él. Los detalles verificados en esta
-> sesión de documentación son sólo los que se pueden leer del árbol y de `git`
-> (comandos de lectura + `git diff --check`); **no se ejecutaron** lint, typecheck,
-> tests, build, `verify:*`, SQL ni migraciones en esta sesión.
+> **Bloque canónico actual.** Supera al bloque "Current State (2026-08-13)" de abajo, que queda
+> como trazabilidad histórica. Actualización de documentación operativa únicamente
+> (release/rollback/staging); no se ejecutaron lint, typecheck, tests, build, `verify:*`, SQL,
+> migraciones ni llamadas remotas en esta sesión. Verificado sólo con comandos git de lectura y
+> `git diff --check`.
+
+- **Rama:** `main` (HEAD `d786527`, "Merge pull request #13"). El trabajo de release-readiness
+  de `stabilization/release-readiness` (HEAD `ef3b428`) **ya está fusionado en `main`**; el plan
+  de promoción fast-forward del bloque 2026-08-13 quedó obsoleto. `main` local está **26
+  commits por delante de `origin/main`** (sin push; requiere autorización).
+- **Working tree:** el trabajo sin commitear del bloque 2026-08-13 (10 archivos de dashboard
+  tolerante/logout, `package.json`, migración Storage `20260813000001`,
+  `scripts/verify-storage-migration.mjs`, `STORAGE_DRIFT_REPAIR.md`) ya está commiteado en
+  `main`.   **Atención:** una implementación concurrente del release (no esta sesión de docs)
+  tiene cambios de código **sin commitear** — registro público con `admin.auth.admin.createUser`
+  + `email_confirm: true` (login inmediato) en `actions/auth.ts`, eliminación de
+  `/api/seed` (`route.ts` + `middleware.ts`), AI Chat desmontado (`ChatWidget.tsx` con
+  `aiEnabled = false` y `/api/chat` como stub 503; retirados los flags
+  `ENABLE_AI_CHAT`/`NEXT_PUBLIC_ENABLE_AI_CHAT` y `ANTHROPIC_API_KEY` de `.env.example`, sin
+  consumidores en `apps/web/src`), política de contraseña 12+ (`schemas.ts`), ajustes en
+  login/register y
+  tests — más el nuevo `docs/technical/STABILIZATION_RELEASE.md`. Revisar y commitar junto con
+  esta actualización de documentación.
+- **Entornos confirmados:** staging Supabase `uwkigsomnkhwjcfrgdts`; producción Supabase
+  `eghskwwupruomiactvji`; Preview Vercel `https://uxui-jad2.vercel.app/`.
+- **Decisiones de release (alcance revisado 2026-08-18):** email verification **FUERA del
+  release** (no configurar ni exigir Email confirmations/SMTP en los gates; la decisión previa
+  de "email verification obligatoria (config manual Supabase Auth)" queda superada y se
+  conserva como historial); **AI Chat fuera del release** (UI/endpoint hard-disabled; no
+  configurar flags ni credenciales Anthropic); **`/api/seed` fuera del release** (ruta eliminada
+  por la implementación concurrente); owner de validación **Product Owner**; ventana objetivo
+  **2 horas**. El registro público del working tree ya cumple el alcance:
+  `admin.auth.admin.createUser` con `email_confirm: true`, creación de perfiles y
+  `{ success: true }`; no hay guard fail-closed ni código pendiente de reconciliación.
+- **Pendiente de release:** revisar/commitar la implementación concurrente; push de `main` a
+  `origin/main`; validación runtime en staging con fixtures; matriz RLS; hallazgos de seguridad
+  del handoff §8.1.b; triage de las 20 vulnerabilidades de `apps/web`; limpieza de la rama
+  `stabilization/release-readiness` fusionada.
+
+## Current State (2026-08-13) [HISTORICAL — SUPERSEDED BY 2026-08-18]
+
+> **Bloque histórico.** Superado por el bloque "Current State (2026-08-18)" de arriba: la rama
+> fue fusionada en `main` y el working tree quedó limpio en ese momento (los cambios sin
+> commitear de la implementación concurrente del release se describen en el bloque canónico de
+> arriba). Se conserva como trazabilidad.
 
 - **Rama:** `stabilization/release-readiness`.
 - **HEAD:** `ef3b428` (`feat: release readiness runtime tooling and contact security gate`), **ya remoto** — la rama local y `origin/stabilization/release-readiness` están sincronizadas (0 ahead / 0 behind). La rama tiene **10 commits sobre `main`**.
@@ -149,7 +188,7 @@ UXUI/
 - **Forms / validation:** Zod `^4.3.6`; `isomorphic-dompurify` and `browser-image-compression` for client-side safety/perf.
 - **Backend:** Supabase (`@supabase/ssr ^0.10.2`, `@supabase/supabase-js ^2.100.1`) split into `src/lib/supabase.ts` (browser) and `src/lib/supabase-server.ts` (server, RLS-bound).
 - **Auth:** email/password via Supabase Auth; middleware enforces canonical `account_type`.
-- **Optional AI:** `@anthropic-ai/sdk ^0.92.0` gated by `NEXT_PUBLIC_ENABLE_AI_CHAT` and a server flag — currently disabled by default per `apps/web/next.config.js` and `docs/architecture/SECURITY_MODEL.md`.
+- **Optional AI:** `@anthropic-ai/sdk ^0.92.0` remains installed but **unused** — AI Chat está fuera del release 2026-08-18: los flags `ENABLE_AI_CHAT` / `NEXT_PUBLIC_ENABLE_AI_CHAT` y `ANTHROPIC_API_KEY` fueron retirados de `.env.example` y ya no tienen consumidor en la aplicación (el `env` de `apps/web/next.config.js` sólo expone variables `NEXT_PUBLIC_*` y nunca los definió), el componente usa `aiEnabled = false` hard-codeado (`ChatWidget.tsx`) y `/api/chat` responde 503.
 - **Observability:** Sentry (`@sentry/nextjs ^10.47.0`), Pino logger.
 - **Tests:** Vitest `^4.1.10` (unit/component), Testing Library (`@testing-library/react`, `jest-dom`, `user-event`), Playwright `^1.62.0` with two suites (`auth`, `public-routes`).
 - **Lint/format:** ESLint 8 with `eslint-config-next`, `tsc` for typecheck.
@@ -196,7 +235,7 @@ Routes: `/student/dashboard`, `/student/profile`, `/student/feed`, `/student/opp
 - Guard: `account_type = student`, active account, stage-aware policy (`docs/architecture/ROUTE_MAP.md`).
 - Stage is `enrolled | internship | graduated`; `graduated` is not a separate account type (`docs/qa/TESTING_STRATEGY.md`).
 - The graduated legacy role `Egresado` continues to be represented in the historical DB role column; the migration plan collapses it to `student_stage = graduated` (`docs/architecture/PHASE_0_AUDIT.md`).
-- Self-registration temporarily sets `email_confirm = true` to allow immediate login; this is a pre-production shortcut recorded in `docs/technical/KNOWN_ISSUES.md` and must be reverted before production hardening.
+- Self-registration temporarily sets `email_confirm = true` to allow immediate login; this is a pre-production shortcut recorded in `docs/technical/KNOWN_ISSUES.md` and must be reverted before production hardening. **[HISTORICAL (2026-08-05)]** — el working tree del release 2026-08-18 implementa el alcance revisado: `admin.auth.admin.createUser` con `email_confirm: true` (login inmediato), creación de perfiles y `{ success: true }`; email verification queda **fuera del release** y no hay guard ni código pendiente de reconciliación (ver bloque canónico arriba).
 
 ### 4.3 Fact — Company flow
 
@@ -454,7 +493,7 @@ df9d0bb Update vercel.json
 - Vercel deployment `uxui-sxfl` failed; the primary `uxui` and `uxui-jad2` checks succeed. The failure appears to be an external project-specific issue and requires Vercel project access to diagnose.
 - The dependency tree currently reports **20 vulnerabilities** via `npm audit --omit=optional` **inside `apps/web`** (1 low, 9 moderate, 10 high). The workspace root reports 0 vulnerabilities because its only dev-dep is the Supabase CLI, which has no advisories in this tree — see §6.1. The 20 / 0 split was re-verified 2026-08-05; the previous "20 total" line conflated the two scopes. They were not auto-fixed to avoid unplanned upgrades (`docs/workflow/OPEN_QUESTIONS.md` Q3).
 - The current GitHub OAuth token lacks the `workflow` scope, so `git push origin main` is rejected while publishing `.github/workflows/ci.yml` (`docs/technical/KNOWN_ISSUES.md`).
-- Public self-registration temporarily sets `email_confirm = true` so users can log in immediately; restore email verification before production hardening.
+- Public self-registration temporarily sets `email_confirm = true` so users can log in immediately; restore email verification before production hardening. **[HISTORICAL (2026-08-05)]** — el working tree del release implementa el alcance revisado (`admin.auth.admin.createUser` con `email_confirm: true`, creación de perfiles, `{ success: true }`); email verification queda **fuera del release** 2026-08-18 y no hay guard ni código pendiente de reconciliación (ver bloque canónico arriba).
 - Public registration is temporarily limited to Student and Company; external client routes remain reserved and not exposed by the signup form.
 - The Vercel check associated with historical PR #2 failed under a project owned by another account. The privacy implementation was locally validated and is now integrated; the old deployment issue is not treated as a current code failure.
 
@@ -472,10 +511,14 @@ Located in `apps/web/src/app/actions/company.ts` (around line 106). The action s
 The rate limiter (`apps/web/src/lib/rate-limit.ts`) is in-memory. It does not survive process restarts and does not share state between Vercel serverless instances; an attacker can multiply the budget by the number of concurrent cold starts. **Required:** replace with a shared store (Supabase table, Upstash, or Vercel KV) before production.
 
 **HIGH — `/api/chat` is not covered by the rate limiter.**
-Even when the in-memory rate limiter is in place, the chat API route does not consume it. Combined with optional AI feature flags, this can become a cost-amplification vector. **Required:** add the rate limiter (or a stricter one) to `/api/chat` and gate it on the AI feature flags as defined in `apps/web/next.config.js`.
+Even when the in-memory rate limiter is in place, the chat API route does not consume it. Combined with optional AI feature flags, this can become a cost-amplification vector. **Required:** add the rate limiter (or a stricter one) to `/api/chat` and gate it on the AI feature flags as defined in `.env.example` (los flags no se definieron en `next.config.js`).
+
+> **Resolución (release 2026-08-18):** la ruta `/api/chat` fue reescrita como stub hard-disabled que responde 503 sin llamadas salientes ni flags (`ENABLE_AI_CHAT` / `NEXT_PUBLIC_ENABLE_AI_CHAT` / `ANTHROPIC_API_KEY` retirados de `.env.example`, sin consumidores en `apps/web/src`). El vector de amplificación de costos queda **neutralizado para este release**; el hallazgo aplica sólo si AI Chat se reactiva. Se conserva arriba como trazabilidad histórica.
 
 **HIGH — `/api/seed` and `DEMO_PASSWORD` in response.**
 `apps/web/src/app/api/seed/route.ts` (line 16 `const DEMO_PASSWORD = "Demo1234!";`; lines 88, 502–505 include the password in the response). The endpoint is **guarded** by `SEED_SECRET` outside local development (line 38: `if (!isLocalDevelopment && !envSecret) ...`), and `isLocalDevelopment` is `NODE_ENV === "development" && !VERCEL`. So in any deployed environment the endpoint returns 503 when `SEED_SECRET` is missing, and the credentials are only echoed when the caller presents the secret. **Nuance for this finding:** the current guard is correct for the documented deployment topology, but the response still contains plaintext demo credentials, which is a real risk if `SEED_SECRET` is ever leaked or the guard is bypassed in a future refactor. **Required:** keep the guard, but log and audit every successful `POST /api/seed` call, and consider returning only account IDs (not passwords) in the response.
+
+> **Resolución (release 2026-08-18):** la ruta `/api/seed` fue **eliminada** de la aplicación (working tree: `route.ts` borrado y retirado de `middleware.ts`). El hallazgo HIGH queda **resuelto por eliminación**; las cuentas demo se provisionan por proceso local/staging controlado, nunca desde una ruta pública. El detalle de la ruta se conserva arriba como trazabilidad histórica.
 
 **HIGH — `contact_requests` ownership delegated only to RLS.**
 The contact-routing server actions rely on the RLS policies for company/school visibility, insert, update and the minor-student's `pending` invisibility. There is no server-side double-check that the `school_members` membership is still active or that the company matches the request's `company_id` at the moment of the read. The current policies are sound in isolation, but a single future migration that loosens a predicate would be invisible to the application. **Required:** add a server-side guard in the school approval and company cancel actions that re-asserts ownership and active membership before any state change, and add a structural verifier for it.
@@ -487,12 +530,12 @@ A CORS policy that whitelists `http://localhost:*` for development can leak into
 Where the service-role key is treated as optional in the client/server bootstrap, the application can silently fall back to the anon key with broader RLS consequences for the calling path. **Required:** make the service role a hard requirement on every server-only path that uses it, and fail fast with a clear error when it is missing.
 
 **MEDIUM — HSTS header absent.**
-The Next.js `apps/web/next.config.js` does not currently emit a `Strict-Transport-Security` header. **Required:** add HSTS (and re-verify the other security headers in `docs/architecture/SECURITY_MODEL.md`) before the production hardening phase.
+The Next.js `apps/web/next.config.js` did not emit a `Strict-Transport-Security` header at the time of this review. **RESUELTO (release 2026-08-18):** `next.config.js` ahora emite `Strict-Transport-Security: max-age=31536000; includeSubDomains` en producción (`process.env.NODE_ENV === "production"`). Se conserva como trazabilidad del hallazgo MEDIUM.
 
 ### 8.2 Fact — open questions (`docs/workflow/OPEN_QUESTIONS.md`)
 
 - Q1 — Supabase staging verification (open, external validation).
-- Q2 — Deployment configuration (`SEED_SECRET` in every deployed environment).
+- Q2 — Deployment configuration (`SEED_SECRET` in every deployed environment). **Superseded (2026-08-18):** `/api/seed` eliminado; `SEED_SECRET` ya no se configura. Ver `OPEN_QUESTIONS.md` Q2.
 - Q3 — Dependency vulnerabilities (20 reported in `apps/web`: 1 low, 9 moderate, 10 high; 0 reported at the workspace root because its only dev-dep is the Supabase CLI — re-verified 2026-08-05).
 - Q4 — Schema snapshot drift (regenerate `supabase/schema.sql` for historical sections still out of sync).
 - Q5 — Automated runtime tests (disposable Supabase integration tests for authorization-sensitive paths).
@@ -525,8 +568,8 @@ The procedure is reproduced from the previous `HANDOFF.md` and `docs/technical/S
 2. Capture a schema/functions/policies/grants baseline from production and review it against the intended application contract.
 3. Do not replay the historical local migrations, run `db push` or `migration repair` against production until the baseline mapping is approved and tested in staging.
 4. Apply only reviewed forward migrations after the staging baseline.
-5. Set `SEED_SECRET` in the staging deployment environment; verify `/api/seed` returns `503` when deployment configuration is incomplete.
-6. Run the protected `/api/seed` endpoint against disposable staging.
+5. ~~Set `SEED_SECRET` in the staging deployment environment; verify `/api/seed` returns `503` when deployment configuration is incomplete.~~ — **SUPERSEDED (2026-08-18):** la ruta `/api/seed` fue eliminada de la aplicación; `SEED_SECRET` ya no se configura en ningún entorno. Conservado como trazabilidad histórica.
+6. ~~Run the protected `/api/seed` endpoint against disposable staging.~~ — **SUPERSEDED (2026-08-18):** las cuentas demo se provisionan por el proceso local/staging controlado (fixtures S1, `docs/technical/STAGING_SETUP.md`), no por una ruta pública.
 7. Configure the canonical `RUNTIME_*` GitHub secrets listed in `docs/qa/RUNTIME_SECURITY_RUNBOOK.md` (`RUNTIME_APP_URL`, `RUNTIME_SUPABASE_URL`, `RUNTIME_SUPABASE_ANON_KEY`, `RUNTIME_PENDING_CONTACT_REQUEST_ID`, `RUNTIME_FEED_POST_ID`, and the email/password pairs for student, company, school, external, optional second school and optional second student).
 8. Trigger the `Runtime Security Smoke Tests` and `Runtime Supabase Smoke` workflows manually; record the RLS/RPC matrix and the feed RPC smoke test results.
 9. Revisit the GitHub Supabase Preview check only after migration history is reconciled through the reviewed baseline.
@@ -554,7 +597,7 @@ Re-ordered by remaining risk. The first three items are preconditions for everyt
 6. **Provision the second free Supabase staging project** and produce the reviewed schema baseline (see §5.6 and §9).
 7. **Run the staging fixture, RLS matrix and feed RPC smoke tests** (see §9).
 8. **Reconcile Supabase Preview migration history** without destructive production operations.
-9. **Address the security review findings** in §8.1.b in priority order: CRITICAL `profiles` SELECT and `updateApplicationStatusSA` first, then HIGH rate limiter + chat guard + `/api/seed` response shape + `contact_requests` double-check, then MEDIUM CORS / service-role / HSTS.
+9. **Address the security review findings** in §8.1.b in priority order: CRITICAL `profiles` SELECT and `updateApplicationStatusSA` first, then HIGH rate limiter + chat guard + `contact_requests` double-check (el hallazgo `/api/seed` response shape quedó resuelto por la eliminación de la ruta en el release 2026-08-18; el hallazgo `/api/chat` quedó neutralizado por el stub 503 del release 2026-08-18), then MEDIUM CORS / service-role (el hallazgo HSTS quedó **resuelto** por el header emitido en `next.config.js` en el release 2026-08-18).
 10. **Complete profile privacy tightening and advisor remediation** (leaked-password, broad authenticated `profiles` reads, etc.).
 
 ### 10.4 Product extraction and UX
@@ -562,7 +605,7 @@ Re-ordered by remaining risk. The first three items are preconditions for everyt
 11. **Continue Student feature extraction** from legacy pages.
 12. **Split `apps/web/src/app/profile/page.tsx` and `empleos/page.tsx`** into smaller domain components and hooks (`docs/technical/REFACTORING_PLAN.md`).
 13. **Add disposable Supabase integration tests** for RLS, triggers and authenticated server actions.
-14. **Restore email verification** on public self-registration before production hardening.
+14. **Restore email verification** on public self-registration before production hardening. **[NO es gate del release 2026-08-18]** — email verification queda fuera de este release (alcance revisado); este ítem es hardening posterior. El registro actual ya usa `admin.auth.admin.createUser` con `email_confirm: true` y no hay código pendiente de reconciliación (ver bloque canónico).
 15. **Re-enable the external signup** in `/register` once the runtime staging matrix is green.
 
 ### 10.5 Deployment and dependency hygiene
@@ -700,7 +743,7 @@ The next session must, in this order:
 4. **Refresh the remote Supabase snapshot.** Open a fresh session with a working Supabase MCP connection and re-run `supabase_get_project_url`, `supabase_list_tables`, `supabase_list_migrations` and `supabase_list_extensions` to confirm the production drift recorded in `docs/technical/SUPABASE_FEED_RUNTIME_RECONCILIATION.md`. In this docs pass, all of those calls returned `Unauthorized`; in a fresh session the calls must succeed (or fall back to the historical `timeout` class from the 2026-08-04 handoff) before the snapshot can be re-confirmed.
 5. **Provision the second free Supabase staging project** (`docs/technical/STAGING_SETUP.md`) and produce the reviewed schema baseline.
 6. **Triage the 20 `apps/web` dependency vulnerabilities** in a controlled maintenance change after staging is in place. The root 0 / `apps/web` 20 split is now recorded in `STATUS.md`, `KNOWN_ISSUES.md` and `NEXT_ACTIONS.md`.
-7. **Address the security review findings** in §8.1.b in priority order: CRITICAL `profiles` SELECT and `updateApplicationStatusSA` first, then HIGH rate limiter + chat guard + `/api/seed` response shape + `contact_requests` double-check, then MEDIUM CORS / service-role / HSTS.
+7. **Address the security review findings** in §8.1.b in priority order: CRITICAL `profiles` SELECT and `updateApplicationStatusSA` first, then HIGH rate limiter + chat guard + `contact_requests` double-check (el hallazgo `/api/seed` response shape quedó resuelto por la eliminación de la ruta en el release 2026-08-18; el hallazgo `/api/chat` quedó neutralizado por el stub 503 del release 2026-08-18), then MEDIUM CORS / service-role (el hallazgo HSTS quedó **resuelto** por el header emitido en `next.config.js` en el release 2026-08-18).
 8. **Create `apps/web/.env.local` from `.env.example`** (or from staging secrets) before any local Playwright run. The absence of this file is the root cause of the Playwright block in §6.1 / §13.2.
 9. **Read `docs/workflow/STATUS.md`, `NEXT_ACTIONS.md`, `PR_TRACKER.md`, `OPEN_QUESTIONS.md` and `docs/technical/KNOWN_ISSUES.md`** for the day-1 task list, and resume from §10 below.
 

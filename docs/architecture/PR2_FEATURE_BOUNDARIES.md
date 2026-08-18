@@ -266,7 +266,7 @@ If the `messages` surface is touched, it lands as a fourth, separate commit, not
 - **`apps/web/src/app/profile/page.tsx` deep split (2888 lines, complexity 61).** A role-aware split (Estudiante vs. Egresado vs. Empresa vs. Colegio) touches data shape, evidence state, and the render path. The architect verdict is to defer this to a dedicated PR (PR 3 or later) and not attempt it in PR 2. PR 2 may extract a small, low-risk presentational fragment from `profile/page.tsx` only if it lands without changing the render path or the data contract, and only if it does not grow PR 2 past the "small and reversible" tolerance.
 - **`respondInterview` / `cancelInterview` admin-client review.** Out of PR 1 scope (`OPEN_QUESTIONS.md` Q14); tracked in `docs/technical/KNOWN_ISSUES.md`. Not a PR 2 deliverable; PR 2 may not touch these.
 - **Broader schema snapshot drift.** Tracked in `KNOWN_ISSUES.md` (residual drift between `supabase/schema.sql`, `supabase/full_reset.sql`, and older migrations). Not a PR 2 deliverable; PR 2 may not touch this.
-- **Dependency vulnerability triage (21 vulnerabilities).** Tracked in `KNOWN_ISSUES.md`; scheduled as a separate chore PR.
+- **Dependency vulnerability triage (21 vulnerabilities, medición previa a la sesión 2026-08-05; la cifra canónica de `apps/web` es 20 con `npm audit --omit=optional` — 1L/9M/10H, ver `docs/technical/KNOWN_ISSUES.md` §G).** Tracked in `KNOWN_ISSUES.md`; scheduled as a separate chore PR.
 - **`talent/page.tsx` deeper refactor.** The activities playground, the search / filter logic, and the match / quiz activities are large but not privacy-sensitive and not in the PR 2 critical path. Touch only the CTA call site; defer the rest.
 
 ## Validation checklist

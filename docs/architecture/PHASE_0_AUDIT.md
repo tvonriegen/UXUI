@@ -31,7 +31,7 @@
 4. `/register` lets the caller select `Empresa` or `Colegio`; public Colegio registration conflicts with the controlled-invitation requirement.
 5. Middleware checks session and `must_change_password`, but not account type, membership, ownership, resource status or age.
 6. The root page renders four dashboard components from client role state, including a dedicated `DashboardEgresado`.
-7. Demo buttons are rendered unconditionally in `/login`; the seed endpoint is guarded outside local development, but the UI is not gated by `NEXT_PUBLIC_DEMO_MODE=true`.
+7. Demo buttons are rendered unconditionally in `/login`; the seed endpoint is guarded outside local development, but the UI is not gated by `NEXT_PUBLIC_DEMO_MODE=true`. **[HISTORICAL — snapshot 2026-07-26]** Los botones demo fueron eliminados de `/login` y la ruta `/api/seed` fue eliminada en el release de estabilización (2026-08-18).
 8. Navigation filters links visually but does not protect routes. The existing route surface is shared and role-aware rather than separated by persona.
 
 ## Current route and feature findings
@@ -72,7 +72,7 @@ The migration history is incremental and mostly idempotent, but `schema.sql` and
 - `actions/evidence.ts`: student evidence submission/resubmission and school review.
 - `actions/contact-requests.ts`: contact request creation, approval, rejection and cancellation.
 - `actions/interviews.ts`: proposal, response and cancellation; proposal uses the RLS-bound client.
-- API handlers: health, seed, chat, XP, streak and quest progress.
+- API handlers: health, seed, chat, XP, streak and quest progress. **[HISTORICAL — snapshot 2026-07-26]** `/api/seed` fue eliminado en el release 2026-08-18.
 
 ## Implemented vs partial vs absent
 

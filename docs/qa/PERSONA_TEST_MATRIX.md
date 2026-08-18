@@ -17,6 +17,13 @@
 | School A | Read School B student | Denied by membership scope | RLS/E2E | policy implemented; runtime pending |
 | School | Validate linked evidence | Allowed with reviewer permission and audit event | Integration/RLS | partial baseline |
 | School | Import students | Accounts link only to calling school | Integration/RLS | baseline action, runtime pending |
-| External | Publish freelance | Allowed after email verification and only as freelance | Integration/RLS/E2E | implemented; fixture pending |
+| External | Publish freelance | Allowed only as freelance (email verification queda fuera del release 2026-08-18) | Integration/RLS/E2E | implemented; fixture pending |
 | External | Publish corporate job | Denied by account type and opportunity type | RLS/E2E | policy implemented; runtime pending |
 | All | View sensitive profile fields publicly | Fields are absent from projection and API response | Privacy/E2E | public projection implemented; full runtime pending |
+
+> **Email verification (alcance release 2026-08-18):** la fila "External / Publish freelance" no
+> exige verificación de email en este release — no se configura ni se exige Email
+> confirmations/SMTP en los gates de staging, producción o Preview. La decisión previa de
+> "email verification obligatoria (config manual en Supabase Auth)" queda superada y se
+> conserva como trazabilidad histórica (ver `docs/technical/STABILIZATION_RELEASE.md`,
+> `docs/technical/RUNBOOK.md` y `docs/technical/STAGING_SETUP.md`).

@@ -1,5 +1,51 @@
 # Known Issues
 
+## Release stabilization — decisions confirmadas (2026-08-18)
+
+> **Bloque canónico actual.** Los bloques con fecha anterior se conservan como historial; las
+> afirmaciones de rama/commit de bloques previos (incluido el de 2026-08-13) quedan superadas
+> por este bloque. Actualización de documentación operativa únicamente; no se ejecutaron lint,
+> typecheck, tests, build, `verify:*`, SQL, migraciones ni llamadas remotas en esta sesión.
+> Verificado sólo con comandos git de lectura y `git diff --check`.
+
+- **Rama:** `main` (HEAD `d786527`, "Merge pull request #13"). El trabajo de release-readiness
+  de `stabilization/release-readiness` (HEAD `ef3b428`) **ya está fusionado en `main`**; el plan
+  de promoción fast-forward pendiente del bloque 2026-08-13 quedó obsoleto. `main` local está
+  **26 commits por delante de `origin/main`** (sin push; requiere autorización).
+- **Working tree:** el trabajo sin commitear del bloque 2026-08-13 (10 archivos de dashboard
+  tolerante/logout, `package.json`, migración Storage `20260813000001`,
+  `scripts/verify-storage-migration.mjs`, `STORAGE_DRIFT_REPAIR.md`) ya está commiteado en
+  `main`.   **Atención:** una implementación concurrente del release (no esta sesión de docs)
+  tiene cambios de código **sin commitear** en el working tree: el registro público mantiene
+  `admin.auth.admin.createUser` con `email_confirm: true` (login inmediato), crea perfiles y
+  devuelve `{ success: true }` (`actions/auth.ts`), eliminación de `/api/seed`
+  (`route.ts` borrado y retirado de `middleware.ts`), AI Chat desmontado (`ChatWidget.tsx` con
+  `aiEnabled = false` y `/api/chat` como stub 503; retirados los flags
+  `ENABLE_AI_CHAT`/`NEXT_PUBLIC_ENABLE_AI_CHAT` y `ANTHROPIC_API_KEY` de `.env.example`, sin
+  consumidores en `apps/web/src`), política de contraseña 12+/mayúscula/minúscula/número/especial
+  (`schemas.ts`) y ajustes en login/register y sus tests; además del nuevo
+  `docs/technical/STABILIZATION_RELEASE.md`. Verificar y commitar junto con esta actualización
+  de documentación.
+- **Entornos confirmados:** staging Supabase `uwkigsomnkhwjcfrgdts`; producción Supabase
+  `eghskwwupruomiactvji`; Preview Vercel `https://uxui-jad2.vercel.app/`.
+- **Decisiones de release (alcance revisado 2026-08-18):** email verification **FUERA del
+  release** (no configurar ni exigir Email confirmations/SMTP en los gates; la decisión previa
+  de "email verification obligatoria" queda superada y se conserva como historial); **AI Chat
+  fuera del release** (UI/endpoint hard-disabled; no configurar flags ni credenciales
+  Anthropic); **`/api/seed` fuera del release** (la implementación concurrente elimina la ruta;
+  las cuentas demo se provisionan por proceso local/staging controlado); owner de validación
+  **Product Owner**; ventana objetivo **2 horas**. El registro público del working tree ya
+  cumple el alcance: `admin.auth.admin.createUser` con `email_confirm: true`, creación de
+  perfiles y `{ success: true }`; no queda código pendiente de reconciliación.
+- **Sin cambios en los gates de identidad/organizaciones** (FASE 0 COMPLETE; ADR-004 Accepted;
+  B1 documentary READY; B2 / C / D BLOCKED) ni en el inventario de seguridad del bloque
+  2026-08-05.
+- **Pendiente de release (no bloqueado por esta sesión):** push de `main` a `origin/main`;
+  validación runtime en staging (`uwkigsomnkhwjcfrgdts`) con fixtures; matriz RLS; hallazgos de
+  seguridad del handoff; triage de las 20 vulnerabilidades de `apps/web`. El registro público
+  (`apps/web/src/app/actions/auth.ts`) ya implementa el alcance de email verification fuera del
+  release; no requiere reconciliación.
+
 ## Production auth runtime contract (2026-08-15)
 
 - En el despliegue oficial `https://uxui-jad2.vercel.app/`, Supabase Auth acepta
@@ -18,7 +64,13 @@
   local. La restauración de RPC debe hacerse mediante el plan de baseline y una
   migración forward revisada en staging.
 
-## Storage drift repair y release-readiness local (2026-08-13)
+## Storage drift repair y release-readiness local (2026-08-13) [HISTORICAL — SUPERSEDED BY 2026-08-18]
+
+> Las afirmaciones de este bloque (trabajo sin commitear, plan de promoción fast-forward,
+> rama `stabilization/release-readiness`) quedaron superadas el 2026-08-18: el trabajo fue
+> fusionado en `main` y el working tree quedó limpio en ese momento (los cambios sin commitear
+> de la implementación concurrente del release se describen en el bloque canónico de arriba).
+> Se conserva como trazabilidad histórica.
 
 - **Reparación aplicada previamente al staging:** el proyecto TalentHub Staging presentó
   drift de configuración de Storage (metadatos de buckets y/o policies reparados
@@ -77,7 +129,7 @@ The static consumer inventory is: `middleware.ts`,
 `components/profile/{ProfilePage,ReputationCard}.tsx`, `app/empresa/[id]/page.tsx`,
 `app/external/profile/page.tsx`,
 `app/actions/{auth,evidence,interviews,external,school,opportunities,company}.ts`,
-and `app/api/{chat,seed}/route.ts`. This includes nested selects through
+and `app/api/{chat,seed}/route.ts` (`/api/seed` fue eliminado en el release 2026-08-18; este inventario corresponde al snapshot 2026-08-10). This includes nested selects through
 `profiles!author_id`, `profiles!job_postings_company_id_fkey`,
 `profiles!job_applications_*_fkey`, `profiles!contact_requests_*_fkey`,
 `profiles!internship_requests_company_id_fkey`,
@@ -132,14 +184,14 @@ is already resolved.
 
 ## External Verification Pending
 
-- Supabase schema alignment is complete for the reviewed production sections, but no separate staging project currently exercises RLS, evidence review, timeline triggers and interview transitions end to end.
-- Deployment configuration must define `SEED_SECRET`; `/api/seed` now returns `503` outside local development when the secret is missing.
+- The staging project is **confirmed** at `uwkigsomnkhwjcfrgdts` (per `docs/technical/STAGING_SETUP.md`), but it does not yet exercise RLS, evidence review, timeline triggers and interview transitions end to end; la matriz runtime en staging sigue pendiente de ejecución con fixtures.
+- ~~Deployment configuration must define `SEED_SECRET`; `/api/seed` now returns `503` outside local development when the secret is missing.~~ **[HISTORICAL — SUPERSEDED 2026-08-18]** **Decisión de release (2026-08-18): `/api/seed` queda fuera del release** — la implementación concurrente elimina la ruta de la aplicación (working tree, sin commitear); `SEED_SECRET` ya no se configura en ningún entorno y las cuentas demo se provisionan por proceso local/staging controlado. La exigencia original de configurar `SEED_SECRET` se conserva como trazabilidad histórica.
 - The current GitHub OAuth token lacks the `workflow` scope, so `git push origin main` is rejected while publishing `.github/workflows/ci.yml`.
 
 ## Technical Debt
 
 - `supabase/schema.sql`, `supabase/full_reset.sql` and older migrations still contain historical snapshot drift outside the current security sections. Migrations remain canonical.
-- The dependency tree previously reported 21 vulnerabilities; the 2026-08-05 release-readiness session re-measured the apps/web tree at 20 vulnerabilities (1 low, 9 moderate, 10 high) while the workspace root reports 0. They were not auto-fixed to avoid unplanned upgrades.
+- The dependency tree previously reported 21 vulnerabilities via `npm audit --prefix apps/web` (incluye dependencias opcionales; ver `docs/technical/STABILIZATION_RELEASE.md`); the 2026-08-05 release-readiness session re-measured the apps/web tree at 20 vulnerabilities (1 low, 9 moderate, 10 high) with `npm audit --omit=optional` while the workspace root reports 0. They were not auto-fixed to avoid unplanned upgrades.
 - `apps/web/src/app/profile/page.tsx` remains a large role-aware route and needs a separate decomposition effort.
 - There is no disposable Supabase integration test suite yet; current scripts are hermetic structural/domain checks.
 - Runtime Supabase smoke testing is now available as an opt-in manual workflow, but the free staging project, fixtures and GitHub environment secrets still need to be configured.
@@ -147,7 +199,7 @@ is already resolved.
 - The current Vercel integration reports one failed `uxui-sxfl` deployment while the primary `uxui` and `uxui-jad2` checks succeed; this appears to be an external project-specific deployment issue and requires Vercel access to diagnose.
 - Supabase Auth leaked-password protection remains disabled and requires a dashboard setting change: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
 - The student profile route remains large despite the persistence and actionable-anchor improvements; keep its decomposition separate from product UX changes.
-- Public self-registration temporarily sets `email_confirm = true` so users can log in immediately; restore email verification before production hardening.
+- Public self-registration temporarily sets `email_confirm = true` so users can log in immediately; restore email verification before production hardening. **[HISTORICAL (2026-08-05)]** — el working tree del release 2026-08-18 implementa el alcance revisado: `admin.auth.admin.createUser` con `email_confirm: true`, creación de perfiles y `{ success: true }` (login inmediato). **Decisión de release (2026-08-18, alcance revisado): email verification está FUERA del release** — no configurar ni exigir Email confirmations/SMTP en los gates (staging `uwkigsomnkhwjcfrgdts` y producción `eghskwwupruomiactvji`). La decisión previa de "email verification obligatoria (config manual)" queda superada. No hay guard fail-closed ni código pendiente de reconciliación.
 - Public registration is temporarily limited to Estudiante and Empresa; external client routes remain reserved and are not exposed by the signup form.
 
 ## Phase 0 Four-Persona Findings (2026-07-26)
@@ -189,7 +241,7 @@ is already resolved.
   - `apps/web/src/app/actions/auth.ts:26` — `registerAccount` (public registration).
   - `apps/web/src/app/actions/school.ts:58, 138, 185, 242, 351, 378, 443` — `createStudent`, `clearMustChangePassword`, `graduateStudent`, and four other school-side actions.
   - `apps/web/src/app/actions/company.ts:80, 146, 198, 276` — `updateApplicationStatus`, `updateApplicationStatusSA`, `createInternshipRequest`, `updateInternshipRequest`.
-  - `apps/web/src/app/api/seed/route.ts:64` — `POST /api/seed` (guarded by `SEED_SECRET`).
+  - `apps/web/src/app/api/seed/route.ts:64` — `POST /api/seed` (guarded by `SEED_SECRET`). **[HISTORICAL — ruta eliminada en el release 2026-08-18.]**
   - `apps/web/src/app/api/xp/route.ts:40` — `POST /api/xp` (rate-limited).
   - `apps/web/src/app/api/quests/progress/route.ts:34` — `POST /api/quests/progress` (rate-limited).
   - `apps/web/src/app/api/streak/touch/route.ts:18` — `POST /api/streak/touch` (rate-limited).
@@ -200,7 +252,7 @@ is already resolved.
 #### A.2 INFERENCES
 
 - The admin client is the only path to the Supabase Auth admin API (`auth.admin.createUser`, `auth.admin.updateUserById`, `auth.admin.deleteUser`) and to writes that depend on cross-row invariants (e.g. seeding the four demo accounts, posting a notification after a job-application update, awarding XP, incrementing quest progress, touching the streak). Every other write in the codebase that needs to bypass RLS goes through the same client.
-- The pattern is uniform across all four persona surfaces (auth, school, company, gamification) and across the API surface (chat, xp, quests, streak, seed). The only "special" users of the admin client are the public registration action and the seed endpoint, both of which require admin because they create or mutate auth users outside the caller's session.
+- The pattern is uniform across all four persona surfaces (auth, school, company, gamification) and across the API surface (chat, xp, quests, streak, seed). The only "special" users of the admin client are the public registration action and the seed endpoint, both of which require admin because they create or mutate auth users outside the caller's session. **[HISTORICAL (2026-08-05)]** — el seed endpoint fue eliminado en el release 2026-08-18; el inventario describe el árbol previo a esa fecha.
 - The split is **not yet documented** in `docs/architecture/SECURITY_MODEL.md`. A future docs pass can capture it; this docs pass does not.
 
 #### A.3 PENDIENTES
@@ -259,7 +311,7 @@ is already resolved.
 - `apps/web/src/app/api/chat/route.ts:127` (`runCompanyTool`) and `:232` (`runSchoolTool`) instantiate the admin client and use it to query `job_postings`, `job_applications`, `profiles`, `user_skills`, `internship_requests`.
 - The auth and profile resolution at the route handler (`:309–322`) uses the RLS client to validate `account_type ∈ {company, school}` and bind `orgId`.
 - `apps/web/src/app/api/chat/route.ts` does **not** import or call `rateLimit` (no matches for `rateLimit` anywhere in `apps/web/src/app/api/chat/`).
-- The route is gated by `ENABLE_AI_CHAT === "true"` (line 21) and the presence of `ANTHROPIC_API_KEY` (line 25); when either is missing, the route returns 503.
+- The route is gated by `ENABLE_AI_CHAT === "true"` (line 21) and the presence of `ANTHROPIC_API_KEY` (line 25); when either is missing, the route returns 503. **[RELEASE 2026-08-18]** — la ruta fue reescrita como stub hard-disabled que responde 503 sin flags ni credenciales; `ENABLE_AI_CHAT` / `NEXT_PUBLIC_ENABLE_AI_CHAT` y `ANTHROPIC_API_KEY` se retiraron de `.env.example` y ya no tienen consumidor en `apps/web/src` (el `env` de `next.config.js` sólo expone variables `NEXT_PUBLIC_*` y nunca los definió). El inventario describe el árbol previo a esa fecha.
 - The Anthropic tool loop is bounded by `MAX_ITERATIONS = 5` (line 362). The maximum history depth is `30` messages (line 341).
 
 #### D.2 INFERENCES
@@ -270,11 +322,11 @@ is already resolved.
 
 #### D.3 PENDIENTES
 
-- Add `rateLimit(...)` (or a stricter limiter) to `POST /api/chat` keyed by `user.id`, conditioned on `ENABLE_AI_CHAT === "true"`. The exact limit and window are not decided in this docs pass.
+- ~~Add `rateLimit(...)` (or a stricter limiter) to `POST /api/chat` keyed by `user.id`, conditioned on `ENABLE_AI_CHAT === "true"`.~~ **SUPERSEDED (2026-08-18):** la ruta es un stub 503 sin llamadas salientes ni flags; el rate limit sólo aplica si se reactiva AI Chat (reintroduciendo flags y credenciales). Se conserva como trazabilidad del hallazgo HIGH.
 - Keep the existing `MAX_ITERATIONS = 5` bound; tightening the per-session tool-loop budget is a separate decision.
 - Do not change code in this docs pass.
 
-### E. `/api/seed` — no automatic consumers; plaintext credentials in response
+### E. `/api/seed` — no automatic consumers; plaintext credentials in response [HISTORICAL — RUTA ELIMINADA EN EL RELEASE 2026-08-18]
 
 #### E.1 FACTS
 
@@ -310,6 +362,8 @@ is already resolved.
 
 #### E.3 PENDIENTES
 
+> **SUPERSEDED (2026-08-18):** la ruta `/api/seed` fue eliminada de la aplicación en el release; los pendientes siguientes quedan sin objeto salvo como trazabilidad del hallazgo HIGH.
+
 - Decide whether the response should return only account IDs (and not passwords) on success, and document the decision in `SECURITY_MODEL.md` and `RUNTIME_SECURITY_RUNBOOK.md`. The decision is not made in this docs pass.
 - Audit-log every successful `POST /api/seed` call (the previous handoff recommended this; the recommendation is preserved here).
 - Do not change code in this docs pass.
@@ -323,13 +377,13 @@ is already resolved.
   - `apps/web/src/app/api/xp/route.ts:25` — `key: \`xp:${user.id}\``, `limit: 30`, `windowMs: 60_000`.
   - `apps/web/src/app/api/quests/progress/route.ts:22` — `key: \`quest:${user.id}\``, `limit: 60`, `windowMs: 60_000`.
   - `apps/web/src/app/api/streak/touch/route.ts:15` — `key: \`streak:${user.id}\``, `limit: 10`, `windowMs: 60_000`.
-- `/api/chat`, `/api/seed`, `/api/health`, all `apps/web/src/app/actions/*` server actions, and the rest of the API surface are **not** covered by the in-memory limiter.
+- `/api/chat`, `/api/seed` (ruta eliminada en el release 2026-08-18), `/api/health`, all `apps/web/src/app/actions/*` server actions, and the rest of the API surface are **not** covered by the in-memory limiter.
 
 #### F.2 INFERENCES
 
 - The in-memory limiter only protects the three gamification endpoints (XP, quests, streak). It does not protect any other API route or server action.
 - The HIGH finding recorded in the previous handoff (`docs/workflow/HANDOFF.md` §8.1.b) — "in-memory rate limiter" — is **confirmed** by this inventory and applies to the three endpoints above only.
-- `/api/health` and `/api/seed` are intentionally not rate-limited (the seed endpoint is guarded by `SEED_SECRET`; the health endpoint is a no-op probe).
+- `/api/health` is intentionally not rate-limited (the health endpoint is a no-op probe). The former `/api/seed` was also intentionally not rate-limited (guarded by `SEED_SECRET`) — **[HISTORICAL]** la ruta fue eliminada en el release 2026-08-18.
 
 #### F.3 PENDIENTES
 

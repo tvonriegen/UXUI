@@ -1,12 +1,55 @@
 # TalentHub Workflow Status
 
-## Current Branch (2026-08-13)
+## Current State (2026-08-18) — release de estabilización
 
-> **Bloque canónico actual.** Los bloques con fecha anterior (2026-08-05 y previos) se
-> conservan como historial; las afirmaciones de estado de rama que contradigan este
-> bloque quedan superadas. Sólo se ejecutaron comandos git de lectura y `git diff --check`;
-> **no** se ejecutaron lint, typecheck, tests, build, `verify:*`, SQL ni migraciones en
-> esta sesión de documentación.
+> **Bloque canónico actual.** Los bloques con fecha anterior (2026-08-13 y previos) se conservan
+> como historial; las afirmaciones de rama/commit anteriores a este bloque quedan superadas por
+> él. Actualización de documentación operativa únicamente (release/rollback/staging); no se
+> ejecutaron lint, typecheck, tests, build, `verify:*`, SQL, migraciones ni llamadas remotas en
+> esta sesión. Verificado sólo con comandos git de lectura y `git diff --check`.
+
+- Rama: `main` (HEAD `d786527`, "Merge pull request #13"). El trabajo de release-readiness de
+  `stabilization/release-readiness` (HEAD `ef3b428`) **ya está fusionado en `main`** (`ef3b428`
+  y `be3ed9e` son ancestros de HEAD); el plan de promoción fast-forward del bloque 2026-08-13
+  quedó obsoleto. `main` local está **26 commits por delante de `origin/main`** (sin push).
+- Working tree: el trabajo sin commitear del bloque 2026-08-13 (10 archivos de dashboard
+  tolerante/logout, `package.json`, migración Storage `20260813000001`,
+  `scripts/verify-storage-migration.mjs`, `STORAGE_DRIFT_REPAIR.md`) ya está commiteado en
+  `main`.   **Atención:** una implementación concurrente del release (no esta sesión de docs)
+  tiene cambios de código **sin commitear** (registro público con `admin.auth.admin.createUser`
+  + `email_confirm: true` en `actions/auth.ts`, eliminación de
+  `/api/seed`, AI Chat desmontado, política de contraseña 12+ en `schemas.ts`, ajustes en
+  login/register y tests) más el nuevo `docs/technical/STABILIZATION_RELEASE.md`.
+- Entornos confirmados: staging Supabase `uwkigsomnkhwjcfrgdts`; producción Supabase
+  `eghskwwupruomiactvji`; Preview Vercel `https://uxui-jad2.vercel.app/`.
+- Decisiones de release confirmadas (owner de validación: **Product Owner**; ventana objetivo:
+  **2 horas**; alcance de email verification revisado 2026-08-18):
+  - **Email verification FUERA del release** — no configurar ni exigir Email confirmations/SMTP
+    en los gates (staging, producción, Preview). La decisión previa de "email verification
+    obligatoria (config manual en Supabase Auth)" queda superada y se conserva como historial.
+    El working tree ya implementa este alcance: `actions/auth.ts` usa
+    `admin.auth.admin.createUser` con `email_confirm: true`, crea perfiles y devuelve
+    `{ success: true }`; `/register` hace login automático y redirige al dashboard. No hay
+    código pendiente de reconciliación.
+  - **AI Chat fuera del release** — UI y endpoint hard-disabled (componente con
+    `aiEnabled = false`; `/api/chat` responde 503); no configurar flags ni credenciales
+    Anthropic en los entornos Vercel.
+  - **`/api/seed` fuera del release** — la implementación concurrente elimina la ruta; las
+    cuentas demo se provisionan por proceso local/staging controlado.
+- Gates identidad/organizaciones sin cambios (FASE 0 COMPLETE; ADR-004 Accepted; B1 documentary
+  READY; B2 / C / D BLOCKED).
+- Sigue pendiente (detalle en `NEXT_ACTIONS.md`): revisar/commitar la implementación concurrente
+  del release; push de `main` a `origin/main` con autorización; validación runtime en staging
+  con fixtures; matriz RLS; hallazgos de seguridad del handoff §8.1.b; triage de las 20
+  vulnerabilidades de `apps/web`; limpieza de la rama `stabilization/release-readiness` ya
+  fusionada.
+
+## Current Branch (2026-08-13) [HISTORICAL — SUPERSEDED BY 2026-08-18]
+
+> **Bloque histórico.** Superado por el bloque "Current State (2026-08-18)" de arriba: la rama
+> fue fusionada en `main` y el working tree quedó limpio en ese momento (los cambios sin
+> commitear de la implementación concurrente del release se describen en el bloque canónico de
+> arriba). Se conserva como trazabilidad.
 
 - Rama: `stabilization/release-readiness`.
 - HEAD: `ef3b428` (`feat: release readiness runtime tooling and contact security gate`) — **ya remoto**, local y `origin/stabilization/release-readiness` sincronizados (0 ahead / 0 behind). La rama tiene **10 commits sobre `main`** (cierre del perfil autenticado, gate Node 22, runtime tooling y gate de contacto, entre otros).
@@ -75,10 +118,10 @@
 - `npm run verify:release` (the 12 structural verifiers chained on top): OK.
 - `git diff --check`: OK on the pre-existing diff (trailing whitespace / conflict-marker clean).
 - `npm audit --omit=optional` at the workspace root: **0 vulnerabilities**.
-- `npm audit --omit=optional` inside `apps/web`: **20 vulnerabilities** (1 low, 9 moderate, 10 high). No critical. The previous handoff's "20 vulnerabilities" claim (originally 21 before the `supabase` dev-dep migration history) is preserved as the local `apps/web` number; the root number is now 0 because `supabase` is the only root dev-dependency and has no reported advisories.
+- `npm audit --omit=optional` inside `apps/web`: **20 vulnerabilities** (1 low, 9 moderate, 10 high). No critical. (La cifra de 21 reportada en `docs/technical/STABILIZATION_RELEASE.md` proviene de `npm audit --prefix apps/web`, sin `--omit=optional`; la diferencia es un hallazgo high en dependencias opcionales excluidas por el flag.) The workspace root reports **0 vulnerabilities** with `npm audit --omit=optional` because `supabase` is the only root dev-dependency and has no reported advisories.
 - MCP Supabase: `supabase_get_advisors(type=performance)` returned `{result:{lints:[]}}` (success, empty lint list). `supabase_get_advisors(type=security)`, `supabase_get_project_url`, `supabase_list_tables`, `supabase_list_migrations` and `supabase_list_extensions` all returned `Unauthorized` in this session. `supabase_execute_sql` was **not executed** in this session. The `HttpException: Connection terminated due to connection timeout` class reported in the previous handoff is preserved as a **historical** observation, not as the result of any of these calls in the current session — see "Open Contradictions (2026-08-05)" in `KNOWN_ISSUES.md`.
 - Playwright: **blocked**. `apps/web/.env.local` is absent; `playwright.config.ts` boots a local web server with `npm run dev -- --hostname 127.0.0.1 --port 3000` and the dev server requires `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`, so the webServer phase fails before any browser scenario runs. No Supabase URL / anon key in the local environment; provisioning them is part of Phase 2, not Phase 1.
-- Remote Supabase mutations: **not performed**. No staging fixtures created, no `RUNTIME_*` GitHub secrets configured, no manual `Runtime Security Smoke Tests` or `Runtime Supabase Smoke` triggers.
+- Remote Supabase mutations: **not performed**. No staging fixtures created, no `RUNTIME_*` GitHub secrets configured, no manual `S1 Runtime Profile Boundary` or `Runtime Supabase Smoke` triggers.
 
 ## Remote State
 
@@ -100,7 +143,11 @@
 - The free staging project is unprovisioned; the security review findings from the previous handoff remain open.
 - The `apps/web` dependency tree reports 20 vulnerabilities (1L/9M/10H); the workspace root reports 0. They were not auto-fixed to avoid unplanned upgrades.
 
-## Next Action (2026-08-13)
+## Next Action (2026-08-13) [HISTORICAL — SUPERSEDED BY 2026-08-18]
+
+> **Histórico.** El plan de promoción fast-forward de este bloque quedó superado: el trabajo
+> fue fusionado en `main` el 2026-08-18. El plan vigente es el del bloque "Current State
+> (2026-08-18)" al inicio de este archivo.
 
 > La lista previa de esta sección (2026-08-05) queda superada por el avance de la rama
 > (10 commits sobre `main`, incluidos el gate Node 22 y el cierre del perfil autenticado).

@@ -23,7 +23,7 @@ Use separate authenticated fixtures for Company A, Company B, School A, School B
 
 ## Current remote baseline
 
-The production database has the canonical identity, opportunities, proposal and internship mapping migrations applied. Public profile reads use the allowlisted projection, while authenticated compatibility reads on `profiles` remain broad during legacy migration. The runtime matrix is implemented in `scripts/verify-runtime-security.mjs` and runs through the manual `Runtime Security Smoke Tests` workflow. It requires isolated staging fixtures and is not considered passing until that workflow completes successfully.
+The production database has the canonical identity, opportunities, proposal and internship mapping migrations applied. Public profile reads use the allowlisted projection, while authenticated compatibility reads on `profiles` remain broad during legacy migration. The runtime matrix is implemented in `scripts/verify-runtime-security.mjs` and runs through the manual `S1 Runtime Profile Boundary` workflow. It requires isolated staging fixtures and is not considered passing until that workflow completes successfully.
 
 ## Runtime command
 

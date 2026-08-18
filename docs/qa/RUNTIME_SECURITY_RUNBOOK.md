@@ -53,7 +53,7 @@ The provisioning utility is intentionally not executed by this repository change
 
 ## GitHub Execution
 
-Use the manually triggered `Runtime Security Smoke Tests` workflow. Store only the anon-key and fixture credentials as GitHub Actions secrets. The workflow runs the S1 structural checks and `verify:runtime-profile-boundary`; it does not run S2 opportunity, proposal or feed verifiers.
+Use the manually triggered `S1 Runtime Profile Boundary` workflow (`.github/workflows/runtime-security.yml`). Store only the anon-key and fixture credentials as GitHub Actions secrets. The workflow runs the S1 structural checks and `verify:runtime-profile-boundary`; it does not run S2 opportunity, proposal or feed verifiers.
 
 ## Coverage
 

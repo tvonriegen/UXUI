@@ -1,8 +1,36 @@
 # Staging Setup
 
+## Confirmed Environments (2026-08-18)
+
+- **Staging (Supabase):** proyecto `TalentHub Staging`, ref **`uwkigsomnkhwjcfrgdts`**.
+- **Producción (Supabase):** ref **`eghskwwupruomiactvji`**.
+- **Preview (Vercel):** **`https://uxui-jad2.vercel.app/`**.
+
+Decisiones de release confirmadas (owner de validación: **Product Owner**; ventana objetivo:
+**2 horas**; alcance de email verification revisado 2026-08-18):
+
+- **Email verification FUERA del release.** No configurar ni exigir Email confirmations/SMTP en
+  los gates (staging `uwkigsomnkhwjcfrgdts`, producción `eghskwwupruomiactvji`, Preview
+  `https://uxui-jad2.vercel.app/`). La decisión previa de "email verification obligatoria
+  (config manual en Supabase Dashboard → Authentication → Providers → Email)" queda **superada**
+  y se conserva como trazabilidad histórica.
+  > **Contrato de registro (working tree, alineado con este alcance, sin código pendiente):**
+  > `apps/web/src/app/actions/auth.ts` usa `admin.auth.admin.createUser` con `email_confirm: true`
+  > (login inmediato), crea perfiles y devuelve `{ success: true }`; `/register` inicia sesión
+  > automáticamente y redirige al dashboard. No hay `signUp` de anon ni guard fail-closed que
+  > reconciliar.
+- **AI Chat fuera del release.** La UI y el endpoint están hard-disabled; no se requieren flags ni
+  credenciales Anthropic para este release.
+- **`/api/seed` fuera del release.** La implementación del release **elimina la ruta
+  `/api/seed`** de la aplicación (working tree 2026-08-18, sin commitear; `SEED_SECRET` deja de
+  ser necesario). Las cuentas demo se provisionan por un proceso local/staging explícitamente
+  controlado, nunca desde una ruta pública productiva.
+
 ## Recommended Environment
 
-Create a second Supabase project named `TalentHub Staging`. The current connected project is production and must never receive runtime fixtures.
+The second Supabase project named `TalentHub Staging` is **confirmed** at ref
+`uwkigsomnkhwjcfrgdts`. The current connected project is production (`eghskwwupruomiactvji`)
+and must never receive runtime fixtures.
 
 The Supabase Free plan provides two active projects per organization. A second free project is sufficient for the current smoke suite, with these operational limits:
 
@@ -16,7 +44,7 @@ Supabase Branching is not the free alternative: preview branches require Pro and
 
 ## Provisioning Order
 
-1. Create `TalentHub Staging` in the same organization, provided the organization has an available free-project slot.
+1. Create `TalentHub Staging` in the same organization, provided the organization has an available free-project slot. **DONE:** el proyecto está confirmado en `uwkigsomnkhwjcfrgdts` (los pasos siguientes se refieren a esa instancia).
 2. Keep the production project URL and keys out of staging configuration.
 3. Generate a schema baseline from the current production database without copying application data.
 4. Review the baseline against `supabase/migrations/` before applying it to staging.
@@ -28,7 +56,9 @@ The local migration directory is not a replayable copy of production history. Do
 
 ## Required S1 Fixtures
 
-S1 requires email-confirmed, active staging accounts for this fixed catalogue:
+S1 requires active staging accounts for this fixed catalogue (confirmadas por el provisionador
+vía API admin con `email_confirm: true` — confirmación operator-side, independiente de la
+configuración SMTP / Email confirmations del proyecto):
 
 - `StudentMinorA`: minor student linked to `SchoolA` (`age < 18`).
 - `StudentAdultA`: adult student linked to `SchoolA` (`age >= 18`).
@@ -48,7 +78,7 @@ After the S1 baseline and profile hotfix are applied to the confirmed disposable
 staging project, provision fixtures locally with:
 
 ```bash
-RUNTIME_SUPABASE_URL="https://<confirmed-staging-project>.supabase.co" \
+RUNTIME_SUPABASE_URL="https://uwkigsomnkhwjcfrgdts.supabase.co" \
 RUNTIME_SUPABASE_SERVICE_ROLE_KEY="<local-only-service-role-key>" \
 RUNTIME_SUPABASE_STAGING_CONFIRMATION=staging-only \
 node scripts/provision-runtime-profile-fixtures.mjs
@@ -114,9 +144,9 @@ deliberately not invoked here.
 
 ## Vercel Preview
 
-The Vercel project owner must configure the Preview environment to use the staging Supabase URL and anon key. `RUNTIME_APP_URL` must point to the resulting Preview URL when running the authenticated health check.
+The Vercel project owner must configure the Preview environment to use the staging Supabase URL (`https://uwkigsomnkhwjcfrgdts.supabase.co`) and its anon key. The confirmed Preview URL is `https://uxui-jad2.vercel.app/`; `RUNTIME_APP_URL` must point to it when running the authenticated health check.
 
-Production Vercel variables must continue to point to the production Supabase project and must not reuse staging credentials.
+Production Vercel variables must continue to point to the production Supabase project (`eghskwwupruomiactvji`) and must not reuse staging credentials. **No configurar `SEED_SECRET`**: `/api/seed` se elimina en el release (working tree 2026-08-18, sin commitear); las cuentas demo se provisionan por proceso local/staging controlado.
 
 ## Promotion Gate
 
@@ -125,8 +155,12 @@ Promote to production only after:
 - Static repository verification passes.
 - Lint, typecheck and production build pass.
 - All staging runtime workflows pass.
-- Vercel Preview login and `/api/health` checks pass.
+- Vercel Preview login and `/api/health` checks pass (Preview `https://uxui-jad2.vercel.app/`).
 - Production migration SQL has been reviewed separately.
+- Email verification está **fuera de este release** (alcance revisado 2026-08-18): no se
+  configura ni se exige Email confirmations/SMTP en los gates; la decisión previa de habilitar
+  confirmaciones manualmente en Supabase Auth quedó superada.
+- La validación final la realiza el **Product Owner** dentro de la **ventana objetivo de 2 horas**.
 
 References:
 
